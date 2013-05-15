@@ -57,6 +57,7 @@ unset($_SESSION['sm']);
 unset($_SESSION['sma']);
 unset($_SESSION['smv']);
 unset($_SESSION['s']);
+unset($_SESSION['_search_all']);
 unset($_SESSION['custom_count_sql']);
 unset($_SESSION['inactive_stu_filter']);
 unset($_SESSION['new_sql']);
@@ -346,7 +347,9 @@ if(optional_param('modfunc','',PARAM_SPCL)=='update' && $_POST)
 		//$_SESSION['student_id'] = $_REQUEST['student_id'];
         
 	}
-	echo "<script language=javascript>parent.body.location='".str_replace('&amp;','&',PreparePHP_SELF($_SESSION['_REQUEST_vars']))."';</script>";
+        $ses_modname['vars']['modname']='misc/Portal.php';
+        unset($_SESSION['_REQUEST_vars']);
+	echo "<script language=javascript>parent.body.location='".str_replace('&amp;','&',PreparePHP_SELF($ses_modname['vars']))."';</script>";
 }//---------------------------- Updaet End-------------------------------------------
 
 //if(!$_SESSION['UserSyear'])

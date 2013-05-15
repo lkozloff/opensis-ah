@@ -103,6 +103,114 @@ students_join_address
 			}
 
 		  }		
+                  if($a_ID != 0)
+                  {
+                      $flag=false;
+                      if($_REQUEST['same_addr']=='Y')
+			{
+                          
+                          $sql = "UPDATE address SET ";
+                         
+                          if($_REQUEST['values']['address']['ADDRESS'])
+                          {
+                              $sql .= 'MAIL_ADDRESS'."='".$_REQUEST['values']['address']['ADDRESS']."',";
+                              $flag=true;
+		}
+                          if($_REQUEST['values']['address']['STREET'])
+                          {
+                              $sql .= 'MAIL_STREET'."='".$_REQUEST['values']['address']['STREET']."',";
+                              $flag=true;
+                          }
+                          if($_REQUEST['values']['address']['CITY'])
+                          {
+                              $sql .= 'MAIL_CITY'."='".$_REQUEST['values']['address']['CITY']."',";
+                              $flag=true;
+                          }
+                          if($_REQUEST['values']['address']['STATE'])
+                          {
+                              $sql .= 'MAIL_STATE'."='".$_REQUEST['values']['address']['STATE']."',";
+                              $flag=true;
+                          }
+                          if($_REQUEST['values']['address']['ZIPCODE'])
+                          {
+                              $sql .= 'MAIL_ZIPCODE'."='".$_REQUEST['values']['address']['ZIPCODE']."',";
+                              $flag=true;
+                          }
+                          $sql = substr($sql,0,-1);
+                        $sql.=" WHERE STUDENT_ID='".UserStudentID()."'";
+                        if($flag)
+                            DBQuery($sql);
+
+			}
+			if($_REQUEST['prim_addr']=='Y')
+			{
+                            $sql = "UPDATE address SET ";
+                         
+                          if($_REQUEST['values']['address']['ADDRESS'])
+                          {
+                              $sql .= 'PRIM_ADDRESS'."='".$_REQUEST['values']['address']['ADDRESS']."',";
+                              $flag=true;
+                          }
+                          if($_REQUEST['values']['address']['STREET'])
+                          {
+                              $sql .= 'PRIM_STREET'."='".$_REQUEST['values']['address']['STREET']."',";
+                              $flag=true;
+                          }
+                          if($_REQUEST['values']['address']['CITY'])
+                          {
+                              $sql .= 'PRIM_CITY'."='".$_REQUEST['values']['address']['CITY']."',";
+                              $flag=true;
+                          }
+                          if($_REQUEST['values']['address']['STATE'])
+                          {
+                              $sql .= 'PRIM_STATE'."='".$_REQUEST['values']['address']['STATE']."',";
+                              $flag=true;
+                          }
+                          if($_REQUEST['values']['address']['ZIPCODE'])
+                          {
+                              $sql .= 'PRIM_ZIPCODE'."='".$_REQUEST['values']['address']['ZIPCODE']."',";
+                              $flag=true;
+                          }
+                          $sql = substr($sql,0,-1);
+                        $sql.=" WHERE STUDENT_ID='".UserStudentID()."'";
+                        if($flag)
+                            DBQuery($sql);
+			}
+			if($_REQUEST['sec_addr']=='Y')
+			{
+                            $sql = "UPDATE address SET ";
+                         
+                          if($_REQUEST['values']['address']['ADDRESS'])
+                          {
+                              $sql .= 'SEC_ADDRESS'."='".$_REQUEST['values']['address']['ADDRESS']."',";
+                              $flag=true;
+                          }
+                          if($_REQUEST['values']['address']['STREET'])
+                          {
+                              $sql .= 'SEC_STREET'."='".$_REQUEST['values']['address']['STREET']."',";
+                              $flag=true;
+                          }
+                          if($_REQUEST['values']['address']['CITY'])
+                          {
+                              $sql .= 'SEC_CITY'."='".$_REQUEST['values']['address']['CITY']."',";
+                              $flag=true;
+                          }
+                          if($_REQUEST['values']['address']['STATE'])
+                          {
+                              $sql .= 'SEC_STATE'."='".$_REQUEST['values']['address']['STATE']."',";
+                              $flag=true;
+                          }
+                          if($_REQUEST['values']['address']['ZIPCODE'])
+                          {
+                              $sql .= 'SEC_ZIPCODE'."='".$_REQUEST['values']['address']['ZIPCODE']."',";
+                              $flag=true;
+                          }
+                          $sql = substr($sql,0,-1);
+                        $sql.=" WHERE STUDENT_ID='".UserStudentID()."'";
+                        if($flag)
+                            DBQuery($sql);
+			}
+                  }
 		}
 		else
 		{
@@ -618,6 +726,8 @@ if ($_REQUEST['person_id']==$contact['PERSON_ID']) {
 			$a_ID=DBGet(DBQuery($query));
 			$a_ID=$a_ID[1]['ADDRESS_ID'];
 */			//if($_REQUEST['address_id']=='new')
+                        if($a_ID!=0)
+                            echo '<div id="check_addr"><input type="checkbox" id="same_addr" name="same_addr" value="Y">&nbsp;Same as Home Address &nbsp;</div><br>';
 			if($a_ID==0)
 			echo '<table><TR><TD><span class=red>*</span><input type="radio" id="r4" name="r4" value="Y" onClick="hidediv();" checked>&nbsp;Same as Home Address &nbsp;&nbsp; <input type="radio" id="r4" name="r4" value="N" onClick="showdiv();">&nbsp;Add New Address</TD></TR></TABLE>'; 
 			//if($_REQUEST['address_id']=='new')
@@ -661,6 +771,9 @@ if ($_REQUEST['person_id']==$contact['PERSON_ID']) {
 			else
 			echo '<tr><td colspan=5><div id="prim_hideShow">';
 			echo '<div class=break></div>';
+                         if($a_ID!=0)
+                            echo '<div id="check_addr"><input type="checkbox" id="prim_addr" name="prim_addr" value="Y">&nbsp;Same as Home Address &nbsp;</div><br>';
+                         
 			echo '<table><TR><td style=width:120px>Address Line 1</td><td>:</td><TD><table cellspacing=0 cellpadding=0><tr><td>'.TextInput($this_address['PRIM_ADDRESS'],'values[address][PRIM_ADDRESS]','','class=cell_medium').'</TD><td>';
 			//if($_REQUEST['address_id']!='new' && $_REQUEST['address_id']!='0')
 			if($a_ID!=0)
@@ -704,6 +817,9 @@ if ($_REQUEST['person_id']==$contact['PERSON_ID']) {
 			else
 			echo '<tr><td colspan=3><div id="sec_hideShow">';
 			echo '<div class=break></div>';
+                         if($a_ID!=0)
+                            echo '<div id="check_addr"><input type="checkbox" id="sec_addr" name="sec_addr" value="Y">&nbsp;Same as Home Address &nbsp;</div><br>';
+                         
 			echo '<table><TR><td style=width:120px>Address Line 1</td><td>:</td><TD><table cellspacing=0 cellpadding=0><tr><td>'.TextInput($this_address['SEC_ADDRESS'],'values[address][SEC_ADDRESS]','','class=cell_medium').'</TD><td>';
 			//if($_REQUEST['address_id']!='new' && $_REQUEST['address_id']!='0')
 			if($a_ID!=0)

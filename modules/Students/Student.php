@@ -281,7 +281,7 @@ if($_REQUEST['category_id']==3 && !isset($_REQUEST['address_id']))
 
 if($_REQUEST['category_id']==5 && !isset($_REQUEST['goal_id']))
 	{
-	$goal_id = DBGet(DBQuery("SELECT GOAL_ID,START_DATE,END_DATE FROM goal WHERE STUDENT_ID='".UserStudentID()."'"));
+	$goal_id = DBGet(DBQuery("SELECT GOAL_ID,START_DATE,END_DATE FROM goal WHERE STUDENT_ID='".UserStudentID()."' AND SYEAR='".UserSyear()."'"));
 	$goal_id = $goal_id[1]['GOAL_ID'];
 	if(count($goal_id)>0)
 	$_REQUEST['goal_id'] = $goal_id;
@@ -652,7 +652,7 @@ if($_REQUEST['stuid'])
 	}
 	if($_REQUEST['grade'])
 	{
-		$select .= " AND ssm.GRADE_ID = '".str_replace("'","\'",$_REQUEST[grade])."' ";
+		$select .= " AND ssm.GRADE_ID IN(SELECT id FROM school_gradelevels WHERE title= '".str_replace("'","\'",$_REQUEST[grade])."') ";
 		
 	}
 	if($_REQUEST['addr'])
@@ -796,7 +796,16 @@ $nv_date=$_REQUEST['nv_year'].'-'.$_REQUEST['nv_month'].'-'.$_REQUEST['nv_day'];
    if(User('PROFILE')=='admin')
 	{	
 	   $admin_COMMON_FROM=" FROM students s, address a,student_enrollment ssm ";
-	   $admin_COMMON_WHERE=" WHERE s.STUDENT_ID=ssm.STUDENT_ID  AND a.STUDENT_ID=s.STUDENT_ID AND ssm.SYEAR=".UserSyear()." AND ssm.SCHOOL_ID=".UserSchool()." ";
+           if($_REQUEST['_search_all_schools']=='Y' || $_SESSION['_search_all']==1)
+           {
+               if(User('SCHOOLS'))
+			$admin_COMMON_WHERE=" WHERE s.STUDENT_ID=ssm.STUDENT_ID  AND a.STUDENT_ID=s.STUDENT_ID AND ssm.SYEAR=".UserSyear()." AND ssm.SCHOOL_ID IN (".substr(str_replace(',',"','",User('SCHOOLS')),2,-2).") ";
+                $_SESSION['_search_all']=1;
+           }
+           else 
+           {
+                 $admin_COMMON_WHERE=" WHERE s.STUDENT_ID=ssm.STUDENT_ID  AND a.STUDENT_ID=s.STUDENT_ID AND ssm.SYEAR=".UserSyear()." AND ssm.SCHOOL_ID=".UserSchool()." ";
+           }
 	   if($_REQUEST['mp_comment'] || $_SESSION['smc'])
 		{
 			$admin_COMMON_FROM .=" ,student_mp_comments smc";
@@ -851,7 +860,17 @@ $nv_date=$_REQUEST['nv_year'].'-'.$_REQUEST['nv_month'].'-'.$_REQUEST['nv_day'];
 	schedule ss,address a ";
 	   $teacher_COMMON_WHERE=" WHERE a.STUDENT_ID=s.STUDENT_ID AND s.STUDENT_ID=ssm.STUDENT_ID AND ssm.STUDENT_ID=ss.STUDENT_ID AND ssm.SYEAR=cp.SYEAR AND ssm.SYEAR=ss.SYEAR AND cp.COURSE_ID=ss.COURSE_ID AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.MARKING_PERIOD_ID IN (".GetAllMP('',$queryMP).")
 						AND (cp.TEACHER_ID='".User('STAFF_ID')."' OR cp.SECONDARY_TEACHER_ID='".User('STAFF_ID')."') AND cp.COURSE_PERIOD_ID='".UserCoursePeriod()."' AND ssm.SYEAR=".UserSyear()." AND ssm.SCHOOL_ID=".UserSchool()." ";
-						
+		
+           if($_REQUEST['_search_all_schools']=='Y' || $_SESSION['_search_all']==1)
+           {
+               if(User('SCHOOLS'))
+			$teacher_COMMON_WHERE=" WHERE s.STUDENT_ID=ssm.STUDENT_ID  AND a.STUDENT_ID=s.STUDENT_ID AND ssm.SYEAR=".UserSyear()." AND ssm.SCHOOL_ID IN (".substr(str_replace(',',"','",User('SCHOOLS')),2,-2).") ";
+                $_SESSION['_search_all']=1;
+           }
+           else 
+           {
+                 $teacher_COMMON_WHERE=" WHERE s.STUDENT_ID=ssm.STUDENT_ID  AND a.STUDENT_ID=s.STUDENT_ID AND ssm.SYEAR=".UserSyear()." AND ssm.SCHOOL_ID=".UserSchool()." ";
+           }
 	   if($_REQUEST['mp_comment'] || $_SESSION['smc'])
 		{
 			$teacher_COMMON_FROM .=" ,student_mp_comments smc";
@@ -1028,7 +1047,6 @@ if(UserStudentID() || $_REQUEST['student_id']=='new')
 		
 		$s1_id=DBGet(DBQuery("SELECT s.STUDENT_ID ".$admin_COMMON.$_SESSION['s']." ".$_SESSION['custom_count_sql']." ORDER BY CONCAT(s.LAST_NAME, s.FIRST_NAME,s.STUDENT_ID) ASC LIMIT 1"));
 		$s2_id=DBGet(DBQuery("SELECT s.STUDENT_ID ".$admin_COMMON.$_SESSION['s']." ".$_SESSION['custom_count_sql']." ORDER BY CONCAT(s.LAST_NAME, s.FIRST_NAME,s.STUDENT_ID) DESC LIMIT 1"));
-		
 		$count_STU=DBGet(DBQuery("SELECT COUNT(LAST_NAME) AS STUDENT ".$admin_COMMON." AND CONCAT(LAST_NAME,FIRST_NAME,s.STUDENT_ID)<'".$ln."' AND LAST_NAME LIKE '".strtolower($_REQUEST['last'])."%'".$_SESSION['s']." ".$_SESSION['custom_count_sql']));
 		$count=$count_STU[1]['STUDENT'] + 1;
 		$total=DBGet(DBQuery("SELECT COUNT(s.STUDENT_ID) AS STUDENT_ID ".$admin_COMMON." ".$_SESSION['s']." ".$_SESSION['custom_count_sql']));
@@ -1059,7 +1077,7 @@ schedule ss
 		 if(User('PROFILE')=='admin' || User('PROFILE')=='teacher')
 		  {
 				echo "<div style='text-align:right; padding-left:10px;'><table width='100%' cellpadding='0' cellspacing='0'><tr><td align='right'>";
-				echo "<div style='margin-right:15px; font-weight:bold; font-size:14px;'>"."Showing ".$count." of ".$total[1]['STUDENT_ID']."</div>";
+				echo "<div style='margin-right:15px; font-weight:bold; font-size:14px;'>"."Showing ".$count." of ".$_SESSION['total_stu']."</div>";
 				echo "</td><td align='right' width='250px' style='padding-top:4px;'>";
                                 echo '<div style="margin-right:15px; margin-bottom:8px;">';
 				if($total[1]['STUDENT_ID']>1)

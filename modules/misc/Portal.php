@@ -66,10 +66,21 @@ switch (User('PROFILE'))
                         }
                     }
             }
-        $notes_RET = DBGet(DBQuery("SELECT s.TITLE AS SCHOOL,pn.PUBLISHED_DATE,CONCAT('<B>',pn.TITLE,'</B>') AS TITLE,pn.CONTENT FROM portal_notes pn,schools s,staff st WHERE pn.SYEAR='".UserSyear()."' AND pn.START_DATE<=CURRENT_DATE AND (pn.END_DATE>=CURRENT_DATE OR pn.END_DATE IS NULL) AND st.STAFF_ID='".User('STAFF_ID')."' AND (st.SCHOOLS IS NULL OR FIND_IN_SET(pn.SCHOOL_ID,st.SCHOOLS)>0) AND (st.PROFILE_ID IS NULL AND FIND_IN_SET('admin', pn.PUBLISHED_PROFILES)>0 OR st.PROFILE_ID IS NOT NULL AND FIND_IN_SET(st.PROFILE_ID,pn.PUBLISHED_PROFILES)>0) AND s.ID=pn.SCHOOL_ID ORDER BY pn.SORT_ORDER,pn.PUBLISHED_DATE DESC"),array('PUBLISHED_DATE'=>'ProperDate','CONTENT'=>'_nl2br'));
+          
+        $notes_RET = DBGet(DBQuery("SELECT pn.SCHOOL_ID AS SCHOOL,pn.PUBLISHED_DATE,CONCAT('<B>',pn.TITLE,'</B>') AS TITLE,pn.CONTENT FROM portal_notes pn,staff st WHERE pn.SYEAR='".UserSyear()."' AND pn.START_DATE<=CURRENT_DATE AND (pn.END_DATE>=CURRENT_DATE OR pn.END_DATE IS NULL) AND st.STAFF_ID='".User('STAFF_ID')."' AND (st.SCHOOLS IS NULL OR FIND_IN_SET(pn.SCHOOL_ID,st.SCHOOLS)>0 OR pn.SCHOOL_ID IS NULL) AND (st.PROFILE_ID IS NULL AND FIND_IN_SET('admin', pn.PUBLISHED_PROFILES)>0 OR st.PROFILE_ID IS NOT NULL AND FIND_IN_SET(st.PROFILE_ID,pn.PUBLISHED_PROFILES)>0) AND(pn.SCHOOL_ID='".UserSchool()."' OR pn.SCHOOL_ID IS NULL) ORDER BY pn.SORT_ORDER,pn.PUBLISHED_DATE DESC"),array('PUBLISHED_DATE'=>'ProperDate','CONTENT'=>'_nl2br'));
 
         if(count($notes_RET))
         {
+            foreach($notes_RET as $key=>$notes)
+            {
+                if($notes['SCHOOL']=='')
+                    $notes_RET[$key]['SCHOOL']='All School';
+                else
+                {
+                    $school=DBGet(DBQuery("SELECT TITLE FROM schools WHERE ID='".$notes['SCHOOL']."'"));
+                    $notes_RET[$key]['SCHOOL']=$school[1]['TITLE'];
+                }
+            }
             echo '<div>';
             ListOutput($notes_RET,array('PUBLISHED_DATE'=>'Date Posted','TITLE'=>'Title','CONTENT'=>'Note','SCHOOL'=>'School'),'Note','Notes',array(),array(),array('save'=>false,'search'=>false));
             echo '</div>';

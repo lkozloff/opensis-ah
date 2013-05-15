@@ -31,11 +31,14 @@ $menu['Users']['admin'] = array(
 						'Users/User.php&staff_id=new'=>'Add a User',
 						'Users/AddStudents.php'=>'Associate Students with Parents',
 						'Users/Preferences.php'=>'Preferences',
-						1=>'Setup',
+                                                1=>'Report',
+                                                'Users/UserAdvancedReport.php'=>'Advanced Report',
+						2=>'Setup',
 						'Users/Profiles.php'=>'Profiles',
 						'Users/Exceptions.php'=>'User Permissions',
 						'Users/UserFields.php'=>'User Fields',
-						2=>'Teacher Programs',
+						3=>'Teacher Programs',
+                                                
 					);
 
 $menu['Users']['teacher'] = array(

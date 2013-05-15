@@ -257,7 +257,32 @@ if($_REQUEST['modfunc']=='detail')
                                                             $sql .= $column.'="'.str_replace("","",trim($value)).'",';
                                                             $go=true;
                                                     }
-                                                    $sql = substr($sql,0,-1) . " WHERE ID='$_REQUEST[event_id]'";
+                                                    $sql = substr($sql,0,-1);
+                                                    if(!$_REQUEST['values'])
+                                                    {
+                                                        if($_REQUEST['show_all']=='Y')
+                                                        {
+                                                            $sql.=" CALENDAR_ID='0'";
+                                                            $go=true;
+                                                        }
+                                                        if(isset($_REQUEST['show_all']) && $_REQUEST['show_all']!='Y')
+                                                        {
+                                                            $sql.=" CALENDAR_ID='$_REQUEST[calendar_id]'";
+                                                            $go=true;
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if($_REQUEST['show_all']=='Y')
+                                                        {
+                                                            $sql.=",CALENDAR_ID='0'";
+                                                        }
+                                                        if(isset($_REQUEST['show_all']) && $_REQUEST['show_all']!='Y')
+                                                        {
+                                                            $sql.=" CALENDAR_ID='$_REQUEST[calendar_id]'";
+                                                        }
+                                                    }
+                                                    $sql.= " WHERE ID='$_REQUEST[event_id]'";
                                                     if($go)
                                                     DBQuery($sql);
                                             }
@@ -267,9 +292,12 @@ if($_REQUEST['modfunc']=='detail')
                                                     $_REQUEST['values']['SCHOOL_DATE'] = $_REQUEST['dd'];
 
                                                     $sql = "INSERT INTO calendar_events ";
-
+                                                    if($_REQUEST['show_all']=='Y')
+                                                        $cal_id='0';
+                                                    else
+                                                        $cal_id=$_REQUEST['calendar_id'];
                                                     $fields = 'SYEAR,SCHOOL_ID,CALENDAR_ID,';
-                                                    $values = "'".UserSyear()."','".UserSchool()."','".$_REQUEST['calendar_id']."',";
+                                                    $values = "'".UserSyear()."','".UserSchool()."','".$cal_id."',";
 
                                                     foreach($_REQUEST['values'] as $column=>$value)
                                                     {
@@ -292,11 +320,12 @@ if($_REQUEST['modfunc']=='detail')
 
                                                     if($go)
                                                         DBQuery($sql);
-                                                    
                                             }
+                                                    
                                             echo '<SCRIPT language=javascript>opener.document.location = "Modules.php?modname='.$_REQUEST['modname'].'&year='.$_REQUEST['year'].'&month='.MonthNWSwitch($_REQUEST['month'],'tochar').'"; window.close();</script>'; 
                                             unset($_REQUEST['values']);
                                             unset($_SESSION['_REQUEST_vars']['values']);
+
                                     }
 
 			echo '<SCRIPT language=javascript> window.close();</script>';
@@ -319,13 +348,14 @@ if($_REQUEST['modfunc']=='detail')
 		{
 			if($_REQUEST['event_id']!='new')
 			{
-				$RET = DBGet(DBQuery("SELECT TITLE,DESCRIPTION,SCHOOL_DATE FROM calendar_events WHERE ID='$_REQUEST[event_id]'"));
+				$RET = DBGet(DBQuery("SELECT TITLE,DESCRIPTION,SCHOOL_DATE,CALENDAR_ID FROM calendar_events WHERE ID='$_REQUEST[event_id]'"));
 				$title = $RET[1]['TITLE'];
 			}
 			else
 			{
 				$title = 'New Event';
 				$RET[1]['SCHOOL_DATE'] = date('Y-m-d',strtotime($_REQUEST['school_date']));
+                                $RET[1]['CALENDAR_ID']='';
 			}
 			echo "<FORM name=popform id=popform action=for_window.php?modname=$_REQUEST[modname]&dd=$_REQUEST[school_date]&modfunc=detail&event_id=$_REQUEST[event_id]&calendar_id=$_REQUEST[calendar_id]&month=$_REQUEST[month]&year=$_REQUEST[year] METHOD=POST>";
 		}
@@ -348,9 +378,10 @@ if($_REQUEST['modfunc']=='detail')
                 echo '<TR><TD>Assigned Date</TD><TD>'.TextAreaInput($RET[1]['ASSIGNED_DATE'],'values[ASSIGNED_DATE]').'</TD></TR>';
                 if($RET[1]['DUE_DATE'])
                 echo '<TR><TD>Due Date </TD><TD>'.TextAreaInput($RET[1]['DUE_DATE'],'values[DUE_DATE]').'</TD></TR>';
-		echo '<TR><TD>Notes</TD><TD>'.TextAreaInput($RET[1]['DESCRIPTION'],'values[DESCRIPTION]','','style=width:380px;height:200px;').'</TD></TR>';
+		echo '<TR><TD>Notes</TD><TD>'.TextAreaInput($RET[1]['DESCRIPTION'],'values[DESCRIPTION]','','style=width:380px;height:200px;').'';
 		if(AllowEdit())
 		{
+                        echo '<TR><TD>Show Events System Wide</TD><TD align=center>'. _makeCheckBoxInput($RET[1]['CALENDAR_ID'],$_REQUEST['event_id']).'</TD></TR>';
 			echo '<TR><TD colspan=2 align=center><INPUT type=submit class=btn_medium name=button value=Save onclick="formload_ajax(\'popform\');">';
 			echo '&nbsp;';
 			if($_REQUEST['event_id']!='new')
@@ -406,7 +437,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='list_events')
 	DrawHeaderHome(PrepareDateSchedule($start_date,'_start').' <div style="float:left;">&nbsp;-&nbsp;</div> '.PrepareDateSchedule($end_date,'_end').' <div style="float:left; padding-left:5px; padding-top:2px;"><A HREF=Modules.php?modname='.$_REQUEST['modname'].'&calendar_id='.$_REQUEST['calendar_id'].'&month='.$_REQUEST['month'].'&year='.$_REQUEST['year'].'>Back to Calendar</A></div>','<div style="float:left;"><INPUT type=submit class=btn_medium value=Go></div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="for_export.php?modname=School_Setup/Calendar.php&modfunc=print&_openSIS_PDF=true" target=_blank ><img src="assets/print.png" alt="Print" title="Print" /> Print</a>');
 	
 	$functions = array('SCHOOL_DATE'=>'ProperDate');									// <A HREF=Modules.php?modname='.$_REQUEST["modname"].'&month='.$_REQUEST["month"].'&year='.$_REQUEST["year"].'>
-	$events_RET = DBGet(DBQuery("SELECT ID,SCHOOL_DATE,TITLE,DESCRIPTION FROM calendar_events WHERE SCHOOL_DATE BETWEEN '".$start_date."' AND '".$end_date."' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND calendar_id='".$_REQUEST['calendar_id']."' ORDER BY SCHOOL_DATE DESC"),$functions);
+	$events_RET = DBGet(DBQuery("SELECT ID,SCHOOL_DATE,TITLE,DESCRIPTION FROM calendar_events WHERE SCHOOL_DATE BETWEEN '".$start_date."' AND '".$end_date."' AND SYEAR='".UserSyear()."'  AND (calendar_id='".$_REQUEST['calendar_id']."' OR calendar_id='0') ORDER BY SCHOOL_DATE DESC"),$functions);
 	$_SESSION['events_RET']=$events_RET;
 
 #echo "<a href=\"for_export.php?modname=$_REQUEST[modname]&modfunc=print&_openSIS_PDF=true\" target=_blank ><img src=\"assets/print_new.png\" alt=\"Print\" title=\"Print\" /></a>";
@@ -448,6 +479,7 @@ if(!$_REQUEST['modfunc'])
 		unset($_REQUEST['minutes']);
 		unset($_SESSION['_REQUEST_vars']['minutes']);
 	}
+       
 	if($_REQUEST['all_day'])
 	{
 		foreach($_REQUEST['all_day'] as $date=>$yes)
@@ -461,8 +493,23 @@ if(!$_REQUEST['modfunc'])
                                                                                       //    UpdateMissingAttendanceByDate($date);
 			}
 			}
-			else{
+			else
+                        {
+                            $get_date=  DBGet(DBQuery("SELECT COUNT(SCHOOL_DATE) AS SCHOOL_DATE FROM attendance_completed WHERE SCHOOL_DATE='$date'"));
+                            if($_REQUEST['show_all'][$date]=='Y')
+                            {
+                                if($get_date[1]['SCHOOL_DATE']==0)
+                                    DBQuery("DELETE FROM attendance_calendar WHERE SCHOOL_DATE='$date' AND SYEAR='".UserSyear()."'");
+                                else
+                                    echo '<font color=red><b>Selected Day has association</b></font>';
+                            }
+                            else
+                            {
+                                if($get_date[1]['SCHOOL_DATE']==0)
 				DBQuery("DELETE FROM attendance_calendar WHERE SCHOOL_DATE='$date' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND CALENDAR_ID='".$_REQUEST['calendar_id']."'");
+                                else
+                                    echo '<font color=red><b>Selected Day has association</b></font>';
+                            }
                                                                         //DeleteMissingAttendanceByDate($_REQUEST['calendar_id'],$date);
 		}
 		}
@@ -515,7 +562,7 @@ if(!$_REQUEST['modfunc'])
 	}
 	echo '<BR>';
 
-	$events_RET = DBGet(DBQuery("SELECT ID,DATE_FORMAT(SCHOOL_DATE,'%d-%b-%y') AS SCHOOL_DATE,TITLE FROM calendar_events WHERE SCHOOL_DATE BETWEEN '".date('Y-m-d',$time)."' AND '".date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year']))."' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND calendar_id='".$_REQUEST['calendar_id']."'"),array(),array('SCHOOL_DATE'));
+	$events_RET = DBGet(DBQuery("SELECT ID,DATE_FORMAT(SCHOOL_DATE,'%d-%b-%y') AS SCHOOL_DATE,TITLE FROM calendar_events WHERE SCHOOL_DATE BETWEEN '".date('Y-m-d',$time)."' AND '".date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year']))."' AND SYEAR='".UserSyear()."' AND (calendar_id='".$_REQUEST['calendar_id']."' OR calendar_id='0')"),array(),array('SCHOOL_DATE'));
 	if(User('PROFILE')=='parent' || User('PROFILE')=='student')
 		#$assignments_RET = DBGet(DBQuery("SELECT ASSIGNMENT_ID AS ID,DATE_FORMAT(a.DUE_DATE,'%d-%b-%y') AS SCHOOL_DATE,a.TITLE,'Y' AS ASSIGNED FROM gradebook_assignments a,schedule s WHERE (a.COURSE_PERIOD_ID=s.COURSE_PERIOD_ID OR a.COURSE_ID=s.COURSE_ID) AND s.STUDENT_ID='".UserStudentID()."' AND (a.DUE_DATE BETWEEN s.START_DATE AND s.END_DATE OR s.END_DATE IS NULL) AND (a.ASSIGNED_DATE<=CURRENT_DATE OR a.ASSIGNED_DATE IS NULL) AND a.DUE_DATE BETWEEN '".date('Y-m-d',$time)."' AND '".date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year']))."'"),array(),array('SCHOOL_DATE'));
 	$assignments_RET = DBGet(DBQuery("SELECT ASSIGNMENT_ID AS ID,DATE_FORMAT(a.DUE_DATE,'%d-%b-%y') AS SCHOOL_DATE,a.TITLE,'Y' AS ASSIGNED FROM gradebook_assignments a,schedule s WHERE (a.COURSE_PERIOD_ID=s.COURSE_PERIOD_ID OR a.COURSE_ID=s.COURSE_ID) AND s.STUDENT_ID='".UserStudentID()."' AND s.DROPPED!='Y' AND (CURRENT_DATE>=a.ASSIGNED_DATE OR CURRENT_DATE<=a.ASSIGNED_DATE) AND (a.DUE_DATE IS NULL OR CURRENT_DATE<=a.DUE_DATE) "),array(),array('SCHOOL_DATE'));
@@ -523,7 +570,6 @@ if(!$_REQUEST['modfunc'])
 		$assignments_RET = DBGet(DBQuery("SELECT ASSIGNMENT_ID AS ID,DATE_FORMAT(a.DUE_DATE,'%d-%b-%y') AS SCHOOL_DATE,a.TITLE,CASE WHEN a.ASSIGNED_DATE<=CURRENT_DATE OR a.ASSIGNED_DATE IS NULL THEN 'Y' ELSE NULL END AS ASSIGNED FROM gradebook_assignments a WHERE a.STAFF_ID='".User('STAFF_ID')."' AND a.DUE_DATE BETWEEN '".date('Y-m-d',$time)."' AND '".date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year']))."'"),array(),array('SCHOOL_DATE'));
 
 	$skip = date("w",$time);
-
 	echo "<CENTER><TABLE border=0 cellpadding=0 cellspacing=0 class=pixel_border><TR><TD>";
 	echo "<TABLE border=0 cellpadding=3 cellspacing=1><TR class=calendar_header align=center>";
 	echo "<TD class=white>Sunday</TD><TD class=white>Monday</TD><TD class=white>Tuesday</TD><TD class=white>Wednesday</TD><TD class=white>Thursday</TD><TD class=white>Friday</TD><TD width=99 class=white>Saturday</TD>";
@@ -539,15 +585,14 @@ if(!$_REQUEST['modfunc'])
 	{
 		$day_time = mktime(0,0,0,$_REQUEST['month'],$i,$_REQUEST['year']);
 		$date = date('d-M-y',$day_time);
-
 		echo "<TD width=100 class=".($calendar_RET[$date][1]['MINUTES']?$calendar_RET[$date][1]['MINUTES']=='999'?'calendar_active':'calendar_extra':'calendar_holiday')." valign=top><table width=100><tr><td width=5 valign=top>$i</td><td width=95 align=right>";
 		if(AllowEdit())
 		{
 			if($calendar_RET[$date][1]['MINUTES']=='999')
-				echo '<TABLE cellpadding=0 cellspacing=0 ><TR><TD>'.CheckboxInput($calendar_RET[$date],"all_day[$date]",'','',false,'<IMG SRC=assets/check.gif> ').'</TD></TR></TABLE>';
+				echo '<TABLE cellpadding=0 cellspacing=0 ><TR><TD><div id=syswide_holi_'.$i.' style=display:none><span>System Wide </span><INPUT type=checkbox name=show_all['.$date.'] value=Y></div></TD><TD>'.CheckboxInput_Calendar($calendar_RET[$date],"all_day[$date]",'','',false,'<IMG SRC=assets/check.gif> ','',true,'id=all_day_'.$i.' onclick="return system_wide('.$i.');"').'</TD></TR></TABLE>';
 			else
 			{
-				echo "<TABLE cellpadding=0 cellspacing=0 ><TR><TD><INPUT type=checkbox name=all_day[$date] value=Y></TD>";
+				echo "<TABLE cellpadding=0 cellspacing=0 ><TR><TD><div id=syswide_holi_$i style=display:none><span>System Wide </span><INPUT type=checkbox name=show_all[$date] value=Y></div></TD><TD><INPUT type=checkbox name=all_day[$date] value=Y id=all_day_$i onclick='return system_wide($i);'></TD>";
 				echo '<TD>'.TextInput($calendar_RET[$date][1]['MINUTES'],"minutes[$date]",'','size=3 class=cell_small onkeydown="return numberOnly(event);"').'</TD></TR></TABLE>';
 			}
 		}
@@ -630,5 +675,18 @@ function calendarEventsVisibility()
 	$return .= '</TABLE>';
 	$return .= '</TD></TR></TABLE>';
 	return $return;
+}
+function _makeCheckBoxInput($value,$eve_stat)
+{
+    if($value)
+        $val='';
+    else
+    {
+        if($eve_stat=='new')
+            $val='';
+        else
+        $val=1;
+    }
+    return CheckboxInput($val,"show_all",'','',false,'<IMG SRC=assets/check.gif>','<IMG SRC=assets/x.gif>');
 }
 ?>

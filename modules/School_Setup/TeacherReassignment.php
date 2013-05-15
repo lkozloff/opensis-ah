@@ -77,6 +77,8 @@ if (clean_param($_REQUEST['re_assignment_teacher'], PARAM_NOTAGS) && ($_POST['re
             
             if($_REQUEST['day_re_assignment'] && $_REQUEST['month_re_assignment'] && $_REQUEST['year_re_assignment'])
                        $assign_date = date('Y-m-d',strtotime($_REQUEST['day_re_assignment'].'-'.$_REQUEST['month_re_assignment'].'-'.substr($_REQUEST['year_re_assignment'],2,4)));
+            if($_REQUEST['day_re_assignment']!='' && $_REQUEST['month_re_assignment']!='' && $_REQUEST['year_re_assignment']!='')
+            {
              if(strtotime($assign_date)>=strtotime(date('Y-m-d')))
              {
                     if(scheduleAssociation($id))
@@ -103,8 +105,13 @@ if (clean_param($_REQUEST['re_assignment_teacher'], PARAM_NOTAGS) && ($_POST['re
              }
              else
              {
-                 ShowErrPhp('Assign date cannot not be previous date');
+                 ShowErrPhp('Assigned date cannot be lesser than today\'s date');
              }
+            }
+            else 
+            {
+                ShowErrPhp('Please enter proper date');
+            }
 
 }
 

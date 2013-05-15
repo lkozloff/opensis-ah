@@ -99,15 +99,14 @@ if(clean_param($_REQUEST['action'],PARAM_ALPHAMOD) == 'delete_goal')
 if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUEST['ajax']) && AllowEdit())
 {
 	$where = array('goal'=>'GOAL_ID',
-					'progress'=>'PROGRESS_ID',
-					'course_periods'=>'COURSE_PERIOD_ID');
+			'progress'=>'PROGRESS_ID',
+			'course_periods'=>'COURSE_PERIOD_ID');
 	foreach($_REQUEST['tables'] as $table_name=>$tables)
-	{
+	{ 
 		foreach($tables as $id=>$columns)
 		{
 			if($id!='new' && $i==0)
 			{
-			
 				if(is_numeric($table_name))
 				{
 					if($tabl == 'goal')
@@ -129,28 +128,29 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 						$row_s_date = mysql_fetch_array($res_s_date);
                                 }
 if((strtotime($start_date)>=strtotime($end_date) && $start_date!="" && $end_date!="") || (strtotime($row_s_date['START_DATE'])>=strtotime($end_date) && $row_s_date['START_DATE']!="" && $end_date!="") || (strtotime($start_date)>=strtotime($row_s_date['END_DATE']) && $start_date!="" && $row_s_date['END_DATE']!="") || (strtotime($row_s_date['START_DATE'])>=strtotime($row_s_date['END_DATE']) && $row_s_date['START_DATE']!="" && $row_s_date['END_DATE']!=""))
-
-                                                            {
+{
     ShowErr('Data not saved because start and end date is not valid');
-                                                            }
+}
 else
 {
+    if(!is_numeric($table_name))
+    {
+            $sql = "UPDATE $table_name SET ";
+    }
+    if($_REQUEST['tables'][$id]['START_DATE']!='')
+    {
+            $sql.= "START_DATE='".str_replace("'", "\'",$_REQUEST['tables'][$id]['START_DATE'])."',";
+    }
+    if(!is_numeric($table_name))
+    { 
+            foreach($columns as $column=>$value)
+            { 
+                    $value=paramlib_validation($column,$value);
+                    #$sql.= $column."='".str_replace("\'","''",$value)."',";		// Windows
 
-				if(!is_numeric($table_name))
-				{
-					$sql = "UPDATE $table_name SET ";
-				}
-				
-			if(!is_numeric($table_name))
-			{
-				foreach($columns as $column=>$value)
-				{ 
-                                        $value=paramlib_validation($column,$value);
-					#$sql.= $column."='".str_replace("\'","''",$value)."',";		// Windows
-					
-					$sql.= $column."='".str_replace("'", "\'",$value)."',";		// linux
-				}
-			}
+                    $sql.= $column."='".str_replace("'", "\'",$value)."',";		// linux
+            }
+    }
 			
 			############################### Date Update Start #################################
 			
@@ -425,7 +425,7 @@ $edit_per_prnt = DBGet(DBQuery("SELECT CAN_EDIT FROM profile_exceptions WHERE MO
 			{
 				$sql = "SELECT GOAL_TITLE,START_DATE,END_DATE,GOAL_DESCRIPTION
 						FROM goal
-						WHERE GOAL_ID='$_REQUEST[goal_id]'";
+						WHERE GOAL_ID='$_REQUEST[goal_id]' and SYEAR='".UserSyear()."'";
 				$QI = DBQuery($sql);
 				$RET = DBGet($QI);
 				$RET = $RET[1];
@@ -478,7 +478,7 @@ $edit_per_prnt = DBGet(DBQuery("SELECT CAN_EDIT FROM profile_exceptions WHERE MO
 			
 			
 			$header .= '<TR>';
-			$header .= '<TD>Goal Title</TD><TD>' . TextInput($RET['GOAL_TITLE'],'tables[goal]['.$_REQUEST['goal_id'].'][GOAL_TITLE]','','size=75 maxlength=50') . '</TD>';
+			$header .= '<TD>Goal Title </TD><TD>' . TextInput($RET['GOAL_TITLE'],'tables[goal]['.$_REQUEST['goal_id'].'][GOAL_TITLE]','','size=75 maxlength=50') . '</TD>';
 			$header .= '</TR>';
 			$header .= '<TR>';
 			$header .= '<TD>Begin Date</TD><TD>' . DateInput($RET['START_DATE'],'tables['.$_REQUEST['goal_id'].'][START_DATE]','') . '</TD>'; // DateInput is copied from School_Setup/MarkingPeriods.php line 295
@@ -528,9 +528,11 @@ $edit_per_prnt = DBGet(DBQuery("SELECT CAN_EDIT FROM profile_exceptions WHERE MO
 	echo '</TD>';
 
 	if($_REQUEST['goal_id'] && $_REQUEST['goal_id']!='new')
-	{
+	{       
+                $sql_goal =DBQuery( "SELECT GOAL_ID FROM goal WHERE GOAL_ID='$_REQUEST[goal_id]' and SYEAR='".UserSyear()."'");
+                $sql_goal_fetch=mysql_fetch_array($sql_goal);
 		#$sql = "SELECT PROGRESS_ID,PROGRESS_NAME FROM progress WHERE GOAL_ID='$_REQUEST[goal_id]' AND STUDENT_ID=".UserStudentID()." ORDER BY PROGRESS_NAME";
-		$sql = "SELECT PROGRESS_ID,PROGRESS_NAME FROM progress WHERE GOAL_ID='$_REQUEST[goal_id]' AND STUDENT_ID=".UserStudentID()." ORDER BY START_DATE DESC";
+		$sql = "SELECT PROGRESS_ID,PROGRESS_NAME FROM progress WHERE GOAL_ID='".$sql_goal_fetch['GOAL_ID']."' AND STUDENT_ID=".UserStudentID()." ORDER BY START_DATE DESC";
 		$QI = DBQuery($sql);
 		$courses_RET = DBGet($QI);
 

@@ -40,13 +40,57 @@ Search('student_id',$extra);
 }
 ####################
 
+/////For deleting schedule
+if($_REQUEST['del']=='true')
+{   
+    $association_query_reportcard=DBQuery("Select * from  student_report_card_grades where student_id='".UserStudentId() ."' and course_period_id='".$_REQUEST['cp_id']."' ");
+    $association_query_grade=DBQuery("Select * from gradebook_grades where student_id='".UserStudentId() ."' and course_period_id='".$_REQUEST['cp_id']."' "); 
+    $association_query_attendance=DBQuery("Select * from attendance_period where student_id='".UserStudentId() ."' and course_period_id='".$_REQUEST['cp_id']."' "); 
+    $schedule_data=  DBGet(DBQuery("Select * from schedule where student_id='".UserStudentId() ."' and course_period_id='".$_REQUEST['cp_id']."' and syear =".  UserSyear()." ")); 
+    
+    if(mysql_num_rows($association_query_grade)>0 || mysql_num_rows($association_query_attendance)>0 || mysql_num_rows($association_query_reportcard)>0)
+    {
+    UnableDeletePrompt('Cannot delete because records are associated.');  
+    #DBQuery("Delete from schedule where student_id='".UserStudentId() ."' and course_id=");
+    unset($_REQUEST['del']);
+    unset($_REQUEST['c_id']);
+    #header("location:Modules.php?modname=Scheduling/Schedule.php");
+    }
+    else 
+    {   
+        
+        if(DeletePromptMod('schedule'))
+        {
+        $seat_query=DBQuery("SELECT FILLED_SEATS FROM course_periods WHERE COURSE_ID='".$_REQUEST['c_id']."' AND COURSE_PERIOD_ID='".$_REQUEST['cp_id']."' ");
+        $seat_fetch=DBGet($seat_query);
+        $seat_fill=$seat_fetch[1]['FILLED_SEATS']-1;
+        DBQuery("Delete from schedule where student_id='".UserStudentId() ."' and course_period_id='".$_REQUEST['cp_id']."' and course_id='".$_REQUEST['c_id']."' and id='".$_REQUEST['schedule_id']."'");
+        DBQuery("Update course_periods set filled_seats='".$seat_fill."' where course_id='".$_REQUEST['c_id']."' and course_period_id='".$_REQUEST['cp_id']."' ");
+        unset($_REQUEST['del']);
+        unset($_REQUEST['c_id']);
+        unset($_REQUEST['cp_id']);
+        #header("location:Modules.php?modname=Scheduling/Schedule.php?student_id='".UserStudentId()."'");
+        echo "<script>window.location.href='Modules.php?modname=Scheduling/Schedule.php'</script>";
+        }
+        unset($_REQUEST['del']);
+        unset($_REQUEST['c_id']);
+        //header("location:Modules.php?modname=Scheduling/Schedule.php");
+         
+    }
+ 
+  #echo header("location:Modules.php?modname=Scheduling/Schedule.php?student_id='".UserStudentId()."'");
+}
+
+else
+{
+  
 if(isset($_REQUEST['student_id']) )
 {
 	$RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME,MIDDLE_NAME,NAME_SUFFIX,SCHOOL_ID FROM students,student_enrollment WHERE students.STUDENT_ID='".$_REQUEST['student_id']."' AND student_enrollment.STUDENT_ID = students.STUDENT_ID "));
 	//$_SESSION['UserSchool'] = $RET[1]['SCHOOL_ID'];
         $count_student_RET=DBGet(DBQuery("SELECT COUNT(*) AS NUM FROM students"));
         if($count_student_RET[1]['NUM']>1){
-	DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Students/Student.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
+	DrawHeaderHome( 'Selected Student:'.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Students/Student.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
 	//DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname=Scheduling/Schedule.php&search_modfunc=list&next_modname=Scheduling/Schedule.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
 
 
@@ -107,28 +151,140 @@ if($_REQUEST['month_schedule'] && ($_POST['month_schedule']||$_REQUEST['ajax']))
 }
 
 if($_REQUEST['schedule'] && ($_POST['schedule'] || $_REQUEST['ajax']))
-{
+{       
+# print_r($_REQUEST['schedule']);
+
 	foreach($_REQUEST['schedule'] as $course_period_id=>$start_dates){
 	foreach($start_dates as $start_date=>$columns)
-	{
+	{ 
        	$sql = "UPDATE schedule SET ";
-		foreach($columns as $column=>$value)
-		{
-                 $value= paramlib_validation($column,$value);
+                foreach($columns as $column=>$value)
+		{   
+                    $edt_qry=DBGet(DBQuery("SELECT START_DATE,END_DATE FROM schedule WHERE STUDENT_ID='".UserStudentID()."' AND COURSE_PERIOD_ID='".$course_period_id."'"));
+                    #$edt_fetch=mysql_fetch_array($edt_qry);
+                    $edt_fetch_start_t=strtotime($edt_qry[1]['START_DATE']);
+                 $edt_fetch_end_t=strtotime($edt_qry[1]['END_DATE']);
+                  
+                    
+               $value= paramlib_validation($column,$value);
+              
+               $end_date_time=strtotime($value);
+              
+                     
+                  $new_st_date=date('Y-m-d',strtotime($start_date));
+           $new_st_date_time=strtotime($new_st_date);
                 if($column==END_DATE)
                 {
 $prev_scheduler_lock = DBGet(DBQuery("SELECT SCHEDULER_LOCK FROM schedule WHERE STUDENT_ID='".UserStudentID()."' AND COURSE_PERIOD_ID='".$course_period_id."' AND START_DATE='".date('Y-m-d',strtotime($start_date))."'"))   ;
 
 		 if($column==END_DATE && str_replace("\'","''",$value)=='')
-			$sql .= $column."=NULL,";
-                else if($column==END_DATE && str_replace("\'","''",$value)!='' && $prev_scheduler_lock[1]['SCHEDULER_LOCK']!='Y')
-                $sql .= $column."='".str_replace("\'","''",$value)."',";
-                else
-                    echo "This Schedule is locked,dropped date can not be changed.";
+                      $sql .= $column."=NULL,";
+                else if($column==END_DATE && str_replace("\'","''",$value)!='' && $prev_scheduler_lock[1]['SCHEDULER_LOCK']!='Y' )
+                    {
+                    $mother_date = $value;
+                    $year = substr($mother_date, 7, 4);
+                    $day = substr($mother_date, 0, 2);
+                    $temp_month = substr($mother_date, 3, 3);
+
+                        if($temp_month == 'JAN')
+                                $month = '01';
+                        elseif($temp_month == 'FEB')
+                                $month = '02';
+                        elseif($temp_month == 'MAR')
+                                $month = '03';
+                        elseif($temp_month == 'APR')
+                                $month = '04';
+                        elseif($temp_month == 'MAY')
+                                $month = '05';
+                        elseif($temp_month == 'JUN')
+                                $month = '06';
+                        elseif($temp_month == 'JUL')
+                                $month = '07';
+                        elseif($temp_month == 'AUG')
+                                $month = '08';
+                        elseif($temp_month == 'SEP')
+                                $month = '09';
+                        elseif($temp_month == 'OCT')
+                                $month = '10';
+                        elseif($temp_month == 'NOV')
+                                $month = '11';
+                        elseif($temp_month == 'DEC')
+                                $month = '12';
+
+                         $select_date = $year.'-'.$month.'-'.$day;
+                         
+                         
+                       $end_date_sql=  DBGet(DBQuery("SELECT MAX(SCHOOL_DATE) AS SCHOOL_DATE FROM attendance_period WHERE COURSE_PERIOD_ID = '".$course_period_id."' AND STUDENT_ID = '".UserStudentID()."'"));
+//                       $report_card_grade_sql=  DBGet(DBQuery("SELECT GRADE_PERCENT AS GRADE FROM student_report_card_grades WHERE COURSE_PERIOD_ID = '".$course_period_id."' AND STUDENT_ID = '".UserStudentID()."' AND SYEAR= '".  UserSyear()."'"));
+                        
+                            if(strtotime($select_date)>=$edt_fetch_start_t || $new_st_date_time<=strtotime($select_date))
+                            {
+                                if(strtotime($end_date_sql[1]['SCHOOL_DATE'])< strtotime($select_date))
+                                {
+//                                    if(count($report_card_grade_sql[1])<1)
+//                                    {
+                                        $sql .= $column."='".str_replace("\'","''",$value)."',";
+                                        if($columns['END_DATE'])
+                                            DBQuery("DELETE FROM attendance_period WHERE STUDENT_ID='".UserStudentID()."' AND COURSE_PERIOD_ID='".$course_period_id."' AND SCHOOL_DATE > '".$columns['END_DATE']."'");
+//                                    }
+//                                    else 
+//                                        $end_date_msg="report";
+           
+                    }
+                     else 
+                    {    
+                                    $end_date_msg="attn";
+                                    $mother_date = $end_date_sql[1]['SCHOOL_DATE'];
+                                    $year = substr($mother_date, 0, 4);
+                                    $day = substr($mother_date, 8, 2);
+                                    $month = substr($mother_date, 5, 2);
+                         
+                                    $select_date1 = $month.'-'.$day.'-'.$year;
+                                    $_SESSION['last_attendance']=$select_date1;
+                    }
+                            }
+                            else
+                            {    
+                                $end_date_msg="end";
+                 
+                }
+                }
+                 else
+                     $sch_lock_msg="end";
                 }
 
                 else
-              $sql .= $column."='".str_replace("\'","''",$value)."',";
+                {  
+                    if($column=='START_DATE')
+                    {  
+                        $value= paramlib_validation($column,$value);
+                        $start_date_time=strtotime($value);
+                        $enroll_date_sql=  DBGet(DBQuery("SELECT START_DATE FROM student_enrollment WHERE SYEAR = '".UserSyear()."' AND STUDENT_ID = '".UserStudentID()."'"));
+                        
+                        if(strtotime($enroll_date_sql[1]['START_DATE']) <= strtotime($value))
+                        {  
+                            if($start_date_time < $edt_fetch_end_t || $edt_fetch_end_t=='')
+                            {  
+                            $sql .= $column."='".str_replace("\'","''",$value)."',";
+                        }
+                        else
+                        {
+                        $start_date_msg="start";
+                        #echo "<b style='color:red'>Enrolled Date Cannot Be After Dropped Date</b>";
+                        }
+                        }
+                        else
+                        {
+                        $start_date_msg="enroll";
+                        }
+                        
+                    }
+                     else
+                    {
+                        $sql .= $column."='".str_replace("\'","''",$value)."',";
+                    }
+             }   
+             
                 }
 		
                 if($columns['START_DATE'] || $columns['END_DATE'] || $columns['MARKING_PERIOD_ID'])
@@ -136,10 +292,10 @@ $prev_scheduler_lock = DBGet(DBQuery("SELECT SCHEDULER_LOCK FROM schedule WHERE 
                  $sql.= MODIFIED_DATE."='".DBDate()."',";
                 $sql.= MODIFIED_BY."='".User('STAFF_ID')."',";
                 }
-               
-	  $sql = substr($sql,0,-1) . " WHERE STUDENT_ID='".UserStudentID()."' AND COURSE_PERIOD_ID='".$course_period_id."' AND START_DATE='".date('Y-m-d',strtotime($start_date))."'";
-        DBQuery($sql);
-
+       
+         $sql = substr($sql,0,-1) . " WHERE STUDENT_ID='".UserStudentID()."' AND COURSE_PERIOD_ID='".$course_period_id."' AND START_DATE='".date('Y-m-d',strtotime($start_date))."'";
+          DBQuery($sql);
+                
 	################################# Start of Filled seats update code ###############################
 
 			$start_end_RET = DBGet(DBQuery("SELECT START_DATE,END_DATE FROM schedule WHERE STUDENT_ID='".UserStudentID()."' AND END_DATE<=CURRENT_DATE AND COURSE_PERIOD_ID='".$course_period_id."'"));
@@ -155,8 +311,7 @@ $prev_scheduler_lock = DBGet(DBQuery("SELECT SCHEDULER_LOCK FROM schedule WHERE 
 
 	################################# End of Filled seats update code ###############################
 
-			if($columns['END_DATE'])
-			DBQuery("DELETE FROM attendance_period WHERE STUDENT_ID='".UserStudentID()."' AND COURSE_PERIOD_ID='".$course_period_id."' AND SCHOOL_DATE > '".$columns['END_DATE']."'");
+			
 	}
 //                  UpdateMissingAttendance($course_period_id);
         }
@@ -203,8 +358,9 @@ $mp_RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,TITLE,SORT_ORDER,1 AS TBL FROM
 
 	$fy_id = DBGet(DBQuery("SELECT MARKING_PERIOD_ID FROM school_years WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
 	$fy_id = $fy_id[1]['MARKING_PERIOD_ID'];
-
-	$sql = "SELECT
+        
+	$sql = "SELECT          
+                              s.COURSE_ID as ACTION,
 				s.COURSE_ID,s.COURSE_PERIOD_ID,s.ID AS SCHEDULE_ID,
 				s.MARKING_PERIOD_ID,s.START_DATE,s.END_DATE,s.MODIFIED_DATE,s.MODIFIED_BY,
 				UNIX_TIMESTAMP(s.START_DATE) AS START_EPOCH,UNIX_TIMESTAMP(s.END_DATE) AS END_EPOCH,sp.PERIOD_ID,
@@ -236,17 +392,54 @@ $mp_RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,TITLE,SORT_ORDER,1 AS TBL FROM
                    $sql .= " ORDER BY sp.SORT_ORDER,s.MARKING_PERIOD_ID";
 
 	$QI = DBQuery($sql);
-	$schedule_RET = DBGet($QI,array('TITLE'=>'_makeTitle','PERIOD_PULLDOWN'=>'_makePeriodSelect','COURSE_MARKING_PERIOD_ID'=>'_makeMPSelect','SCHEDULER_LOCK'=>'_makeLock','START_DATE'=>'_makeDate','END_DATE'=>'_makeDate','SCHEDULE_ID'=>'_makeInfo'));
+	$schedule_RET = DBGet($QI,array('ACTION'=>'_makeAction','TITLE'=>'_makeTitle','PERIOD_PULLDOWN'=>'_makePeriodSelect','COURSE_MARKING_PERIOD_ID'=>'_makeMPSelect','SCHEDULER_LOCK'=>'_makeLock','START_DATE'=>'_makeDate','END_DATE'=>'_makeDate','SCHEDULE_ID'=>'_makeInfo'));
+    
     $link['add']['link'] = "# onclick='window.open(\"for_window.php?modname=$_REQUEST[modname]&modfunc=choose_course&ses=1\",\"\",\"scrollbars=yes,resizable=yes,width=800,height=400\");' ";
 	$link['add']['title'] = "Add a Course";
+        
+        $columns = array('ACTION'=>'Action','TITLE'=>'Course ','PERIOD_PULLDOWN'=>'Period - Teacher','ROOM'=>'Room','DAYS'=>'Days of Week','COURSE_MARKING_PERIOD_ID'=>'Term','SCHEDULER_LOCK'=>'<IMG SRC=assets/locked.gif border=0>','START_DATE'=>'Enrolled','END_DATE'=>'Dropped','SCHEDULE_ID'=>'More info');
 
-	$columns = array('TITLE'=>'Course','PERIOD_PULLDOWN'=>'Period - Teacher','ROOM'=>'Room','DAYS'=>'Days of Week','COURSE_MARKING_PERIOD_ID'=>'Term','SCHEDULER_LOCK'=>'<IMG SRC=assets/locked.gif border=0>','START_DATE'=>'Enrolled','END_DATE'=>'Dropped','SCHEDULE_ID'=>'More info');
-	$days_RET = DBGet(DBQuery("SELECT DISTINCT DAYS FROM course_periods"));
+        $days_RET = DBGet(DBQuery("SELECT DISTINCT DAYS FROM course_periods"));
 	if(count($days_RET)==1)
 		unset($columns['DAYS']);
 	if($_REQUEST['_openSIS_PDF'])
 		unset($columns['SCHEDULER_LOCK']);
+        if($start_date_msg=="start")
+        {
+             echo "<b style='color:red'>Enrolled Date Cannot Be After Dropped Date</b>";
+        
+             unset($start_date_msg);
+        }
+        if($start_date_msg=="enroll")
+        {
+             echo "<b style='color:red'>Course Enrolled Date Cannot Be Before Student's School Enrollment Date</b>";
 
+             unset($start_date_msg);
+        }
+        if($end_date_msg=="end")
+        {
+            echo "<b style='color:red'>Please enter proper dropped date. Dropped date must be greater than start date.</b>";
+        
+            unset($end_date_msg);
+        }
+//        if($end_date_msg=="report")
+//        {
+//            echo "<b style='color:red'>Course cannot be dropped because report card grades has been created for this student on this course.</b>";
+//        
+//            unset($end_date_msg);
+//        }
+        if($sch_lock_msg=="end")
+        {
+            echo "<b style='color:red'>This Schedule is locked,dropped date can not be changed.</b>";
+        
+            unset($sch_lock_msg);
+        }
+        if($end_date_msg=="attn")
+        {
+            echo "<b style='color:red'>Course cannot be dropped because student has got attendance till ".$_SESSION['last_attendance'].".</b>";
+        
+            unset($end_date_msg);
+        }
 	VerifySchedule($schedule_RET);
 	echo '<div style="width:820px; overflow:auto; overflow-x:scroll; padding-bottom:8px;">';
 	ListOutput($schedule_RET,$columns,'Course','Courses',$link);
@@ -538,18 +731,25 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='more_info')
 
                                 $QI = DBQuery($sql);
                                 $schedule_RET = DBGet($QI,array('TITLE'=>'_makeTitle','PERIOD_PULLDOWN'=>'_makePeriodSelect','COURSE_MARKING_PERIOD_ID'=>'_makeMP','SCHEDULER_LOCK'=>'_makeViewLock','START_DATE'=>'_makeViewDate','END_DATE'=>'_makeViewDate','MODIFIED_DATE'=>'_makeViewDate'));
-                                $columns = array('TITLE'=>'Course','PERIOD_PULLDOWN'=>'Period - Teacher','ROOM'=>'Room','DAYS'=>'Days of Week','COURSE_MARKING_PERIOD_ID'=>'Term','SCHEDULER_LOCK'=>'<IMG SRC=assets/locked.gif border=0>','START_DATE'=>'Enrolled','END_DATE'=>'Dropped','MODIFIED_NAME'=>'Modified By','MODIFIED_DATE'=>'Modified Date');
+                                $columns = array('TITLE'=>'Course ','PERIOD_PULLDOWN'=>'Period - Teacher','ROOM'=>'Room','DAYS'=>'Days of Week','COURSE_MARKING_PERIOD_ID'=>'Term','SCHEDULER_LOCK'=>'<IMG SRC=assets/locked.gif border=0>','START_DATE'=>'Enrolled','END_DATE'=>'Dropped','MODIFIED_NAME'=>'Modified By','MODIFIED_DATE'=>'Modified Date');
                                 $options=array('search'=>false,'count'=>false,'save'=>false,'sort'=>false);
 
                                 ListOutput($schedule_RET,$columns,'Course','Courses',$link,'',$options);
 
                                 echo '<br /><div align="center"><input type="button" class=btn_medium value="Close" onclick="window.close();"></div>';
                                 }
-
+}
 function _makeTitle($value,$column='')
 {	global $_openSIS,$THIS_RET;
-
 	return $value;//.' - '.$THIS_RET['COURSE_WEIGHT'];
+}
+///For deleting schedules
+function _makeAction($value)
+{	
+       global $THIS_RET;
+        $i=UserStudentId();
+        $rem="<a href=Modules.php?modname=Scheduling/Schedule.php&student_id=$i&del=true&c_id=$value&cp_id=$THIS_RET[COURSE_PERIOD_ID]&schedule_id=$THIS_RET[SCHEDULE_ID]><img src='assets/remove_button.gif'/></a>";
+	return $rem;//.' - '.$THIS_RET['COURSE_WEIGHT'];
 }
 
 function _makeViewLock($value,$column)
@@ -628,7 +828,7 @@ function _makeDate($value,$column)
 		$allow_na = false;
 	else
 		$allow_na = true;
-
+       #return $value;
 	return DateInput($value,"schedule[$THIS_RET[COURSE_PERIOD_ID]][$THIS_RET[START_DATE]][$column]",'',true,$allow_na);
 }
 
@@ -661,7 +861,6 @@ function _makeLock($value,$column)
 
 	return '<IMG SRC=assets/'.$img.'.gif '.(AllowEdit()?'onclick="if(this.src.indexOf(\'assets/locked.gif\')!=-1) {this.src=\'assets/unlocked.gif\'; document.getElementById(\'lock'.$THIS_RET['COURSE_PERIOD_ID'].'-'.$THIS_RET['START_DATE'].'\').value=\'\';} else {this.src=\'assets/locked.gif\'; document.getElementById(\'lock'.$THIS_RET['COURSE_PERIOD_ID'].'-'.$THIS_RET['START_DATE'].'\').value=\'Y\';}"':'').'><INPUT type=hidden name=schedule['.$THIS_RET['COURSE_PERIOD_ID'].']['.$THIS_RET['START_DATE'].'][SCHEDULER_LOCK] id=lock'.$THIS_RET['COURSE_PERIOD_ID'].'-'.$THIS_RET['START_DATE'].' value='.$value.'>';
 }
-
 function VerifySchedule(&$schedule)
 {
 	$conflicts = array();

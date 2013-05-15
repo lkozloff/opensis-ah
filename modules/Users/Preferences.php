@@ -105,6 +105,7 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
 			echo 'parent.side.location="'.$_SESSION['Side_PHP_SELF'].'?modcat="+parent.side.document.forms[0].modcat.value;';
 			echo "parent.help.location='Bottom.php?modcat=Users&modname=$_REQUEST[modname]';";
 			echo '</script>';
+                        $flag=1;
 		}
 		if(clean_param($_REQUEST['tab'],PARAM_ALPHAMOD)=='student_fields')
 		{
@@ -134,14 +135,15 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
 				}
 			}
 		}
-
 		// So Preferences() will get the new values
 		unset($_openSIS['Preferences']);
 	}
 	unset($_REQUEST['values']);
 	unset($_SESSION['_REQUEST_vars']['values']);
-	echo "<script>document.forms[0].submit();</script>";
-	//header("Location:Modules.php?modname=Users/Preferences.php");
+        if($flag==1)
+            echo "<script>document.forms[0].submit();</script>";
+        else 
+            header("Location:Modules.php?modname=Users/Preferences.php");
 	
 }
 

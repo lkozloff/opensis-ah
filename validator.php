@@ -40,11 +40,13 @@
          switch ($_GET['validate'])
         {
             case 'pass':
-                        $res_pass_chk = mysql_query("SELECT * FROM staff WHERE password = '".md5($_GET['password'])."'");
+                        $res_pass_chk = mysql_query("SELECT * FROM staff WHERE password = '".md5($_GET['password'])."' AND staff_id!='".$_GET['stfid']."'");
                         $num_pass = mysql_num_rows($res_pass_chk);
                         if($num_pass==0)
+                        {
                             echo '1';
                             
+                        }
                 break;
             default :
 	if($usr == 'user')

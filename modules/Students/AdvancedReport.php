@@ -98,7 +98,8 @@ if(!$_REQUEST['modfunc'])
 #echo "<FORM action=Modules.php?modname=$_REQUEST[modname]&modfunc=save&search_modfunc=list&_openSIS_PDF=true&include_inactive=$_REQUEST[include_inactive]&_search_all_schools=$_REQUEST[_search_all_schools] onsubmit=document.forms[0].relation.value=document.getElementById(\"relation\").value; method=POST target=_blank>";
 echo "<FORM action=Modules.php?modname=$_REQUEST[modname]&modfunc=call method=POST>";
 	echo '<DIV id=fields_div></DIV>';
-
+        if($_REQUEST['include_inactive'])
+            echo '<INPUT type=hidden name=include_inactive value='.$_REQUEST['include_inactive'].'>';
 	echo '<INPUT type=hidden name=relation>';
 		Widgets('course');
 		Widgets('request');

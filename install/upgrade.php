@@ -36,13 +36,13 @@ $dbconn = mysql_connect($_SESSION['server'],$_SESSION['username'],$_SESSION['pas
 mysql_select_db($mysql_database);
 $proceed=mysql_query("SELECT name,value
 FROM app
-WHERE value='4.6' OR value='4.7' OR value LIKE '4.8%' OR value='4.9'");
+WHERE value='4.6' OR value='4.7' OR value LIKE '4.8%' OR value='4.9' OR value='5.0'");
 $proceed=mysql_fetch_assoc($proceed);
 if(!$proceed)
 {
     $proceed=mysql_query("SELECT name,value
     FROM APP
-    WHERE value='4.6' OR value='4.7' OR value LIKE '4.8%' OR value='4.9'");
+    WHERE value='4.6' OR value='4.7' OR value LIKE '4.8%' OR value='4.9' OR value='5.0'");
     $proceed=mysql_fetch_assoc($proceed);
 }
 $version=$proceed['value'];
@@ -67,7 +67,7 @@ if($proceed['name']){
     executeSQL($myFile);
 	//backup_db($mysql_database,$Export_FileName);
 	        exec("mysqldump -n -t -c --skip-add-locks --skip-disable-keys --skip-triggers --user $dbUser --password=$dbPass $mysql_database > $Export_FileName");
-	
+
                     $res_student_field='SHOW COLUMNS FROM '.table_to_upper('students',$version).' WHERE FIELD LIKE "CUSTOM_%"';
 
 	$objCustomStudents=new custom($mysql_database);
@@ -78,7 +78,7 @@ if($proceed['name']){
 	$objCustomStaff->set($res_staff_field,'staff');
 	
 	mysql_query("drop database $mysql_database");
-	mysql_query("create database $mysql_database");
+	mysql_query("CREATE DATABASE $mysql_database CHARACTER SET utf8 COLLATE utf8_general_ci");
 	mysql_select_db($mysql_database);
 	#$myFile = "opensis-4.5-schema-mysql.sql";
 	#$myFile = "opensis-4.7-schema-mysql.sql";
@@ -104,7 +104,11 @@ if($proceed['name']){
                         $Export_FileName=to_upper_tables_to_import($Export_FileName);
                     }
                     //=========================================================
-                    exec("mysql --user $dbUser --password=$dbPass $mysql_database < $Export_FileName");
+                    exec("mysql --user $dbUser --password=$dbPass $mysql_database < $Export_FileName",$result,$status);
+                    if($status!=0)
+                    {
+                        die(show_error1('db'));
+                    }
                     if($version!='5.0')
                     {
                         unlink($Export_FileName);
@@ -114,11 +118,11 @@ if($proceed['name']){
                     
 	mysql_query("delete from app");
 	$appTable="INSERT INTO `app` (`name`, `value`) VALUES
-('version', '5.0'),
-('date', 'June 02, 2012'),
+('version', '5.1'),
+('date', 'October 16, 2012'),
 ('build', '02012011001'),
 ('update', '0'),
-('last_updated', 'June 02, 2012')";
+('last_updated', 'October 16, 2012')";
 	mysql_query($appTable);
 	$custom_insert=mysql_query("select count(*) from custom_fields where title in('Ethnicity','Common Name','Physician','Physician Phone','Preferred Hospital','Gender','Email','Phone','Language')");
 	$custom_insert=mysql_fetch_array($custom_insert);
@@ -150,7 +154,7 @@ mysql_query($login_msg);
                   $max_syear=$syear['year'];
                   $start_date=$syear['start'];
 //=============================4.8.1 To 4.9===================================
-if($version!='4.9')
+if($version!='5.0' && $version!='4.9')
 {
         $up_sql="INSERT INTO student_enrollment_codes(syear,title,short_name,type)VALUES
         (".$max_syear.",'Transferred out','TRAN','TrnD'),
@@ -190,7 +194,7 @@ if($version!='4.9')
  <table border="0" cellspacing="6" cellpadding="3" align="center">
             <tr>
 			 <td colspan="2" align="center">
-		<p>	The database you have chosen is not compliant with openSIS-CE ver 4.6 or 4.7 or 4.8X or 4.9 We are unable to proceed.</p>
+		<p>	The database you have chosen is not compliant with openSIS-CE ver 4.6 or 4.7 or 4.8X or 4.9 or 5.0 We are unable to proceed.</p>
 
 <p>Click Retry to select another database, or Exit to quit the installation.
 </p>
@@ -255,8 +259,12 @@ function executeSQL($myFile)
 	}
 }
 
-function show_error1()
+function show_error1($msg='')
 {
+    if($msg=='')
+        $msg='Application does not have permission to write into install directory.';
+    elseif($msg=='db')
+        $msg='Your database is not compatible with openSIS-CE<br />Please take this screen shot and send it to your openSIS representative for resolution.';
     $err .= "
 <html>
 <head>
@@ -269,7 +277,7 @@ function show_error1()
 <br /><br /><span class='header_txt'></span>
 
 <div align='center'>
-Application does not have permission to write into install directory.
+$msg
 </div>
 <div style='height:50px;'>&nbsp;</div>";
 $err.="<div align='center'><a href='selectdb.php?mod=upgrade'><img src='images/retry.png' border='0' /></a> &nbsp; &nbsp; <a href='step0.php'><img src='images/exit.png' border='0' /></a></div>";

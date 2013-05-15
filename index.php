@@ -41,6 +41,10 @@ if(optional_param('dis','',PARAM_ALPHAEXT)=='fl_count')
 $error[] = "Either your account is inactive or your access permission has been revoked. Please contact the school administration.
 ";
 }
+if(optional_param('dis','',PARAM_ALPHAEXT)=='assoc_mis')
+{
+    $error[] = "No student is associated with the parent. Please contact the school administration.";
+}
 if(isset($_GET['ins']))
 
 	$install = optional_param('ins','',PARAM_ALPHAEXT);
@@ -123,7 +127,7 @@ $maintain_RET=DBGet(DBQuery("SELECT SYSTEM_MAINTENANCE_SWITCH FROM system_prefer
                if(!$is_inactive)
                {
                   session_destroy(); 
-		  header("location:index.php?modfunc=logout&dis=fl_count");
+		  header("location:index.php?modfunc=logout&dis=assoc_mis");
                }
            }
 
@@ -177,7 +181,7 @@ if(!$login_RET && !$student_RET)
 		$_SESSION['CURRENT_SCHOOL_ID'] = $login_RET[1]['CURRENT_SCHOOL_ID'];
 		#$_SESSION['IS_DISABLED'] = $login_RET[1]['IS_DISABLED'];
 		$_SESSION['USERNAME'] = optional_param('USERNAME','',PARAM_RAW);
-		$_SESSION['PASSWORD'] = optional_param('PASSWORD',' ',PARAM_RAW);
+//		$_SESSION['PASSWORD'] = optional_param('PASSWORD',' ',PARAM_RAW);
         # --------------------- Set Session Id Start ------------------------- #
 		$_SESSION['X'] = session_id();
 		$random = rand();
@@ -277,8 +281,22 @@ if(!$login_RET && !$student_RET)
     #elseif($login_RET && $login_RET[1]['PROFILE']=='none')
 	elseif(($login_RET && $login_RET[1]['IS_DISABLE']=='Y') || ($student_RET && $student_RET[1]['IS_DISABLE']=='Y'))
 	{
-		$error[] = "Either your account is inactive or your access permission has been revoked. Please contact the school administration.
-";
+            $admin_failed_count = DBGet(DBQuery("SELECT FAIL_COUNT FROM system_preference_misc"));
+            $ad_f_cnt = $admin_failed_count[1]['FAIL_COUNT'];
+            if(isset($login_RET) && count($login_RET)>0)
+            {
+                if($ad_f_cnt && $ad_f_cnt!=0 && $login_RET[1]['FAILED_LOGIN']<$ad_f_cnt && $login_RET[1]['PROFILE']!='admin')
+                    $error[] = "Either your account is inactive or your access permission has been revoked. Please contact the school administration.";
+                else 
+                  $error[] = "Due to excessive incorrect login attempts your account has been disabled. Contact the school administration to enable your account.";  
+            }
+            if(isset($student_RET) && count($student_RET)>0)
+            {
+                if($ad_f_cnt && $ad_f_cnt!=0 && $student_RET[1]['FAILED_LOGIN']<$ad_f_cnt)
+                    $error[] = "Either your account is inactive or your access permission has been revoked. Please contact the school administration.";
+                else 
+                    $error[] = "Due to excessive incorrect login attempts your account has been disabled. Contact the school administration to enable your account.";
+            }
 	}
     elseif($student_RET)
     {
@@ -333,32 +351,66 @@ if(!$login_RET && !$student_RET)
     }
     else
     {  /* cleaning using other parameters other than ALPHAEXT is not working----*/
-        DBQuery("UPDATE staff SET FAILED_LOGIN=".db_case(array('FAILED_LOGIN',"''",'1','FAILED_LOGIN+1'))." WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_ALPHAEXT)."') AND SYEAR='$_SESSION[UserSyear]'");
-        DBQuery("UPDATE students SET FAILED_LOGIN=".db_case(array('FAILED_LOGIN',"''",'1','FAILED_LOGIN+1'))." WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_ALPHAEXT)."')");
+        $stf_fl_cnt_syear= DBGet(DBQuery("SELECT MAX(SYEAR) AS SYEAR FROM staff WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')"));
+
+      DBQuery("UPDATE staff SET FAILED_LOGIN=".db_case(array('FAILED_LOGIN',"''",'1','FAILED_LOGIN+1'))." WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."') AND SYEAR='".$stf_fl_cnt_syear[1]['SYEAR']."'");
+      DBQuery("UPDATE students SET FAILED_LOGIN=".db_case(array('FAILED_LOGIN',"''",'1','FAILED_LOGIN+1'))." WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')");
          #  $error[] = "Incorrect username or password. Please try again.";
     #	DBQuery("UPDATE staff SET FAILED_LOGIN=".db_case(array('FAILED_LOGIN',"''",'1','FAILED_LOGIN+1'))." WHERE UPPER(USERNAME)=UPPER('$_REQUEST[USERNAME]') AND SYEAR='$DefaultSyear'");
 	#	DBQuery("UPDATE students SET FAILED_LOGIN=".db_case(array('FAILED_LOGIN',"''",'1','FAILED_LOGIN+1'))." WHERE UPPER(USERNAME)=UPPER('$_REQUEST[USERNAME]')");
 		
-		
-		if ($_SERVER['HTTP_X_FORWARDED_FOR']){
-				$ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-			} else {
-				$ip = $_SERVER['REMOTE_ADDR'];
-			}
-		
-		
-		$faillog_time=date("Y-m-d h:i:s");
-		//DBQuery("INSERT INTO login_records (USER_NAME,FAILLOG_TIME,IP_ADDRESS,SYEAR,STATUS) values('$_REQUEST[USERNAME]','$faillog_time','$ip','$DefaultSyear','Failed')");
-		
-		DBQuery("INSERT INTO login_records (USER_NAME,FAILLOG_TIME,IP_ADDRESS,SYEAR,STATUS) values('".optional_param('USERNAME','',PARAM_ALPHAEXT)."','$faillog_time','$ip','$_SESSION[UserSyear]','Failed')"); 
-		
-		
-		$max_id = DBGet(DBQuery("SELECT MAX(id) FROM login_records"));
-		$m_id= $max_id[1]['MAX'];
-		if($faillog_time)
-		DBQuery("UPDATE login_records SET LOGIN_TIME=FAILLOG_TIME WHERE USER_NAME='".optional_param('USERNAME','',PARAM_ALPHAEXT)."' AND ID='".$m_id."'");
+            if ($_SERVER['HTTP_X_FORWARDED_FOR']){
+                            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+                    } else {
+                            $ip = $_SERVER['REMOTE_ADDR'];
+                    }
 
-        $error[] = "Incorrect username or password. Please try again.";
+
+            $faillog_time=date("Y-m-d h:i:s");
+            //DBQuery("INSERT INTO login_records (USER_NAME,FAILLOG_TIME,IP_ADDRESS,SYEAR,STATUS) values('$_REQUEST[USERNAME]','$faillog_time','$ip','$DefaultSyear','Failed')");
+
+            DBQuery("INSERT INTO login_records (USER_NAME,FAILLOG_TIME,IP_ADDRESS,SYEAR,STATUS) values('".optional_param('USERNAME','',PARAM_ALPHAEXT)."','$faillog_time','$ip','$_SESSION[UserSyear]','Failed')"); 
+
+
+            $max_id = DBGet(DBQuery("SELECT MAX(id) FROM login_records"));
+            $m_id= $max_id[1]['MAX'];
+            if($faillog_time)
+            DBQuery("UPDATE login_records SET LOGIN_TIME=FAILLOG_TIME WHERE USER_NAME='".optional_param('USERNAME','',PARAM_ALPHAEXT)."' AND ID='".$m_id."'");
+
+            $admin_failed_count = DBGet(DBQuery("SELECT FAIL_COUNT FROM system_preference_misc"));
+            $ad_f_cnt = $admin_failed_count[1]['FAIL_COUNT'];
+
+            $res= DBGet(DBQuery("SELECT FAILED_LOGIN,PROFILE FROM staff WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."') AND SYEAR='".$stf_fl_cnt_syear[1]['SYEAR']."'"));
+            $failed_login_staff=$res[1]['FAILED_LOGIN'];
+            if($failed_login_staff!='')
+            {
+                if ($ad_f_cnt && $ad_f_cnt!=0 && $failed_login_staff >= $ad_f_cnt && $res[1]['PROFILE']!='admin')
+                {
+                    DBQuery("UPDATE staff SET IS_DISABLE='Y' WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."') AND SYEAR='".$stf_fl_cnt_syear[1]['SYEAR']."'");
+                    if($failed_login_staff == $ad_f_cnt)
+                        $error[] = "Incorrect username or password. Please try again.";
+                     else 
+                        $error[] = "Due to excessive incorrect login attempts your account has been disabled. Contact the school administration to enable your account.";                       
+                }
+                else
+                    $error[] = "Incorrect username or password. Please try again.";
+            }
+
+            $res= DBGet(DBQuery("SELECT FAILED_LOGIN FROM students WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')"));
+            $failed_login_stu=$res[1]['FAILED_LOGIN'];
+            if($failed_login_stu!='')
+            {
+                if ($ad_f_cnt && $ad_f_cnt!=0 && $failed_login_stu >= $ad_f_cnt)
+                {
+                    DBQuery("UPDATE students SET IS_DISABLE='Y' WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')");
+                    if($failed_login_stu == $ad_f_cnt)
+                        $error[] = "Incorrect username or password. Please try again.";
+                     else
+                    $error[] = "Due to excessive incorrect login attempts your account has been disabled. Contact the school administration to enable your account.";
+                }
+                else
+                    $error[] = "Incorrect username or password. Please try again.";
+            }
     }
 }
 

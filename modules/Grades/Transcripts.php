@@ -162,7 +162,7 @@ if($_REQUEST['modfunc']=='save')
                 $firstrec = $tsection[0];
                 $posted_arr = explode('-',$firstrec['POSTED']);
 
-                $course_html[$colnum] .= "<tr><td colspan='4'><font color=red>$firstrec[SCHOOL_NAME]($firstrec[GRADELEVEL])</font></td></tr><tr><td height=\"8\" style='font-size:14px; border-bottom:1px solid #000;'>&nbsp;&nbsp;&nbsp;<b></b></td>
+                $course_html[$colnum] .= "<tr><td colspan='4'><font color=red>$firstrec[SCHOOL_NAME]($firstrec[GRADELEVEL])</font></td></tr><tr><td height=\"8\" style='font-size:14px; border-bottom:1px solid #000;'>&nbsp;&nbsp;&nbsp;<b>Courses</b></td>
                   <td height=\"8\" style='font-size:14px; border-bottom:1px solid #000;' align='center' >&nbsp;&nbsp;&nbsp;<b>Credit Hours</TD>
                   <td align='center' height=\"8\" style='font-size:14px; border-bottom:1px solid #000;'><b>Credits Earned</b></td>
                   <td height=\"8\" style='font-size:14px; border-bottom:1px solid #000;' align='center' >&nbsp;&nbsp;&nbsp;<b>".$firstrec['MP_NAME']." - Grade "."(".$posted_arr[1].'/'.$posted_arr[0].")</b></td>
@@ -186,7 +186,7 @@ if($_REQUEST['modfunc']=='save')
                                              <td>".sprintf("%01.2f",$trec['CREDIT_ATTEMPTED'])."</td>
                                              <td style='font-family:Arial; font-size:12px;'>".sprintf("%01.2f",$trec['CREDIT_EARNED'])."</td>
                                              <td style='font-family:Arial; font-size:12px;' align=center>".$gradeletter."</td>
-                                             <td style='font-family:Arial; font-size:12px;'>".sprintf("%01.2f",$gp_val)."</td>
+                                             <td style='font-family:Arial; font-size:12px;'>".sprintf("%01.2f",($trec['CREDIT_EARNED']*$gp_val))."</td>
                                              ";
 
 

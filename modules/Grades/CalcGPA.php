@@ -32,12 +32,7 @@ $RET = DBGet($QI);
 $SCALE_RET = DBGet(DBQuery("SELECT * from schools where ID = '".UserSchool()."'"));
 
 DrawBC("Gradebook > ".ProgramTitle());
- 
-$RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,SEMESTER_ID FROM school_quarters WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
-if($RET)
-$mps = GetAllMP('PRO',UserMP());
-else
-$mps = GetAllMP('TRAN',UserMP());   
+ $mps = GetAllMP(GetMPTable(GetMP(UserMP(),'TABLE')),  UserMP());
 $mps = explode(',',str_replace("'",'',$mps));
 $table = '<TABLE><TR><TD valign=top><TABLE>
 	</TR>

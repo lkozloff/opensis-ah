@@ -165,12 +165,20 @@ function Widgets($item,$allow_widget=false)
 					$extra['WHERE'] .= " AND sgr.CGPA BETWEEN $_REQUEST[cgpa_low] AND $_REQUEST[cgpa_high] ";
 					$_openSIS['SearchTerms'] .= '<font color=gray><b>CGPA between: </b></font>'.$_REQUEST['cgpa_low'].' &amp; '.$_REQUEST['cgpa_high'].'<BR>';
 				}
-                                
+                                $qrtrs_query=DBGet(DBQuery("SELECT COUNT(*) as QUARTER FROM school_quarters where SCHOOL_ID='".UserSchool()."' and SYEAR='".UserSyear()."'"));
+                                if($qrtrs_query[1]['QUARTER']>1)
+                                {
 				$extra['search'] .= "<TR><TD align=right width=120><INPUT type=checkbox name=list_gpa value=Y>Marking Period GPA</TD></TR>
                                                     <TR><TD align=right width=120><INPUT type=radio name=gpa_term value=".GetParentMP('SEM',UserMP()).">".GetMP(GetParentMP('SEM',UserMP()),'SHORT_NAME')."
                                                                                                                  <INPUT type=radio name=gpa_term value=".UserMP().">".GetMP(UserMP(),'SHORT_NAME')."</TD>
                                                                                                                 <TD>Between<INPUT type=text name=gpa_low class=cell_small size=3 maxlength=5> &amp; <INPUT type=text name=gpa_high size=3 maxlength=5 class=cell_small></TD></TR>";
-			
+                               }
+                                if($qrtrs_query[1]['QUARTER']<=1)
+                                {
+				$extra['search'] .= "<TR><TD align=right width=120><INPUT type=checkbox name=list_gpa value=Y>Marking Period GPA</TD></TR>
+                                                    <TR><TD align=right width=120>"."<INPUT type=radio name=gpa_term value=".UserMP().">".GetMP(UserMP(),'SHORT_NAME')."</TD>
+                                                                                                                <TD>Between<INPUT type=text name=gpa_low class=cell_small size=3 maxlength=5> &amp; <INPUT type=text name=gpa_high size=3 maxlength=5 class=cell_small></TD></TR>";
+                               }
                                 $extra['search'] .= "<TR><TD align=right width=120><INPUT type=checkbox name=cgpa value=Y>CGPA</TD></TR>
                                                     <TR><TD align=right width=120></td><td>Between<INPUT type=text name=cgpa_low class=cell_small size=3 maxlength=5> &amp; <INPUT type=text name=cgpa_high size=3 maxlength=5 class=cell_small></TD></TR>";
                                 break;
@@ -192,8 +200,16 @@ function Widgets($item,$allow_widget=false)
 					$extra['WHERE'] .= " AND sgc.CLASS_RANK BETWEEN '$_REQUEST[class_rank_low]' AND '$_REQUEST[class_rank_high]'";
 					$_openSIS['SearchTerms'] .= '<font color=gray><b>Class Rank between: </b></font>'.$_REQUEST['class_rank_low'].' &amp; '.$_REQUEST['class_rank_high'].'<BR>';
 				}
+                                $qrtrs_query=DBGet(DBQuery("SELECT COUNT(*) as QUARTER FROM school_quarters where SCHOOL_ID='".UserSchool()."' and SYEAR='".UserSyear()."'"));
+                                if($qrtrs_query[1]['QUARTER']>1)
+                                {
 				$extra['search'] .= "<TR><TD align=right width=120>Class Rank<BR><INPUT type=radio name=class_rank_term value=CUM checked>Cumulative<INPUT type=radio name=class_rank_term value=".GetParentMP('SEM',UserMP()).">".GetMP(GetParentMP('SEM',UserMP()),'SHORT_NAME')."<INPUT type=radio name=class_rank_term value=".UserMP().">".GetMP(UserMP(),'SHORT_NAME')."";
-				if(strlen($pros = GetChildrenMP('PRO',UserMP())))
+                                }
+                                if($qrtrs_query[1]['QUARTER']<=1)
+                                {
+                                $extra['search'] .= "<TR><TD align=right width=120>Class Rank<BR><INPUT type=radio name=class_rank_term value=CUM checked>Cumulative"."<INPUT type=radio name=class_rank_term value=".UserMP().">".GetMP(UserMP(),'SHORT_NAME')."";
+                                }
+                                if(strlen($pros = GetChildrenMP('PRO',UserMP())))
 				{
 					$pros = explode(',',str_replace("'",'',$pros));
 					foreach($pros as $pro)
@@ -213,12 +229,20 @@ function Widgets($item,$allow_widget=false)
 						$_openSIS['SearchTerms'] .= $letter_grades_RET[$grade][1]['TITLE'].', ';
 					}
 					$_openSIS['SearchTerms'] = substr($_openSIS['SearchTerms'],0,-2);
-					$extra['WHERE'] .= " AND ".($_REQUEST['letter_grade_exclude']=='Y'?'NOT ':'')."EXISTS (SELECT '' FROM student_report_card_grades sg3 WHERE sg3.STUDENT_ID=ssm.STUDENT_ID AND sg3.SYEAR=ssm.SYEAR AND sg3.REPORT_CARD_GRADE_ID IN (".substr($letter_grades,1).") AND sg3.MARKING_PERIOD_ID='".$_REQUEST['letter_grade_term']."' )";
+					$extra['WHERE'] .= " AND ".($_REQUEST['letter_grade_exclude']=='Y'?'NOT ':'')."EXISTS (SELECT '' FROM student_report_card_grades sg3 WHERE sg3.STUDENT_ID=ssm.STUDENT_ID AND sg3.SYEAR=ssm.SYEAR AND sg3.REPORT_CARD_GRADE_ID IN (".substr($letter_grades,1).")".($_REQUEST['letter_grade_term']!=''?"AND sg3.MARKING_PERIOD_ID='".$_REQUEST['letter_grade_term']."' ":'').")";
 					$_openSIS['SearchTerms'] .= '<BR>';
 				}
-
+                                $qrtrs_query=DBGet(DBQuery("SELECT COUNT(*) as QUARTER FROM school_quarters where SCHOOL_ID='".UserSchool()."' and SYEAR='".UserSyear()."'"));
+                                if($qrtrs_query[1]['QUARTER']>1)
+                                {
 				$extra['search'] .= "<TR><TD align=right width=120>Letter Grade<BR><INPUT type=checkbox name=letter_grade_exclude value=Y>Did not receive<BR><INPUT type=radio name=letter_grade_term value=".GetParentMP('SEM',UserMP()).">".GetMP(GetParentMP('SEM',UserMP()),'SHORT_NAME')."<INPUT type=radio name=letter_grade_term value=".UserMP().">".GetMP(UserMP(),'SHORT_NAME')."";
-				if(strlen($pros = GetChildrenMP('PRO',UserMP())))
+                                }
+                                if($qrtrs_query[1]['QUARTER']<=1)
+                                {
+                                    $extra['search'] .= "<TR><TD align=right width=120>Letter Grade<BR><INPUT type=checkbox name=letter_grade_exclude value=Y>Did not receive<BR>"."<INPUT type=radio name=letter_grade_term value=".UserMP().">".GetMP(UserMP(),'SHORT_NAME')."";
+                                
+                                }
+                                if(strlen($pros = GetChildrenMP('PRO',UserMP())))
 				{
 					$pros = explode(',',str_replace("'",'',$pros));
 					foreach($pros as $pro)
@@ -332,6 +356,17 @@ function Widgets($item,$allow_widget=false)
 				}
 				$extra['search'] .= "<TR><TD align=right width=120>Student Billing Balance<BR></TD><TD>Between<INPUT type=text name=balance_low size=5 maxlength=10 class=cell_small> &amp; <INPUT type=text name=balance_high size=5 maxlength=10 class=cell_small></TD></TR>";
 			break;
+                        ############################ ##########################################################
+                                                    case 'parents':
+
+                                                    $extra['search'] .= "<TR><TD align=right width=120>Show Parents & Contacts<BR></TD><TD><INPUT type=radio name=show value=P></TD></TR>";
+                                                    break;
+                                                ############################  ##########################################################
+                                                    case 'staff':
+
+                                                    $extra['search'] .= "<TR><TD align=right width=120>Show Staff<BR></TD><TD><INPUT type=radio name=show value=S></TD></TR>";
+                                                    break;
+
 ####################################################################################################################
 			/*case 'discipline':
 				if(is_array($_REQUEST['discipline']))

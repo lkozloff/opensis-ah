@@ -30,13 +30,27 @@ include 'modules/Grades/config.inc.php';
 
 DrawBC("GradeBook >> ".ProgramTitle());
 
-$sem = GetParentMP('SEM',UserMP());
-if($sem)
-    $fy = GetParentMP('FY',$sem);
-else
-    $fy = GetParentMP('FY',UserMP());
+$mp_RET=DBGet(DBQuery("SELECT MP FROM course_periods WHERE course_period_id = '".UserCoursePeriod()."'"));
+if($mp_RET[1]['MP']=='SEM')
+{
+    $sem = GetParentMP('SEM',UserMP());
 
-$pros = GetChildrenMP('PRO',UserMP());
+    $pros = GetChildrenMP('PRO',UserMP());
+}
+if($mp_RET[1]['MP']=='FY')
+{
+    $sem = GetParentMP('SEM',UserMP());
+    if($sem)
+        $fy = GetParentMP('FY',$sem);
+    else
+        $fy = GetParentMP('FY',UserMP());
+
+    $pros = GetChildrenMP('PRO',UserMP());
+}
+if($mp_RET[1]['MP']=='QTR')
+{
+    $pros = GetChildrenMP('PRO',UserMP());
+}
 
 // if the UserMP has been changed, the REQUESTed MP may not work
 if(!$_REQUEST['mp'] || strpos($str="'".UserMP()."','".$sem."','".$fy."',".$pros,"'".ltrim($_REQUEST['mp'],'E')."'")===false)

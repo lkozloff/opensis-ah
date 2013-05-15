@@ -62,9 +62,18 @@ echo '<br><div id="ajax_output"></div>';
 echo '</TD>';
 
 echo '<TD>';
+//for adding new user
+if(!isset($staff['STAFF_ID']))
+{
+ echo TextInput(array($staff['PASSWORD'],str_repeat('*',strlen($staff['PASSWORD']))),'staff[PASSWORD]','Password',"size=12 maxlength=100 class=cell_floating AUTOCOMPLETE = off onkeyup=passwordStrength(this.value);validate_password(this.value);");   
+}
+//for existing users while updating
+ else
+{
+   echo TextInput(array($staff['PASSWORD'],str_repeat('*',strlen($staff['PASSWORD']))),'staff[PASSWORD]','Password',"size=12 maxlength=100 class=cell_floating AUTOCOMPLETE = off onkeyup=passwordStrength(this.value);validate_password(this.value,$staff[STAFF_ID]);"); 
+}
 
-echo TextInput(array($staff['PASSWORD'],str_repeat('*',strlen($staff['PASSWORD']))),'staff[PASSWORD]','Password','size=12 maxlength=100 class=cell_floating AUTOCOMPLETE = off onkeyup=passwordStrength(this.value);validate_password(this.value);');
-echo '<span id="passwordStrength"></span>';
+echo "<span id='passwordStrength'></span>";
 echo '</TD>';
 
 echo '<TD>';

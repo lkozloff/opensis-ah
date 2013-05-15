@@ -660,14 +660,14 @@ function GetStuListAttn(& $extra)
 					$sql .= "CONCAT(s.LAST_NAME,', ',s.FIRST_NAME,' ',COALESCE(s.MIDDLE_NAME,' ')) AS FULL_NAME,";
 				$sql .='s.LAST_NAME,s.FIRST_NAME,s.MIDDLE_NAME,s.STUDENT_ID,ssm.SCHOOL_ID AS LIST_SCHOOL_ID,ssm.GRADE_ID '.$extra['SELECT'];
 				if($_REQUEST['include_inactive']=='Y')
-					$sql .= ','.db_case(array("(ssm.SYEAR='".UserSyear()."' AND ('".date('Y-m-d',strtotime($extra['DATE']))."'>ssm.START_DATE AND ('".date('Y-m-d',strtotime($extra['DATE']))."'<=ssm.END_DATE OR ssm.END_DATE IS NULL)))",'true',"'<FONT color=green>Active</FONT>'","'<FONT color=red>Inactive</FONT>'")).' AS ACTIVE ';
+					$sql .= ','.db_case(array("(ssm.SYEAR='".UserSyear()."' AND (ssm.START_DATE IS NOT NULL AND ('".date('Y-m-d',strtotime($extra['DATE']))."'<=ssm.END_DATE OR ssm.END_DATE IS NULL)))",'true',"'<FONT color=green>Active</FONT>'","'<FONT color=red>Inactive</FONT>'")).' AS ACTIVE ';
 			}
 
 			$sql .= " FROM students s,student_enrollment ssm ".$extra['FROM']." WHERE ssm.STUDENT_ID=s.STUDENT_ID ";
 			if($_REQUEST['include_inactive']=='Y')
 				$sql .= " AND ssm.ID=(SELECT ID FROM student_enrollment WHERE STUDENT_ID=ssm.STUDENT_ID AND SYEAR<='".UserSyear()."' ORDER BY START_DATE DESC LIMIT 1)";
 			else
-				$sql .= " AND ssm.SYEAR='".UserSyear()."' AND ('".date('Y-m-d',strtotime($extra['DATE']))."'>=ssm.START_DATE AND ('".date('Y-m-d',strtotime($extra['DATE']))."'<=ssm.END_DATE OR ssm.END_DATE IS NULL)) ";
+				$sql .= " AND ssm.SYEAR='".UserSyear()."' AND (ssm.START_DATE IS NOT NULL AND ('".date('Y-m-d',strtotime($extra['DATE']))."'<=ssm.END_DATE OR ssm.END_DATE IS NULL)) ";
 
 			if(UserSchool() && $_REQUEST['_search_all_schools']!='Y')
 				$sql .= " AND ssm.SCHOOL_ID='".UserSchool()."'";
@@ -696,7 +696,7 @@ function GetStuListAttn(& $extra)
 				$sql .='s.LAST_NAME,s.FIRST_NAME,s.MIDDLE_NAME,s.STUDENT_ID,ssm.SCHOOL_ID,ssm.GRADE_ID '.$extra['SELECT'];
 				if($_REQUEST['include_inactive']=='Y')
 				{
-					$sql .= ','.db_case(array("('".$extra['DATE']."'>=ssm.START_DATE AND ('".$extra['DATE']."'<=ssm.END_DATE OR ssm.END_DATE IS NULL))",'true',"'<FONT color=green>Active</FONT>'","'<FONT color=red>Inactive</FONT>'")).' AS ACTIVE';
+					$sql .= ','.db_case(array("(ssm.START_DATE IS NOT NULL AND ('".$extra['DATE']."'<=ssm.END_DATE OR ssm.END_DATE IS NULL))",'true',"'<FONT color=green>Active</FONT>'","'<FONT color=red>Inactive</FONT>'")).' AS ACTIVE';
 					$sql .= ','.db_case(array("('".$extra['DATE']."'>=ss.START_DATE AND ('".$extra['DATE']."'<=ss.END_DATE OR ss.END_DATE IS NULL))",'true',"'<FONT color=green>Active</FONT>'","'<FONT color=red>Inactive</FONT>'")).' AS ACTIVE_SCHEDULE';
 				}
 			}
@@ -712,7 +712,7 @@ function GetStuListAttn(& $extra)
 			}
 			else
 			{
-				$sql .= " AND ('".$extra['DATE']."'>=ssm.START_DATE AND ('".$extra['DATE']."'<=ssm.END_DATE OR ssm.END_DATE IS NULL))";
+				$sql .= " AND (ssm.START_DATE IS NOT NULL AND ('".$extra['DATE']."'<=ssm.END_DATE OR ssm.END_DATE IS NULL))";
 				$sql .= " AND ('".$extra['DATE']."'>=ss.START_DATE AND ('".$extra['DATE']."'<=ss.END_DATE OR ss.END_DATE IS NULL))";
 			}
 

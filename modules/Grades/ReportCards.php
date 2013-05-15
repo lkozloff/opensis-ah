@@ -30,7 +30,7 @@ include 'modules/Grades/config.inc.php';
 
 if($_REQUEST['modfunc']=='save')
 {
- $cur_session_RET=DBGet(DBQuery("SELECT YEAR(start_date) AS PRE,YEAR(end_date) AS POST FROM school_years WHERE SCHOOL_ID='".UserSchool()."'"));
+ $cur_session_RET=DBGet(DBQuery("SELECT YEAR(start_date) AS PRE,YEAR(end_date) AS POST FROM school_years WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
  if($cur_session_RET[1]['PRE']==$cur_session_RET[1]['POST'])
  {
     $cur_session=$cur_session_RET[1]['PRE'];

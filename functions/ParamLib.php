@@ -449,7 +449,7 @@ function clean_param($param, $type) {
            return preg_replace('/[^0-9-+,().#&]/i', '', $param);
 
         case PARAM_MAIL:     // Remove everything not a-zA-Z -,
-           return preg_replace('/[^a-z0-9.@_#&]/i', '', $param);
+           return preg_replace('/[^a-z0-9.@_#&-]/i', '', $param);
 
         case PARAM_CAL_TITLE:     // Remove everything not a-zA-Z0-9._'"-,
           return preg_replace('/[^\sa-zA-Z0-9-,#&._\'\"]/i', '', $param);
@@ -1073,7 +1073,7 @@ function paramlib_validation($feild,$value)
 
     elseif($feild==STATE)
    {
-      $val=clean_param($value,PARAM_ALPHAEXTS);
+      $val=clean_param($value,PARAM_NOTAGS);
    }
 
      elseif($feild==ZIPCODE)

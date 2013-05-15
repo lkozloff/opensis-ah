@@ -244,7 +244,7 @@ function DeletePrompt_Period($title,$action='delete')
 	else
 		return true;
 }
-
+		
 function DeletePrompt_GradeLevel($title,$action='delete')
 {
 	$tmp_REQUEST = $_REQUEST;

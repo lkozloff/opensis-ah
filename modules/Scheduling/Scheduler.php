@@ -98,18 +98,18 @@ if($function('Confirm Scheduler Run','Are you sure you want to run the scheduler
 	}
 	$count = DBGet(DBQuery("SELECT COUNT(*) AS COUNT FROM schedule WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
 //$sql = "SELECT COALESCE(PARENT_ID,COURSE_PERIOD_ID) AS PARENT_ID,COURSE_PERIOD_ID,COURSE_ID,COURSE_ID AS COURSE,GENDER_RESTRICTION,PERIOD_ID,DAYS,TEACHER_ID,MARKING_PERIOD_ID,MP,COALESCE(TOTAL_SEATS,0)-COALESCE(FILLED_SEATS,0) AS AVAILABLE_SEATS,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=cp.COURSE_ID) AS SECTIONS FROM course_periods cp WHERE cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' ORDER BY SECTIONS,AVAILABLE_SEATS";
-   $sql = "SELECT mp.PARENT_ID,mp.GRANDPARENT_ID FROM marking_periods mp,schedule_requests sr WHERE mp.MARKING_PERIOD_ID=sr.MARKING_PERIOD_ID";
+   $sql = "SELECT mp.PARENT_ID,mp.GRANDPARENT_ID FROM marking_periods mp,schedule_requests sr WHERE mp.MARKING_PERIOD_ID=sr.MARKING_PERIOD_ID and sr.SCHOOL_ID='".UserSchool()."'";
    $get_parent_id = DBGet(DBQuery($sql));
    $parent_id = $get_parent_id[1]['PARENT_ID'];
    $grand_pid = $get_parent_id[1]['GRANDPARENT_ID'];
- $sql = "SELECT COALESCE(cp.PARENT_ID,cp.COURSE_PERIOD_ID) AS PARENT_ID,cp.COURSE_PERIOD_ID,cp.COURSE_ID,cp.COURSE_ID AS COURSE,cp.GENDER_RESTRICTION,cp.PERIOD_ID,cp.DAYS,cp.TEACHER_ID,cp.MARKING_PERIOD_ID,cp.MP,COALESCE(cp.TOTAL_SEATS,0)-COALESCE(cp.FILLED_SEATS,0) AS AVAILABLE_SEATS,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=cp.COURSE_ID) AS SECTIONS FROM course_periods cp,schedule_requests sr WHERE cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND cp.MARKING_PERIOD_ID IN (sr.MARKING_PERIOD_ID,'".$parent_id."','".$grand_pid."') ORDER BY SECTIONS,AVAILABLE_SEATS";
-	$cp_parent_RET = DBGet(DBQuery($sql),array(),array('PARENT_ID'));
+ //$sql = "SELECT COALESCE(cp.PARENT_ID,cp.COURSE_PERIOD_ID) AS PARENT_ID,cp.COURSE_PERIOD_ID,cp.COURSE_ID,cp.COURSE_ID AS COURSE,cp.GENDER_RESTRICTION,cp.PERIOD_ID,cp.DAYS,cp.TEACHER_ID,cp.MARKING_PERIOD_ID,cp.MP,COALESCE(cp.TOTAL_SEATS,0)-COALESCE(cp.FILLED_SEATS,0) AS AVAILABLE_SEATS,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=cp.COURSE_ID) AS SECTIONS FROM course_periods cp,schedule_requests sr WHERE cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND cp.MARKING_PERIOD_ID IN (sr.MARKING_PERIOD_ID,'".$parent_id."','".$grand_pid."') ORDER BY SECTIONS,AVAILABLE_SEATS";
+  $sql = "SELECT DISTINCT COALESCE(cp.PARENT_ID,cp.COURSE_PERIOD_ID) AS PARENT_ID,cp.COURSE_PERIOD_ID,cp.COURSE_ID,cp.COURSE_ID AS COURSE,cp.GENDER_RESTRICTION,cp.PERIOD_ID,cp.DAYS,cp.TEACHER_ID,cp.MARKING_PERIOD_ID,cp.MP,COALESCE(cp.TOTAL_SEATS,0)-COALESCE(cp.FILLED_SEATS,0) AS AVAILABLE_SEATS,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=cp.COURSE_ID) AS SECTIONS FROM course_periods cp LEFT JOIN schedule_requests sr ON cp.COURSE_ID=sr.COURSE_ID WHERE cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND cp.MARKING_PERIOD_ID IN (sr.MARKING_PERIOD_ID,'".$parent_id."','".$grand_pid."') ORDER BY SECTIONS,AVAILABLE_SEATS";	$cp_parent_RET = DBGet(DBQuery($sql),array(),array('PARENT_ID'));
 	$sql = "SELECT COALESCE(PARENT_ID,COURSE_PERIOD_ID) AS PARENT_ID,COURSE_PERIOD_ID,COURSE_ID,COURSE_ID AS COURSE,GENDER_RESTRICTION,PERIOD_ID,DAYS,TEACHER_ID,MARKING_PERIOD_ID,MP,COALESCE(TOTAL_SEATS,0)-COALESCE(FILLED_SEATS,0) AS AVAILABLE_SEATS,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=cp.COURSE_ID) AS SECTIONS FROM course_periods cp WHERE cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND (PARENT_ID IS NULL OR PARENT_ID=COURSE_PERIOD_ID) ORDER BY SECTIONS,AVAILABLE_SEATS";
 	$cp_course_RET = DBGet(DBQuery($sql),array(),array('COURSE'));
 	$mps_RET = DBGet(DBQuery("SELECT SEMESTER_ID,MARKING_PERIOD_ID FROM school_quarters WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"),array(),array('SEMESTER_ID','MARKING_PERIOD_ID'));
 	// GET FILLED/LOCKED REQUESTS
 	$sql = "SELECT s.STUDENT_ID,r.REQUEST_ID,s.COURSE_PERIOD_ID,cp.PARENT_ID,s.COURSE_ID,cp.PERIOD_ID,cp.TEACHER_ID FROM schedule_requests r,schedule s,course_periods cp WHERE
-				s.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND cp.PARENT_ID=cp.COURSE_PERIOD_ID AND r.WITH_TEACHER_ID=cp.TEACHER_ID AND
+				s.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND cp.PARENT_ID=cp.COURSE_PERIOD_ID AND r.WITH_TEACHER_ID=cp.TEACHER_ID AND cp.period_id=r.with_period_id AND
 				r.SYEAR='".UserSyear()."' AND r.SCHOOL_ID='".UserSchool()."' AND s.SYEAR=r.SYEAR AND s.SCHOOL_ID=r.SCHOOL_ID
 				AND s.COURSE_ID=r.COURSE_ID AND r.STUDENT_ID = s.STUDENT_ID
 				AND ('".DBDate()."' BETWEEN s.START_DATE AND s.END_DATE OR s.END_DATE IS NULL)";
@@ -203,12 +203,16 @@ if($function('Confirm Scheduler Run','Are you sure you want to run the scheduler
 				foreach($course_periods as $period_id=>$course_period)
 				{
 					$scount++;
-                                               if(!$locked_RET[$student_id][$course_period['REQUEST_ID']] && $course_period['AVAILABLE_SEATS']!=0)
-						{
+                                            if($course_period['AVAILABLE_SEATS']!=0)
+                                            {
                                                    
                                                     $mp_RET = DBGet(DBQuery("SELECT MP,MARKING_PERIOD_ID,DAYS,PERIOD_ID,MARKING_PERIOD_ID,TOTAL_SEATS,COALESCE(FILLED_SEATS,0) AS FILLED_SEATS FROM course_periods WHERE COURSE_PERIOD_ID='".$course_period['COURSE_PERIOD_ID']."'"));
                                                     $mps = GetAllMP(GetMPTable(GetMP($mp_RET[1]['MARKING_PERIOD_ID'],'TABLE')),$mp_RET[1]['MARKING_PERIOD_ID']);
-                                                    $period_RET = DBGet(DBQuery("SELECT cp.DAYS FROM schedule s,course_periods cp WHERE cp.COURSE_PERIOD_ID=s.COURSE_PERIOD_ID AND s.STUDENT_ID='$student_id' AND cp.PERIOD_ID='".$mp_RET[1]['PERIOD_ID']."' AND s.MARKING_PERIOD_ID IN (".$mps.") AND (s.END_DATE IS NULL OR '".DBDate()."'<=s.END_DATE)"));
+                                                    $cp_conflicts=false;
+                                                    $existing_cp_RET=  DBGet(DBQuery("SELECT COURSE_PERIOD_ID FROM schedule s WHERE course_period_id='".$course_period['COURSE_PERIOD_ID']."' AND (s.END_DATE IS NULL OR '".$date."'<=s.END_DATE) AND s.MARKING_PERIOD_ID IN (".$mps.") AND s.STUDENT_ID='$student_id'"));
+                                                    if($existing_cp_RET)
+                                                        $cp_conflicts=true;
+                                                    $period_RET = DBGet(DBQuery("SELECT cp.DAYS FROM schedule s,course_periods cp,school_periods sp WHERE cp.COURSE_PERIOD_ID=s.COURSE_PERIOD_ID AND cp.period_id=sp.period_id AND s.STUDENT_ID='$student_id' AND cp.PERIOD_ID='".$mp_RET[1]['PERIOD_ID']."' AND s.MARKING_PERIOD_ID IN (".$mps.") AND (s.END_DATE IS NULL OR '".DBDate()."'<=s.END_DATE) AND sp.ignore_scheduling IS NULL"));
                                                     $days_conflict = false;
                                                     
                                                     foreach($period_RET as $existing)
@@ -226,7 +230,66 @@ if($function('Confirm Scheduler Run','Are you sure you want to run the scheduler
                                                                     break 2;
                                                                 }
                                                     }
-                                                    if(!$days_conflict)
+                                                    //**********************************************************************************************/
+                                                    $course_per_id = clean_param($course_period['COURSE_PERIOD_ID'],PARAM_INT);
+                                                    $per_id = DBGet(DBQuery("SELECT PERIOD_ID, DAYS, MARKING_PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID ='$course_per_id'"));
+                                                    $period_id = $per_id[1]['PERIOD_ID'];
+                                                    $days = $per_id[1]['DAYS'];
+                                                    $day_st_count = strlen($days);
+                                                    $mp_id = $per_id[1]['MARKING_PERIOD_ID'];
+                                                    $st_time = DBGet(DBQuery("SELECT START_TIME, END_TIME FROM school_periods WHERE PERIOD_ID = $period_id AND (IGNORE_SCHEDULING IS NULL OR IGNORE_SCHEDULING!='Y')"));    /********* for homeroom scheduling*/
+                                                    $start_time = $st_time[1]['START_TIME'];
+                                                    $min_start_time = get_min($start_time);
+                                                    $end_time = $st_time[1]['END_TIME'];
+                                                    $min_end_time = get_min($end_time);
+                                                    $child_mpid = $mps;
+                                                    $sql = "SELECT COURSE_PERIOD_ID,START_DATE FROM schedule WHERE STUDENT_ID = ".$student_id." AND (END_DATE IS NULL OR END_DATE>CURRENT_DATE) AND SCHOOL_ID='".UserSchool()."' AND COURSE_PERIOD_ID NOT IN (SELECT COURSE_PERIOD_ID FROM course_periods CP,school_periods SP WHERE CP.PERIOD_ID=SP.PERIOD_ID AND SP.IGNORE_SCHEDULING IS NOT NULL)  AND MARKING_PERIOD_ID IN($child_mpid)";
+                                                    $xyz = mysql_query($sql);
+                                                    $time_clash_conflict = false;
+                                                    while($coue_p_id = mysql_fetch_array($xyz))
+                                                    {
+                                                    $cp_id = $coue_p_id[0];
+                                                    $st_dt = $coue_p_id[1];
+                                                    $convdate = con_date($st_dt);
+                                                    $sel_per_id = DBGet(DBQuery("SELECT COURSE_PERIOD_ID, PERIOD_ID, DAYS, MARKING_PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID = $cp_id"));
+                                                    $sel_period_id = $sel_per_id[1]['PERIOD_ID'];
+                                                    $sel_days = $sel_per_id[1]['DAYS'];
+                                                    $sel_mp = $sel_per_id[1]['MARKING_PERIOD_ID'];
+                                                    $sel_cp = $sel_per_id[1]['COURSE_PERIOD_ID'];
+                                                    $sel_st_time = DBGet(DBQuery("SELECT START_TIME, END_TIME FROM school_periods WHERE PERIOD_ID = $sel_period_id"));
+                                                    if($sel_st_time)
+                                                    {
+                                                        $sel_start_time = $sel_st_time[1]['START_TIME'];
+                                                        $min_sel_start_time = get_min($sel_start_time);
+                                                        $sel_end_time = $sel_st_time[1]['END_TIME'];
+                                                        $min_sel_end_time = get_min($sel_end_time);
+                                                        # ---------------------------- Days conflict ------------------------------------ #
+                                                        $j = 0;
+                                                        for($i=0; $i<$day_st_count; $i++)
+                                                        {
+                                                                $clip = substr($days, $i, 1);
+                                                                $pos = strpos($sel_days, $clip);
+                                                                if($pos !== false)
+                                                                        $j++;
+                                                        }
+                                                        # ---------------------------- Days conflict ------------------------------------ #
+                                                        if($j != 0)
+                                                        {
+                                                                if((($min_sel_start_time <= $min_start_time) && ($min_sel_end_time >= $min_start_time)) || (($min_sel_start_time <= $min_end_time) && ($min_sel_end_time >= $min_end_time)) || (($min_sel_start_time >= $min_start_time) && ($min_sel_end_time <= $min_end_time)))
+                                                                {
+                                                                        $time_clash_conflict = true;
+                                                                        break;
+                                                                }
+                                                                else
+                                                                {
+                                                                        $time_clash_conflict = false;
+                                                                }
+                                                        }
+                                                    }
+                                                    }
+                                                    //**********************************************************************************************/
+                                                    if(!$days_conflict && !$time_clash_conflict && !$cp_conflicts)
+                                                   // if(!$days_conflict)
                                                     {
 							DBQuery("INSERT INTO schedule (SYEAR,SCHOOL_ID,STUDENT_ID,START_DATE,COURSE_ID,COURSE_PERIOD_ID,MP,MARKING_PERIOD_ID) values('".UserSyear()."','".UserSchool()."','".$student_id."','".$date."','".$course_period['COURSE_ID']."','".$course_period['COURSE_PERIOD_ID']."','".$course_period['MP']."','".$course_period['MARKING_PERIOD_ID']."');");
                                                         DBQuery("UPDATE course_periods SET FILLED_SEATS=FILLED_SEATS+1 WHERE COURSE_PERIOD_ID='".$course_period['COURSE_PERIOD_ID']."'");
@@ -234,7 +297,7 @@ if($function('Confirm Scheduler Run','Are you sure you want to run the scheduler
      
                                                      }
                                                     
-						 }
+                                                }
                                                 else
 						{
                                                         echo '<!-- Bad Locked -->';
@@ -419,40 +482,40 @@ function _moveRequest($request,$not_request=false,$not_parent_id=false)
 }
 function _isConflict($existing_slice,$slice)
 {	global $requests_RET,$cp_parent_RET,$cp_course_RET,$mps_RET,$schedule,$filled,$unfilled,$fy_id;
-	 $mp_conflict = $days_conflict = false;
-	// LOOK FOR CONFLICT IN SCHEDULED SLICE -- CONFLICT == SEATS,MP,DAYS,PERIOD TIMES
-	// MARKING PERIOD CONFLICTS
-	if($existing_slice['MARKING_PERIOD_ID']=="$fy_id" || ($slice['MARKING_PERIOD_ID']=="$fy_id" && (!$request['MARKING_PERIOD_ID'] || $request['MARKING_PERIOD_ID']==$slice['MARKING_PERIOD_ID'])))
-		$mp_conflict = true; // if either course is full year
-	elseif($existing_slice['MARKING_PERIOD_ID']==$slice['MARKING_PERIOD_ID'])
-		$mp_conflict = true; // if both fall in the same QTR or SEM
-	elseif($existing_slice['MP']==$slice['MP'])
-		$mp_conflict = false; // both are SEM's or QTR's, but not the same
-	elseif($existing_slice['MP']=='SEM' && $mps_RET[$existing_slice['MARKING_PERIOD_ID']][$slice['MARKING_PERIOD_ID']])
-		$mp_conflict = true; // the new course is a quarter in the existing semester
-	elseif($mps_RET[$slice['MARKING_PERIOD_ID']][$existing_slice['MARKING_PERIOD_ID']])
-		$mp_conflict = true; // the existing course is a quarter in the new semester
-	else
-		$mp_conflict = false; // not the same MP, but no conflict
-	if($mp_conflict) // only look for a day conflict if there's already an MP conflict
-	{
-		if(strlen($slice['DAYS'])+strlen($existing_slice['DAYS'])>7)
-			$days_conflict = true;
-		else
-		{
-			$days_len = strlen($slice['DAYS']);
-			for($i=0;$i<$days_len;$i++)
-			{
-				if(strpos($existing_slice['DAYS'],substr($slice['DAYS'],$i,1))!==false)
-				{
-					$days_conflict = true;
-					break;
-				}
-			}
-		}
-		if($days_conflict)
-			return true; // Go to the next available section
-	}
+//	 $mp_conflict = $days_conflict = false;
+//	// LOOK FOR CONFLICT IN SCHEDULED SLICE -- CONFLICT == SEATS,MP,DAYS,PERIOD TIMES
+//	// MARKING PERIOD CONFLICTS
+//	if($existing_slice['MARKING_PERIOD_ID']=="$fy_id" || ($slice['MARKING_PERIOD_ID']=="$fy_id" && (!$request['MARKING_PERIOD_ID'] || $request['MARKING_PERIOD_ID']==$slice['MARKING_PERIOD_ID'])))
+//		$mp_conflict = true; // if either course is full year
+//	elseif($existing_slice['MARKING_PERIOD_ID']==$slice['MARKING_PERIOD_ID'])
+//		$mp_conflict = true; // if both fall in the same QTR or SEM
+//	elseif($existing_slice['MP']==$slice['MP'])
+//		$mp_conflict = false; // both are SEM's or QTR's, but not the same
+//	elseif($existing_slice['MP']=='SEM' && $mps_RET[$existing_slice['MARKING_PERIOD_ID']][$slice['MARKING_PERIOD_ID']])
+//		$mp_conflict = true; // the new course is a quarter in the existing semester
+//	elseif($mps_RET[$slice['MARKING_PERIOD_ID']][$existing_slice['MARKING_PERIOD_ID']])
+//		$mp_conflict = true; // the existing course is a quarter in the new semester
+//	else
+//		$mp_conflict = false; // not the same MP, but no conflict
+//	if($mp_conflict) // only look for a day conflict if there's already an MP conflict
+//	{
+//		if(strlen($slice['DAYS'])+strlen($existing_slice['DAYS'])>7)
+//			$days_conflict = true;
+//		else
+//		{
+//			$days_len = strlen($slice['DAYS']);
+//			for($i=0;$i<$days_len;$i++)
+//			{
+//				if(strpos($existing_slice['DAYS'],substr($slice['DAYS'],$i,1))!==false)
+//				{
+//					$days_conflict = true;
+//					break;
+//				}
+//			}
+//		}
+//		if($days_conflict)
+//			return true; // Go to the next available section
+//	}
 	return false; // There is no conflict
 }
 function _scheduleBest($request,$possible)
@@ -496,5 +559,69 @@ function Prompt_Home_Schedule($title='Confirm',$question='',$message='',$pdf='')
 	}
 	else
 		return true;
+}
+
+function get_min($time)
+{
+        $org_tm = $time;
+        $stage = substr($org_tm,-2);
+        $main_tm = substr($org_tm,0,5);
+        $main_tm = trim($main_tm);
+        $sp_time = split(':',$main_tm);
+        $hr = $sp_time[0];
+        $min = $sp_time[1];
+        if($hr == 12)
+        {
+                $hr = $hr;
+        }
+        else
+        {
+                if($stage == 'AM')
+                        $hr = $hr;
+                if($stage == 'PM')
+                        $hr = $hr + 12;
+        }
+
+        $time_min = (($hr * 60) + $min);
+        return $time_min;
+}
+
+		
+function con_date($date)
+{
+        $mother_date = $date;
+        $year = substr($mother_date, 7, 4);
+        $temp_month = substr($mother_date, 3, 3);
+
+                if($temp_month == 'JAN')
+                        $month = '-01-';
+                elseif($temp_month == 'FEB')
+                        $month = '-02-';
+                elseif($temp_month == 'MAR')
+                        $month = '-03-';
+                elseif($temp_month == 'APR')
+                        $month = '-04-';
+                elseif($temp_month == 'MAY')
+                        $month = '-05-';
+                elseif($temp_month == 'JUN')
+                        $month = '-06-';
+                elseif($temp_month == 'JUL')
+                        $month = '-07-';
+                elseif($temp_month == 'AUG')
+                        $month = '-08-';
+                elseif($temp_month == 'SEP')
+                        $month = '-09-';
+                elseif($temp_month == 'OCT')
+                        $month = '-10-';
+                elseif($temp_month == 'NOV')
+                        $month = '-11-';
+                elseif($temp_month == 'DEC')
+                        $month = '-12-';
+
+                $day = substr($mother_date, 0, 2);
+
+                $select_date = $year.$month.$day;
+                return $select_date;
+
 }
 ?>

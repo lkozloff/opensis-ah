@@ -43,11 +43,11 @@ $text = "
 
 
 INSERT INTO app (name, value) VALUES
-('version', '5.0'),
-('date', 'June 02, 2012'),
-('build', '00202012002'),
-('update', '1'),
-('last_updated', 'June 02, 2012');
+('version', '5.1'),
+('date', 'October 16, 2012'),
+('build', '10162012003'),
+('update', '3'),
+('last_updated', 'July 16, 2012');
 
 --
 -- Dumping data for table `address`
@@ -94,16 +94,16 @@ INSERT INTO app (name, value) VALUES
 -- Dumping data for table 'custom_fields'
 --
 
-INSERT INTO custom_fields (id, `type`, search, title, sort_order, select_options, category_id, system_field, required, default_selection, hide) VALUES
-(1,'text',NULL,'Ethnicity','3',NULL,'1','Y',NULL,NULL,NULL),
-(2,'text',NULL,'Common Name','2',NULL,'1','Y',NULL,NULL,NULL),
-(3,'text',NULL,'Physician','6',NULL,'2','Y',NULL,NULL,NULL),
-(4,'text',NULL,'Physician Phone','7',NULL,'2','Y',NULL,NULL,NULL),
-(5,'text',NULL,'Preferred Hospital','8',NULL,'2','Y',NULL,NULL,NULL),
-(6,'text',NULL,'Gender','5',NULL,'1','Y',NULL,NULL,NULL),
-(7,'text',NULL,'Email','6',NULL,'1','Y',NULL,NULL,NULL),
-(8,'text',NULL,'Phone','9',NULL,'1','Y',NULL,NULL,NULL),
-(9,'text',NULL,'Language','8',NULL,'1','Y',NULL,NULL,NULL);
+INSERT INTO `custom_fields` (`id`, `type`, `search`, `title`, `sort_order`, `select_options`, `category_id`, `system_field`, `required`, `default_selection`, `hide`) VALUES
+(1, 'text', NULL, 'Ethnicity', '3', NULL, '1', 'Y', NULL, NULL, NULL),
+(2, 'text', NULL, 'Common Name', '2', NULL, '1', 'Y', NULL, NULL, NULL),
+(3, 'text', NULL, 'Physician', '6', NULL, '2', 'Y', NULL, NULL, NULL),
+(4, 'text', NULL, 'Physician Phone', '7', NULL, '2', 'Y', NULL, NULL, NULL),
+(5, 'text', NULL, 'Preferred Hospital', '8', NULL, '2', 'Y', NULL, NULL, NULL),
+(6, 'text', NULL, 'Gender', '5', NULL, '1', 'Y', NULL, NULL, NULL),
+(7, 'text', NULL, 'Email', '6', NULL, '1', 'Y', NULL, NULL, NULL),
+(8, 'text', NULL, 'Phone', '9', NULL, '1', 'Y', NULL, NULL, NULL),
+(9, 'text', NULL, 'Language', '8', NULL, '1', 'Y', NULL, NULL, NULL);
 
 --
 -- Dumping data for table `eligibility`
@@ -207,11 +207,14 @@ INSERT INTO profile_exceptions (profile_id, modname, can_use, can_edit) VALUES
 (1, 'Students/Student.php&category_id=3', 'Y', 'Y'),
 (1, 'Students/Student.php&category_id=2', 'Y', 'Y'),
 (1, 'Students/Student.php&category_id=4', 'Y', 'Y'),
+(1, 'Students/EnrollmentReport.php', 'Y', 'Y'),
+(1, 'Students/StudentReenroll.php', 'Y', 'Y'),
 (1, 'Users/User.php', 'Y', 'Y'),
 (1, 'Users/User.php&category_id=1', 'Y', NULL),
 (1, 'Users/User.php&staff_id=new', 'Y', 'Y'),
 (1, 'Users/AddStudents.php', 'Y', 'Y'),
 (1, 'Users/Preferences.php', 'Y', 'Y'),
+(1, 'Users/UserAdvancedReport.php', 'Y', 'Y'),
 (1, 'Users/Profiles.php', 'Y', 'Y'),
 (1, 'Users/Exceptions.php', 'Y', 'Y'),
 (1, 'Users/UserFields.php', 'Y', 'Y'),

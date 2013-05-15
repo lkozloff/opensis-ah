@@ -102,76 +102,152 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 	// ---------------------- Insert & Update Start ------------------------------ //
 		foreach($_REQUEST['tables'] as $id=>$columns)
 		{
-                                                    if($id!='new')
-                                                    {     
-                                                            if($columns['START_DATE']){
-                                                                $check=$columns['START_DATE'];
-                                                            }
-                                                            else {
-                                                                $check_date=DBGet(DBQuery("SELECT START_DATE FROM $table WHERE marking_period_id='".$id."'"));
-                                                                $check_date=$check_date[1];
-                                                                $check=$check_date['START_DATE'];
-                                                            }
-                                                            if($columns['END_DATE']){
-                                                                $check1=$columns['END_DATE'];
-                                                            }
-                                                            else {
-                                                                $check_date1=DBGet(DBQuery("SELECT END_DATE FROM $table WHERE marking_period_id='".$id."'"));
-                                                                $check_date1=$check_date1[1];
-                                                                $check1=$check_date1['END_DATE'];
-                                                            }
-                                                            $days=floor((strtotime($check1,0)-strtotime($check,0))/86400); 
-                                                            if($days<=0)
+                    if($table=='school_semesters')
+                    {
+                        $chk_tbl='school_years';
+                        $nm="full year";
+                        $date_sql="SELECT START_DATE,END_DATE FROM $chk_tbl WHERE MARKING_PERIOD_ID = $_REQUEST[year_id] AND SCHOOL_ID ='".  UserSchool()."' AND SYEAR = '".  UserSyear()."'";
+                        $dates=  DBGet(DBQuery($date_sql));
+                        $dates=$dates[1];
+                    }
+                    if($table=='school_quarters')
+                    {
+                        $chk_tbl='school_semesters';
+                        $nm="semester";
+                        $date_sql="SELECT START_DATE,END_DATE FROM $chk_tbl WHERE MARKING_PERIOD_ID = $_REQUEST[semester_id] AND SCHOOL_ID ='".  UserSchool()."' AND SYEAR = '".  UserSyear()."'";
+                        $dates=  DBGet(DBQuery($date_sql));
+                        $dates=$dates[1];
+                    }
+                    if($table==' school_progress_periods')
+                    {
+                        $chk_tbl='school_quarters';
+                        $nm="quarter";
+                        $date_sql="SELECT START_DATE,END_DATE FROM $chk_tbl WHERE MARKING_PERIOD_ID = $_REQUEST[quarter_id] AND SCHOOL_ID ='".  UserSchool()."' AND SYEAR = '".  UserSyear()."'";
+                        $dates=  DBGet(DBQuery($date_sql));
+                        $dates=$dates[1];
+                    }
+                        if($id!='new')
+                        {     
+                                if($columns['START_DATE']){
+                                    $check=$columns['START_DATE'];
+                                }
+                                else {
+                                    $check_date=DBGet(DBQuery("SELECT START_DATE FROM $table WHERE marking_period_id='".$id."'"));
+                                    $check_date=$check_date[1];
+                                    $check=$check_date['START_DATE'];
+                                }
+                                if($columns['END_DATE']){
+                                    $check1=$columns['END_DATE'];
+                                }
+                                else {
+                                    $check_date1=DBGet(DBQuery("SELECT END_DATE FROM $table WHERE marking_period_id='".$id."'"));
+                                    $check_date1=$check_date1[1];
+                                    $check1=$check_date1['END_DATE'];
+                                }
+                                $days=floor((strtotime($check1,0)-strtotime($check,0))/86400); 
+                                if($days<=0)
+                                {
+                                        $err_msg='Data not saved because start and end date is not valid';
+                                }
+                                else 
+                                {
+                                        if($columns['POST_START_DATE']){
+                                            $check=$columns['POST_START_DATE'];
+                                        }
+                                        else {
+                                            $check_date=DBGet(DBQuery("SELECT POST_START_DATE FROM $table WHERE marking_period_id='".$id."'"));
+                                            $check_date=$check_date[1];
+                                            $check=$check_date['POST_START_DATE'];
+                                        }
+                                        if($columns['POST_END_DATE']){
+                                            $check1=$columns['POST_END_DATE'];
+                                        }
+                                        else {
+                                            $check_date1=DBGet(DBQuery("SELECT POST_END_DATE FROM $table WHERE marking_period_id='".$id."'"));
+                                            $check_date1=$check_date1[1];
+                                            $check1=$check_date1['POST_END_DATE'];
+                                        }
+                                        $days=floor((strtotime($check1,0)-strtotime($check,0))/86400); 
+                                        if($days<=0)
+                                        {
+                                            $err_msg='Data not saved because grade post date is not valid';
+                                        }
+                                        else
+                                        {
+                                                $sql = "UPDATE $table SET ";
+                                                
+                                                foreach($columns as $column=>$value)
+                                                {
+                                                        $value=paramlib_validation($column,$value);
+                                                        if($column=='START_DATE' && $columns['START_DATE']!='')
+                                                        {
+                                                            if(strtotime($dates['START_DATE'])<=strtotime($columns['START_DATE']))
                                                             {
-                                                                    ShowErrPhp('Data not saved because start and end date is not valid');
+                                                                    if($value!='')
+                                                                    {
+                                                                        while(!VerifyDate($value))
+                                                                        {
+                                                                            $value= date('d-M-Y',strtotime($value)-86400);
+                                                                        }
+                                                                        $sql .= $column."='".str_replace("'","''",str_replace("\'","''",$value))."',";
+                                                                    }
                                                             }
-                                                            else 
+                                                            else
                                                             {
-                                                                    if($columns['POST_START_DATE']){
-                                                                        $check=$columns['POST_START_DATE'];
-                                                                    }
-                                                                    else {
-                                                                        $check_date=DBGet(DBQuery("SELECT POST_START_DATE FROM $table WHERE marking_period_id='".$id."'"));
-                                                                        $check_date=$check_date[1];
-                                                                        $check=$check_date['POST_START_DATE'];
-                                                                    }
-                                                                    if($columns['POST_END_DATE']){
-                                                                        $check1=$columns['POST_END_DATE'];
-                                                                    }
-                                                                    else {
-                                                                        $check_date1=DBGet(DBQuery("SELECT POST_END_DATE FROM $table WHERE marking_period_id='".$id."'"));
-                                                                        $check_date1=$check_date1[1];
-                                                                        $check1=$check_date1['POST_END_DATE'];
-                                                                    }
-                                                                    $days=floor((strtotime($check1,0)-strtotime($check,0))/86400); 
-                                                                    if($days<=0)
+                                                                $err_msg="Start date cannot be earlier than $nm start date";
+                                                                break 2;
+                                                            }
+                                                        }
+                                                        if($column=='END_DATE' && $columns['END_DATE']!='')
+                                                        {
+                                                            if(strtotime($dates['END_DATE'])>=strtotime($columns['END_DATE']))
+                                                            {
+                                                                if($value!='')
                                                                     {
-                                                                        ShowErrPhp('Data not saved because grade post date is not valid');
+                                                                        while(!VerifyDate($value))
+                                                                        {
+                                                                            $value= date('d-M-Y',strtotime($value)-86400);
+                                                                        }
+                                                                        $sql .= $column."='".str_replace("'","''",str_replace("\'","''",$value))."',";
                                                                     }
-                                                                    else
-                                                                    {
-                                                                            $sql = "UPDATE $table SET ";
+                                                            }
+                                                            else
+                                                            {
+                                                                $err_msg="End date cannot be after $nm end date";
+                                                                break 2;
+                                                            }
+                                                        }
+                                                        if($column=='POST_START_DATE' && $columns['POST_START_DATE']!='' )
+                                                        {
+                                                            if($value!='')
+                                                            {
+                                                                while(!VerifyDate($value))
+                                                                {
+                                                                    $value= date('d-M-Y',strtotime($value)-86400);
+                                                                }
+                                                                $sql .= $column."='".str_replace("'","''",str_replace("\'","''",$value))."',";
+                                                            }
+                                                        }
+                                                        if($column=='POST_END_DATE' && $columns['POST_END_DATE']!='')
+                                                        {
+                                                            if($value!='')
+                                                            {
+                                                                while(!VerifyDate($value))
+                                                                {
+                                                                    $value= date('d-M-Y',strtotime($value)-86400);
+                                                                }
+                                                                $sql .= $column."='".str_replace("'","''",str_replace("\'","''",$value))."',";
+                                                            }
+                                                        }
+                                                        if($column!='START_DATE' && $column!='END_DATE' && $column!='POST_START_DATE' && $column!='POST_END_DATE')
+                                                            $sql .= $column."='".str_replace("'","''",str_replace("\'","''",$value))."',";
 
-                                                                            foreach($columns as $column=>$value)
-                                                                            {
-                                                                                    $value=paramlib_validation($column,$value);
-                                                                                    if($column=='START_DATE' || $column=='END_DATE' || $column=='POST_START_DATE' || $column=='POST_END_DATE')
-                                                                                    {
-                                                                                            if($value!='')
-                                                                                            {
-                                                                                                while(!VerifyDate($value))
-                                                                                                {
-                                                                                                    $value= date('d-M-Y',strtotime($value)-86400);
-                                                                                                }
-                                                                                            }
-                                                                                    }
-                                                                                    $sql .= $column."='".str_replace("\'","''",$value)."',";
-                                                                            }
-                                                                            $sql = substr($sql,0,-1) . " WHERE MARKING_PERIOD_ID='$id'";
-                                                                            $go = true;
-                                                                    }
-                                                            }
-                                                    }
+                                                }
+                                                $sql = substr($sql,0,-1) . " WHERE MARKING_PERIOD_ID='$id'";
+                                                $go = true;
+                                        }
+                                }
+                        }
                                             
 			else
 			{
@@ -207,7 +283,7 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 				$go = false;
 				foreach($columns as $column=>$value)
 				{
-                    $value=paramlib_validation($column,$value);
+                                    $value=paramlib_validation($column,$value);
 					if($column=='START_DATE' || $column=='END_DATE' || $column=='POST_START_DATE' || $column=='POST_END_DATE')
 					{
 						if(!VerifyDate($value) && $value!='')
@@ -215,12 +291,52 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 					}
 					if($value)
 					{
-						$fields .= $column.',';
-						$values .= "'".str_replace("\'","''",$value)."',";
-						$go = true;
+                                            if($column=='START_DATE' && $columns['START_DATE']!='')
+                                            {
+                                                if(strtotime($dates['START_DATE'])<=strtotime($columns['START_DATE']))
+                                                {
+                                                    $fields .= $column.',';
+                                                    $values .= "'".str_replace("'","''",str_replace("\'","''",$value))."',";
+                                                    
+                                                    $go = true;
+                                                }
+                                                else
+                                                {
+                                                    $err_msg="Start date cannot be earlier than $nm start date";
+                                                    $_REQUEST['marking_period_id']='new';
+                                                    break 2;
+                                                }
+                                            }
+                                            if($column=='END_DATE' && $columns['END_DATE']!='')
+                                            { 
+                                                if(strtotime($dates['END_DATE'])>=strtotime($columns['END_DATE']))
+                                                {
+                                                    $fields .= $column.',';
+                                                    $values .= "'".str_replace("'","''",str_replace("\'","''",$value))."',";
+                                                    $go = true;
+                                                }
+                                                else
+                                                {
+                                                    $err_msg="End date cannot be after $nm end date";
+                                                    $_REQUEST['marking_period_id']='new';
+                                                    break 2;
+                                                }
+                                            }
+                                            if(($column=='POST_START_DATE' && $columns['POST_START_DATE']!='') || ($column=='POST_END_DATE' && $columns['POST_END_DATE']!=''))
+                                            {
+                                                $fields .= $column.',';
+                                                $values .= "'".str_replace("'","''",str_replace("\'","''",$value))."',";
+                                                $go = true;
+                                            }
+                                            if($column!='START_DATE' && $column!='END_DATE' && $column!='POST_START_DATE' && $column!='POST_END_DATE')
+                                            {
+                                                $fields .= $column.',';
+                                                $values .= "'".str_replace("'","''",str_replace("\'","''",$value))."',";
+                                                $go = true;
+                                            }
 					}
 				}
-				$sql .= '(' . substr($fields,0,-1) . ') values(' . substr($values,0,-1) . ')';
+                               $sql .= '(' . substr($fields,0,-1) . ') values(' . substr($values,0,-1) . ')';
 			}
 	
 			// CHECK TO MAKE SURE ONLY ONE MP & ONE GRADING PERIOD IS OPEN AT ANY GIVEN TIME
@@ -346,7 +462,13 @@ if(!$_REQUEST['modfunc'])
 
 	if(clean_param($_REQUEST['marking_period_id'],PARAM_ALPHANUM))
 	{
-		echo "<FORM name=marking_period id=marking_period action=Modules.php?modname=$_REQUEST[modname]&mp_term=$_REQUEST[mp_term]&marking_period_id=$_REQUEST[marking_period_id]&year_id=$_REQUEST[year_id]&semester_id=$_REQUEST[semester_id]&quarter_id=$_REQUEST[quarter_id] method=POST>";
+	if($err_msg)
+        {
+            echo "<b style='color:red'>".$err_msg."</b>";
+        
+            unset($err_msg);
+        }	
+            echo "<FORM name=marking_period id=marking_period action=Modules.php?modname=$_REQUEST[modname]&mp_term=$_REQUEST[mp_term]&marking_period_id=$_REQUEST[marking_period_id]&year_id=$_REQUEST[year_id]&semester_id=$_REQUEST[semester_id]&quarter_id=$_REQUEST[quarter_id] method=POST>";
 		PopTable ('header',$title);
 		$header .= '<TABLE cellspacing=0 cellpadding=3 border=0>';
 		

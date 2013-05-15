@@ -39,39 +39,70 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
                     if($column==NEXT_GRADE_ID && (str_replace("\'","''",$value)=='' || str_replace("\'","''",$value)==0 ))
                         $sql .= $column."=NULL,";
                     else
-                        $sql .= $column."='".str_replace("\'","''",$value)."',";
+                        $sql .= $column."='".str_replace("'","''",str_replace("\'","''",$value))."',";
                 }
                 $sql = substr($sql,0,-1) . " WHERE ID='$id'";
                     DBQuery($sql);
             }
             else
             {
-                if(clean_param(trim($_REQUEST['values']['new']['TITLE']),PARAM_NOTAGS)!='')
+                $sql="SELECT TITLE,SHORT_NAME,SORT_ORDER FROM school_gradelevels WHERE SCHOOL_ID ='".UserSchool()."'";
+                $gradelevels=  DBGet(DBQuery($sql));
+                for($i=1;$i<=count($gradelevels);$i++)
                 {
-                    $sql = "INSERT INTO school_gradelevels ";
-                    $fields = 'SCHOOL_ID,';
-                    $values = "'".UserSchool()."',";
-
-                    $go = 0;
-                    foreach($columns as $column=>$value)
+                    $shortname[$i]=$gradelevels[$i]['SHORT_NAME'];
+                    $grd_title[$i]=$gradelevels[$i]['TITLE'];
+                    $sort_order[$i]=$gradelevels[$i]['SORT_ORDER'];
+                }
+                if(in_array($columns['TITLE'], $grd_title))
+                {
+                    $err_msg="Title already exists";
+                    break;
+                }
+                else 
+                {
+                    if(in_array($columns['SHORT_NAME'], $shortname))
                     {
-                            if(trim($value))
-                            {
-                                    $value=trim(paramlib_validation($column,$value));
-                                    $fields .= $column.',';
-                                    $values .= "'".str_replace("\'","''",$value)."',";
-                                    $go = true;
-                            }
+                        $err_msg="Short name already exists";
+                        break;
                     }
-                    $sql .= '(' . substr($fields,0,-1) . ') values(' . substr($values,0,-1) . ')';
+                    else 
+                    {
+                        if(in_array($columns['SORT_ORDER'], $shortname))
+                        {
+                            $err_msg="Sort order already exists";
+                            break;
+                        }
+                        else 
+                        {
+                            if(clean_param(trim($_REQUEST['values']['new']['TITLE']),PARAM_NOTAGS)!='')
+                            {
+                                $sql = "INSERT INTO school_gradelevels ";
+                                $fields = 'SCHOOL_ID,';
+                                $values = "'".UserSchool()."',";
 
-                    if($go)
-                            DBQuery($sql);
-                }    
+                                $go = 0;
+                                foreach($columns as $column=>$value)
+                                {
+                                        if(trim($value))
+                                        {
+                                                $value=trim(paramlib_validation($column,$value));
+                                                $fields .= $column.',';
+                                                $values .= "'".str_replace("'","''",str_replace("\'","''",$value))."',";
+                                                $go = true;
+                                        }
+                                }
+                                $sql .= '(' . substr($fields,0,-1) . ') values(' . substr($values,0,-1) . ')';
+
+                                if($go)
+                                        DBQuery($sql);
+                            }
+                        }
+                    }
+                 }
             }
     }
 }
-
 DrawBC("School Setup > ".ProgramTitle());
 #echo "Modules.php?modname=$_REQUEST[modname]";
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='remove')
@@ -100,7 +131,12 @@ if($_REQUEST['modfunc']!='remove')
 	$link['add']['html'] = array('TITLE'=>makeTextInput('','TITLE'),'SHORT_NAME'=>makeTextInput('','SHORT_NAME'),'SORT_ORDER'=>makeTextInputMod2('','SORT_ORDER'),'NEXT_GRADE_ID'=>makeGradeInput('','NEXT_GRADE_ID'));
 	$link['remove']['link'] = "Modules.php?modname=$_REQUEST[modname]&modfunc=remove";
 	$link['remove']['variables'] = array('id'=>'ID');
-	
+	if($err_msg)
+        {
+            echo "<b style='color:red'>".$err_msg."</b>";
+        
+            unset($err_msg);
+        }
 	echo "<FORM name=F1 id=F1 action=Modules.php?modname=$_REQUEST[modname]&modfunc=update method=POST>";
 	#DrawHeader('','<INPUT type=submit value=Save>');
 	ListOutput($grades_RET,$columns,'Grade Level','Grade Levels',$link, true, array('search'=>false));

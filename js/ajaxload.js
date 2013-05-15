@@ -617,21 +617,24 @@ function validate_rollover(thisFrm,thisElement)
     }
 }
 
-function validate_password(password)
-{
-     var url = "validator.php?validate=pass&password=" + password ;
+function validate_password(password,stid)
+{   
+ 
+     var url = "validator.php?validate=pass&password=" + password +"&stfid="+ stid;
      ajax_call(url,pass_val_callback,pass_val_error);
 }
 
 function pass_val_callback(data)
 {
  	var obj = document.getElementById('passwordStrength');
+        
             if(data!='1')
             {
  	obj.style.color ='#ff0000';
                   obj.style.backgroundColor =  "#cccccc" ;
  	obj.innerHTML = 'Invalid password';
             }
+         
 }
 function pass_val_error(err)
 {

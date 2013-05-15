@@ -204,7 +204,7 @@ function GetStuList(& $extra)
 				$sql .='s.LAST_NAME,s.FIRST_NAME,s.MIDDLE_NAME,s.STUDENT_ID,s.PHONE,ssm.SCHOOL_ID,s.ALT_ID,ssm.SCHOOL_ID AS LIST_SCHOOL_ID,ssm.GRADE_ID'.$extra['SELECT'];
 				
 				if($_REQUEST['include_inactive']=='Y')
-				$sql .= ','.db_case(array("(ssm.SYEAR='".UserSyear()."' AND ( (ssm.START_DATE IS NOT NULL AND '".date('Y-m-d',strtotime($extra['DATE']))."'>=ssm.START_DATE) AND('".date('Y-m-d',strtotime($extra['DATE']))."'<=ssm.END_DATE OR ssm.END_DATE IS NULL)))",'true',"'<FONT color=green>Active</FONT>'","'<FONT color=red>Inactive</FONT>'")).' AS ACTIVE ';
+				$sql .= ','.db_case(array("(ssm.SYEAR='".UserSyear()."' AND (ssm.START_DATE IS NOT NULL AND ('".date('Y-m-d',strtotime($extra['DATE']))."'<=ssm.END_DATE OR ssm.END_DATE IS NULL)))",'true',"'<FONT color=green>Active</FONT>'","'<FONT color=red>Inactive</FONT>'")).' AS ACTIVE ';
 				
 			}
 			
@@ -232,10 +232,12 @@ if($_REQUEST['reason'] || $_REQUEST['result'] || $_REQUEST['med_vist_comments']|
 			}
 			$sql .=",student_enrollment ssm ";
 		$sql.=$extra['FROM']." WHERE ssm.STUDENT_ID=s.STUDENT_ID ";
+                if($_REQUEST['modname']!='Students/StudentReenroll.php')
+                {
 			if($_REQUEST['include_inactive']=='Y')
 				$sql .= " AND ssm.ID=(SELECT ID FROM student_enrollment WHERE STUDENT_ID=ssm.STUDENT_ID AND SYEAR ='".UserSyear()."' ORDER BY START_DATE DESC LIMIT 1)";
 			else
-				 $sql .= $_SESSION['inactive_stu_filter'] =" AND ssm.SYEAR='".UserSyear()."' AND ((ssm.START_DATE IS NOT NULL AND '".date('Y-m-d',strtotime($extra['DATE']))."'>=ssm.START_DATE) AND ('".date('Y-m-d',strtotime($extra['DATE']))."'<=ssm.END_DATE OR ssm.END_DATE IS NULL)) ";
+				 $sql .= $_SESSION['inactive_stu_filter'] =" AND ssm.SYEAR='".UserSyear()."' AND (ssm.START_DATE IS NOT NULL AND ('".date('Y-m-d',strtotime($extra['DATE']))."'<=ssm.END_DATE OR ssm.END_DATE IS NULL)) ";
                  //$sql .= " AND ssm.SYEAR='".UserSyear()."' AND ('".date('Y-m-d',strtotime($extra['DATE']))."'>=ssm.START_DATE AND ('".date('Y-m-d',strtotime($extra['DATE']))."'<=ssm.END_DATE OR ssm.END_DATE IS NULL)) ";
                                                         if($_REQUEST['address_group'])
                                                             $extra['columns_after']['CHILD'] = 'Parent';
@@ -251,6 +253,19 @@ if($_REQUEST['reason'] || $_REQUEST['result'] || $_REQUEST['med_vist_comments']|
 
 			if(!$extra['SELECT_ONLY'] && $_REQUEST['include_inactive']=='Y')
 				$extra['columns_after']['ACTIVE'] = 'Status';
+                }
+                else 
+                {
+                   if($_REQUEST['_search_all_schools']=='Y')
+                   {
+                       if(User('SCHOOLS'))
+					$sql .= " AND ssm.SCHOOL_ID IN (".substr(str_replace(',',"','",User('SCHOOLS')),2,-2).") ";
+                   }
+                   else
+                   {
+                       $sql .= " AND ssm.SCHOOL_ID='".UserSchool()."'";
+                   }
+                }
 				
 		break;
 
@@ -398,6 +413,8 @@ if($_REQUEST['reason'] || $_REQUEST['result'] || $_REQUEST['med_vist_comments']|
 		echo '<!--'.$sql.'-->';
 	$return = DBGet(DBQuery($sql),$functions,$extra['group']);
                   $_SESSION['count_stu'] =  count($return);
+                  if($_REQUEST['modname'] == 'Students/Student.php' && $_REQUEST['search_modfunc']=='list')
+                    $_SESSION['total_stu']=$_SESSION['count_stu'];
                   return $return;
 }
 

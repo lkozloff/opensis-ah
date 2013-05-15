@@ -194,9 +194,9 @@ if($_REQUEST['attendance'] && ($_POST['attendance'] || $_REQUEST['ajax']))
 	if($_REQUEST['table']=='0')
 	{
 		$RET = DBGet(DBQuery("SELECT 'completed' AS COMPLETED FROM attendance_completed WHERE (STAFF_ID='".User('STAFF_ID')."' OR SUBSTITUTE_STAFF_ID='".  User('STAFF_ID')."') AND SCHOOL_DATE='".date('Y-m-d',strtotime($date))."' AND PERIOD_ID='".UserPeriod()."'"));
-		if(!count($RET)){
+		if(!count($RET))
+                                    {
                                                 $teacher_type=DBGet(DBQuery("SELECT TEACHER_ID,SECONDARY_TEACHER_ID FROM course_periods WHERE COURSE_PERIOD_ID='".UserCoursePeriod()."'"));
-                                                
                                                 $secondary_teacher_id=$teacher_type[1]['SECONDARY_TEACHER_ID'];
                                                 $teacher_id=$teacher_type[1]['TEACHER_ID'];
                                                 if($secondary_teacher_id==  User('STAFF_ID'))
@@ -205,8 +205,8 @@ if($_REQUEST['attendance'] && ($_POST['attendance'] || $_REQUEST['ajax']))
                                                     DBQuery("INSERT INTO attendance_completed (STAFF_ID,SCHOOL_DATE,PERIOD_ID,SUBSTITUTE_STAFF_ID) values('".$teacher_type[1]['TEACHER_ID']."','$date','".UserPeriod()."','".$secondary_teacher_id."')");
                                                 else
                                                     DBQuery("INSERT INTO attendance_completed (STAFF_ID,SCHOOL_DATE,PERIOD_ID,SUBSTITUTE_STAFF_ID) values('".  User('STAFF_ID')."','$date','".UserPeriod()."','".$secondary_teacher_id."')");
-                                                DBQuery("DELETE FROM missing_attendance WHERE  SCHOOL_DATE='".$date."' AND COURSE_PERIOD_ID='". UserCoursePeriod()."'");
-	}
+                                    }
+                                    DBQuery("DELETE FROM missing_attendance WHERE  SCHOOL_DATE='".$date."' AND COURSE_PERIOD_ID='". UserCoursePeriod()."'");
 	}
 
 	$current_RET = DBGet(DBQuery($current_Q),array(),array('STUDENT_ID'));

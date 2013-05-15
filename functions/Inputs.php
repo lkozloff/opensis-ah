@@ -35,7 +35,7 @@ function DateInput($value,$name,$title='',$div=true,$allow_na=true)
 		if($value=='' || $div==false)
 			return PrepareDate($value,"_$name",$allow_na).($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'');
 		else
-			return "<DIV id='div$name'><div onclick='javascript:addHTML(\"".str_replace('"','\"',PrepareDate($value,"_$name",true,array('Y'=>1,'M'=>1,'D'=>1))).($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'')."\",\"div$name\",true)'>".(($value!='')?ProperDate($value):'-').($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'').'</div></DIV>';
+			return "<DIV id='div$name'><div onclick='javascript:addHTML(\"".str_replace('"','\"',PrepareDate($value,"_$name",$allow_na,array('Y'=>1,'M'=>1,'D'=>1))).($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'')."\",\"div$name\",true)'>".(($value!='')?ProperDate($value):'-').($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'').'</div></DIV>';
 	}
 	else
 		return (($value!='')?ProperDate($value):'-').($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'');
@@ -215,6 +215,32 @@ function CheckboxInput($value,$name,$title='',$checked='',$new=false,$yes='Yes',
 		$div = false;
 
 	if($div==false || $new==true)
+	{
+		if($value && $value!='N')
+			$checked = 'CHECKED';
+		else
+			$checked = '';
+	}
+
+	if(AllowEdit() && !$_REQUEST['_openSIS_PDF'])
+	{
+		if($new || $div==false)
+			return "<INPUT type=checkbox name=$name value=Y $checked $extra>".($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'');
+		else
+			return "<DIV id='div$name'><div onclick='javascript:addHTML(\"<INPUT type=hidden name=$name value=\\\"\\\"><INPUT type=checkbox name=$name ".(($value)?'checked':'')." value=Y ".str_replace('"','\"',$extra).">".($title!=''?'<BR><small>'.str_replace("'",'&#39;',(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'')).'</small>':'')."\",\"div$name\",true)'>".($value?$yes:$no).($title!=''?"<BR><small>".str_replace("'",'&#39;',(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':''))."</small>":'')."</div></DIV>";
+	}
+	else
+		return ($value?$yes:$no).($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'');
+}
+
+//for calendar date
+function CheckboxInput_Calendar($value,$name,$title='',$checked='',$new=false,$yes='Yes',$no='No',$div=true,$extra='')
+{
+	// $checked has been deprecated -- it remains only as a placeholder
+	#if(Preferences('HIDDEN')!='Y')
+		#$div = false;
+#$div==false ||
+	if( $new==true)
 	{
 		if($value && $value!='N')
 			$checked = 'CHECKED';

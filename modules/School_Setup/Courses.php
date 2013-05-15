@@ -156,10 +156,8 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 						$mp_title .= $days.' - ';
 					if($short_name)
 						$mp_title .= paramlib_validation($column=SHORT_NAME,$short_name).' - ';
-                                 
 					$title = str_replace("'","''",$period[1]['TITLE'].' - '.$mp_title.$teacher[1]['FIRST_NAME'].' '.$teacher[1]['MIDDLE_NAME'].' '.$teacher[1]['LAST_NAME']);
 					$sql .= "TITLE='$title',";
-
 					if(isset($columns['MARKING_PERIOD_ID']))
 					{
 						if(GetMP($columns['MARKING_PERIOD_ID'],'TABLE')=='school_years')
@@ -176,37 +174,37 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
                                                                         {
                                                                                 if(($column=='TEACHER_ID') && $scheduleAssociation){
                                                                                     $asso_err[]='To Change teacher go to School Setup->Courses->Teacher Re-Assignment';
-                                                                                    continue;
+                                                                                    break 2;
                                                                                 }
                                                                                 if(($column=='PERIOD_ID') && $scheduleAssociation){
                                                                                     $asso_err[]='You can not edit Period because it has association';
-                                                                                    continue;
+                                                                                    break 2;
                                                                                 }
                                                                                 elseif($column=='DAYS' && $scheduleAssociation){
                                                                                     $asso_err[]='You can not edit Days because it has association';
-                                                                                    continue;
+                                                                                    break 2;
                                                                                 }
                                                                                 elseif($column=='MARKING_PERIOD_ID' && $scheduleAssociation){
                                                                                     $asso_err[]='You can not edit Marking Period because it has association';
-                                                                                    continue;
+                                                                                    break 2;
                                                                                 }
-                                                                                elseif($column=='GRADE_SCALE_ID' && $gradeAssociation){
+                                                                                elseif($column=='GRADE_SCALE_ID' && $columns['GRADE_SCALE_ID']!='' && $gradeAssociation){
                                                                                     $asso_err[]='You can not edit Grading Scale because it has association';
-                                                                                    continue;
+                                                                                    break 2;
                                                                                 }
                                                                                 elseif($column=='CREDITS' && $gradeAssociation){
                                                                                     $asso_err[]='You can not edit Credits because it has association';
-                                                                                    continue;
+                                                                                    break 2;
                                                                                 }
                                                                                 elseif($column=='TOTAL_SEATS' && isset($cur_total_seat) && $value<$cur_total_seat){
                                                                                     $asso_err[]='You can not reduce Seats because it has association';
-                                                                                    continue;
+                                                                                    break 2;
                                                                                 }
                                                                                 elseif($column=='ROOM' && trim($value)==''){
-                                                                                    continue;
+                                                                                    break 2;
                                                                                 }
                                                                                 elseif($column=='SHORT_NAME' && trim($value)==''){
-                                                                                    continue;
+                                                                                    break 2;
                                                                                 }
                                                                                 $value=paramlib_validation($column,$value);
                                                                                 if($column=='GRADE_SCALE_ID' && str_replace("\'","''",$value)==''){
@@ -240,11 +238,7 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 				} 
 				*/
 				// ----------------------------------------------- //
-                                                                    if(($scheduleAssociation || $gradeAssociation)&& is_array($asso_err)){
-                                                                        foreach($asso_err as $err){
-                                                                            ShowErrPhp($err);
-                                                                        }
-                                                                    }
+                                                                    
 
 			}
 			else
@@ -344,6 +338,11 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 				
 			}
 		}
+                if(($scheduleAssociation || $gradeAssociation)&& is_array($asso_err)){
+                                                                        foreach($asso_err as $err){
+                                                                            ShowErrPhp($err);
+                                                                        }
+                                                                    }
 	}
 	unset($_REQUEST['tables']);
 }

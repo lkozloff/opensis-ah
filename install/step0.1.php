@@ -52,16 +52,16 @@ if(page && page!="index.php"){
       <td>
 	      <table width="100%" style="height:270px;" border="0" cellspacing="12" cellpadding="12" align="center">
             <tr>
-			 	<td valign="middle" align="center" colspan="2" style="font-size:14px;">Please be advised that only openSIS-CE version 4.6 or 4.7 or 4.8X or 4.9 can be<br /> upgraded to the new version 5.0 via this installer.
+			 	<td valign="middle" align="center" colspan="2" style="font-size:14px;">Please be advised that only openSIS-CE version 4.6 or 4.7 or 4.8X or 4.9 or 5.0 can be<br /> upgraded to the new version 5.1 via this installer.
 			 <br /><br />
-             If you are running version 4.6 or 4.7 or 4.8X or 4.9 click Continue to upgrade,<br /> otherwise click Go Back and try New Installation.
+             If you are running version 4.6 or 4.7 or 4.8X or 4.9 or 5.0 click Continue to upgrade,<br /> otherwise click Go Back and try New Installation.
 				</td>
 			</tr>
 			<tr>
 <?php
 
     echo '<td align="left"><a href="step0.php"><img src="images/go_back.png"  alt="New Installation"  border="0"/></a></td>';
-    echo '<td align="right"><a href="step1.php?mod=upgrade"><img src="images/continue.png" alt="Upgrade OpenSIS" border="0"/></a></td>';
+    echo '<td align="right"><a href="step1.php?mod=upgrade"><img src="images/continue.png" alt="Upgrade openSIS" border="0"/></a></td>';
 
 ?>
 	          </tr>

@@ -841,7 +841,10 @@ CREATE TABLE staff (
     failed_login numeric,
     profile_id numeric,
     rollover_id numeric,
-    is_disable varchar(10) default NULL
+    is_disable varchar(10) default NULL,
+`CUSTOM_1` varchar(100) DEFAULT NULL,
+  `CUSTOM_2` varchar(255) DEFAULT NULL,
+  `CUSTOM_3` varchar(255) DEFAULT NULL
 )ENGINE=MyISAM;
 
 
@@ -1027,7 +1030,7 @@ CREATE TABLE student_report_card_grades (
     report_card_grade_id numeric,
     report_card_comment_id numeric,
     comment longtext,
-    grade_percent numeric(4,2),
+    grade_percent numeric(5,2),
     marking_period_id varchar(10) NOT NULL,
     grade_letter character varying(5),
     weighted_gp decimal(10,3),
@@ -1599,6 +1602,11 @@ CREATE INDEX school_years_ind2  USING btree ON school_years(syear, school_id, st
 
 CREATE INDEX schools_ind1  USING btree ON schools(syear);
 
+CREATE INDEX CUSTOM_IND1 ON staff(CUSTOM_1);
+
+CREATE INDEX CUSTOM_IND2 ON staff(CUSTOM_2);
+
+CREATE INDEX CUSTOM_IND3 ON staff(CUSTOM_3);
 
 CREATE INDEX staff_desc_ind1  USING btree ON staff_fields(id);
 

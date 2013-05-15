@@ -55,6 +55,7 @@ if($_REQUEST['search_modfunc']=='search_fnc' || !$_REQUEST['search_modfunc'])
 		unset($_SESSION['sma']);
 		unset($_SESSION['smv']);
 		unset($_SESSION['s']);
+                unset($_SESSION['_search_all']);
 		}
 			echo '<BR>';
 			$_SESSION['Search_PHP_SELF'] = PreparePHP_SELF($_SESSION['_REQUEST_vars']);
@@ -133,6 +134,7 @@ if($_REQUEST['search_modfunc']=='search_fnc' || !$_REQUEST['search_modfunc'])
 				echo '<INPUT type=checkbox name=address_group value=Y'.(Preferences('DEFAULT_FAMILIES')=='Y'?' CHECKED':'').'>Group by Family<BR>';
 				echo '<INPUT type=checkbox name=_search_all_schools value=Y'.(Preferences('DEFAULT_ALL_SCHOOLS')=='Y'?' CHECKED':'').'>Search All Schools<BR>';
 			}
+                        if($_REQUEST['modname']!='Students/StudentReenroll.php')
 			echo '<INPUT type=checkbox name=include_inactive value=Y>Include Inactive Students<BR>';
 			echo '<BR>';
 			//echo Buttons('Submit','Reset');

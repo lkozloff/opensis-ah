@@ -167,6 +167,22 @@ if(!$_REQUEST['modfunc'])
 		{
 			foreach($fields_RET['select'] as $field)
 			{
+                            if($field[TITLE]=='Ethnicity' ||$field[TITLE]=='Gender' ||$field[TITLE]=='Language')
+                            {
+                                $select_options = array();
+				$field['SELECT_OPTIONS'] = str_replace("\n","\r",str_replace("\r\n","\r",$field['SELECT_OPTIONS']));
+				$options = explode("\r",$field['SELECT_OPTIONS']);
+				if(count($options))
+				{
+					foreach($options as $option)
+						$select_options[$option] = $option;
+				}
+
+				echo "<TR><TD class=lable_right valign=top>$field[TITLE]</TD><TD>"._makeSelectInput($field[TITLE],$select_options).'</TD></TR>';
+				echo "</TD></TR>";
+                            }
+                            else 
+                            {
 				$select_options = array();
 				$field['SELECT_OPTIONS'] = str_replace("\n","\r",str_replace("\r\n","\r",$field['SELECT_OPTIONS']));
 				$options = explode("\r",$field['SELECT_OPTIONS']);
@@ -178,6 +194,7 @@ if(!$_REQUEST['modfunc'])
 
 				echo "<TR><TD class=lable_right valign=top>$field[TITLE]</TD><TD>"._makeSelectInput('CUSTOM_'.$field['ID'],$select_options).'</TD></TR>';
 				echo "</TD></TR>";
+                            }
 			}
 		}
 		if(count($fields_RET['textarea']))

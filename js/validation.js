@@ -1178,55 +1178,6 @@ function formcheck_eligibility_entrytimes()
 
 
 ///////////////////////////////////////// Entry Times End //////////////////////////////////////////////////
-
-function formcheck_discipline()
-{
-
-    var frmvalidator  = new Validator("disc");
-    var a =        frmvalidator.addValidation("students[location]","req","Please select a location");
-        var b = frmvalidator.addValidation("students[possible_motivation]","req","Please select a posssible motivation");
-        var c = frmvalidator.addValidation("students[Others_Involved]","req","Please select others involved");
-        var d = frmvalidator.addValidation("students[Administrative_Decision]","req","Please select an administrative decision");
-        frmvalidator.setAddnlValidationFunction("validatecheckbox");
-}
- function validatecheckbox()
-                        {
-
-                                var frm = document.forms["disc"];
-                                var elem = frm.elements;
-                          
-                     for(var i = 1; i < elem.length; i++)
-                     {
-                            if(elem[i].name=='students[probbehavior_minor][]')
-                            {
-                                  var sd=elem[i];
-                                  break;
-                            }
-             }
-              for(var i = 1; i < elem.length; i++)
-                     {
-                            if(elem[i].name=='students[probbehavior_major][]')
-                            {
-                                  var major=elem[i];
-                                  break;
-                            }
-             }
-            
-     	for(i=1;i<=document.getElementById("size_students_probbehavior_major").value;i++){
-if(document.getElementById("size_students_probbehavior_major_"+i).checked==true ){
-	return true;
-	}
-	}
-        for(i=1;i<=document.getElementById("size_students_probbehavior_minor").value;i++){
-if(document.getElementById("size_students_probbehavior_minor_"+i).checked==true ){
-return true;
-	}
-	}
- 
-		 alert("please select  at least one behavior");
-         return false;
-     
-             }
        
 function formcheck_mass_drop()
 {
@@ -1385,4 +1336,26 @@ function pass_check()
         document.getElementById('divErr').innerHTML="<b><font color=red>New Password MisMatch</font></b>";
         return false;
     }
+}
+
+function reenroll()
+{
+    if(document.getElementById("monthSelect1").value=='' || document.getElementById("daySelect1").value=='' || document.getElementById("yearSelect1").value=='')
+    {    
+        document.getElementById('divErr').innerHTML="<b><font color=red>Please Enter a Proper Date</font></b>";
+        return false;
+    }
+    if(document.getElementById("grade_id").value=='')
+    {    
+        document.getElementById('divErr').innerHTML="<b><font color=red>Please Select a Grade Level</font></b>";
+        return false;
+    }
+    if(document.getElementById("en_code").value=='')
+    {    
+        document.getElementById('divErr').innerHTML="<b><font color=red>Please Select an Enrollment Code</font></b>";
+        return false;
+    }
+    
+    else
+        return true;
 }

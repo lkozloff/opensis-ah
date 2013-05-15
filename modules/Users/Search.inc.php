@@ -45,9 +45,20 @@ if(User('PROFILE')=='admin')
 		echo '<TR><TD align=right>Last Name</TD><TD><INPUT type=text class=cell_floating name=last></TD></TR>';
 		echo '<TR><TD align=right>First Name</TD><TD><INPUT type=text class=cell_floating name=first></TD></TR>';
 		echo '<TR><TD align=right>Username</TD><TD><INPUT type=text class=cell_floating name=username></TD></TR>';
-		$options = array(''=>'N/A','admin'=>'Administrator','teacher'=>'Teacher','parent'=>'Parent','none'=>'No Access');
-		if($extra['profile'])
-			$options = array($extra['profile']=>$options[$extra['profile']]);
+                $profiles=  DBGet(DBQuery("SELECT * FROM user_profiles WHERE profile <> 'student'"));
+                $options['']='N/A';
+                $options['none']='No Access';
+                foreach($profiles as $key=>$value)
+                {
+                    $options[$value['ID']]=$value['TITLE'];
+                }
+                $options['admin']= 'Administrator w/Custom';
+                $options['teacher']= 'Teacher w/Custom';
+                $options['parent']= 'Parent w/Custom';
+		if($extra['profile']=='teacher')
+			$options = array('2'=>$options[2]);
+                if($extra['profile']=='parent')
+			$options = array('3'=>$options[3]);
 		echo '<TR><TD align=right>Profile</TD><TD><SELECT name=profile>';
 		foreach($options as $key=>$val)
 			echo '<OPTION value="'.$key.'">'.$val;
@@ -82,6 +93,7 @@ if(User('PROFILE')=='admin')
 
 		if(!isset($_openSIS['DrawHeader'])) DrawHeaderHome('Please select a user');
 		$staff_RET = GetStaffList($extra);
+                $_SESSION['count_stf'] =  count($staff_RET);
 		if($extra['profile'])
 		{
 			$options = array('admin'=>'Administrator','teacher'=>'Teacher','parent'=>'Parent','none'=>'No Access');

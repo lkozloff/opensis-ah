@@ -54,12 +54,107 @@ if(($_REQUEST['month_values'] && ($_POST['month_values'] || $_REQUEST['ajax'])) 
 			echo ErrorMessage(array('The student is already enrolled on that date, and could not be enrolled a second time on the date you specified.  Please fix, and try enrolling the student again.'));
 		}
 	}
-
+        
 	$iu_extra['student_enrollment'] = "STUDENT_ID='".UserStudentID()."' AND ID='__ID__'";
 	$iu_extra['fields']['student_enrollment'] = 'SYEAR,STUDENT_ID,';
 	$iu_extra['values']['student_enrollment'] = "'".UserSyear()."','".UserStudentID()."',";
 	if(!$new_student)
-		SaveData($iu_extra,'',$field_names);
+        {
+            if($_REQUEST['month_values'])
+	{
+		foreach($_REQUEST['month_values'] as $table=>$values)
+		{
+			foreach($values as $id=>$columns)
+			{
+				foreach($columns as $column=>$value)
+				{
+					#$_REQUEST['values'][$table][$id][$column] = $_REQUEST['day_values'][$table][$id][$column].'-'.$value.'-'.$_REQUEST['year_values'][$table][$id][$column];
+					
+					if($value == 'JAN')
+						$value = '01';
+					if($value == 'FEB')
+						$value = '02';
+					if($value == 'MAR')
+						$value = '03';
+					if($value == 'APR')
+						$value = '04';
+					if($value == 'MAY')
+						$value = '05';
+					if($value == 'JUN')
+						$value = '06';
+					if($value == 'JUL')
+						$value = '07';
+					if($value == 'AUG')
+						$value = '08';
+					if($value == 'SEP')
+						$value = '09';
+					if($value == 'OCT')
+						$value = '10';
+					if($value == 'NOV')
+						$value = '11';
+					if($value == 'DEC')
+						$value = '12';
+
+
+					
+					$_REQUEST['values'][$table][$id][$column] = $_REQUEST['year_values'][$table][$id][$column].'-'.$value.'-'.$_REQUEST['day_values'][$table][$id][$column];
+					
+					if($_REQUEST['values'][$table][$id][$column]=='--')
+						$_REQUEST['values'][$table][$id][$column] = '';
+				}
+			}
+		}
+	}
+        if($column=='END_DATE' && $table=='student_enrollment')
+        {
+            $sql="SELECT START_DATE FROM student_enrollment WHERE STUDENT_ID='".$id."'";
+            $start_date=DBGet(DBQuery($sql));
+            $start_date=$start_date[1]['START_DATE'];
+            if($_REQUEST['values'][$table][$id][$column]=='')
+            {
+                SaveData($iu_extra,'',$field_names);
+            }
+            else 
+            {
+                if($_REQUEST['values'][$table][$id][$column]!='' && strtotime($_REQUEST['values'][$table][$id][$column])>=strtotime($start_date))
+                {
+                    $sql="SELECT ID,COURSE_ID,COURSE_PERIOD_ID,MARKING_PERIOD_ID FROM schedule WHERE STUDENT_ID='".$id."' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND DROPPED='N'";
+                    $schedules=DBGet(DBQuery($sql));
+                    $c=count($schedules);
+                    if($c>0)
+                    { 
+                        for($i=1;$i<=count($schedules);$i++)
+                        {
+                           $cp_id[$i]=$schedules[$i]['COURSE_PERIOD_ID'];
+                        }
+                        $cp_id=implode(',',$cp_id);
+                        $sql="SELECT MAX(SCHOOL_DATE) AS SCHOOL_DATE FROM attendance_period WHERE STUDENT_ID='".$id."' AND COURSE_PERIOD_ID IN ($cp_id)";
+                        $attendence=DBGet(DBQuery($sql));
+                        $max_at_dt=$attendence[1]['SCHOOL_DATE'];
+                        if(strtotime($_REQUEST['values'][$table][$id][$column])>=strtotime($max_at_dt))
+                        {
+                            SaveData($iu_extra,'',$field_names);
+                        }
+                        else 
+                        {
+                            echo "<p align='center'><b style='color:red'>Student cannot be dropped because student has got attendance till ".date('m-d-Y',strtotime($max_at_dt))."</b></p>";
+                        }
+                            
+                        
+                    }
+                    else 
+                    {
+                        SaveData($iu_extra,'',$field_names);
+                    }
+                }
+                else
+                {
+                     echo "<p align='center'><b style='color:red'>Please enter proper drop date.Drop date must be greater than student enrollment date.</b></p>";
+                }
+            }
+        }
+		
+        }
 }
 
 $functions = array('START_DATE'=>'_makeStartInputDate','ENROLLMENT_CODE'=>'_makeStartInputCode','END_DATE'=>'_makeEndInputDate','DROP_CODE'=>'_makeEndInputCode','SCHOOL_ID'=>'_makeSchoolInput');
@@ -97,7 +192,7 @@ if(!UserSchool()){
    $user_school_RET=DBGet(DBQuery("SELECT SCHOOL_ID FROM student_enrollment WHERE STUDENT_ID=".UserStudentID()." LIMIT 1"));
    $_SESSION['UserSchool']=$user_school_RET[1]['SCHOOL_ID'];
 }
-$calendars_RET = DBGet(DBQuery("SELECT CALENDAR_ID,DEFAULT_CALENDAR,TITLE FROM attendance_calendars WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY DEFAULT_CALENDAR ASC"));
+$calendars_RET = DBGet(DBQuery("SELECT CALENDAR_ID,DEFAULT_CALENDAR,TITLE FROM attendance_calendars WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY DEFAULT_CALENDAR DESC"));
 if(count($calendars_RET))
 {
 	foreach($calendars_RET as $calendar)

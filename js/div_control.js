@@ -117,3 +117,16 @@ function showhidediv(it,box)
 		document.getElementById(it).style.display = vis;
 	}
 }
+
+function system_wide(val)
+{
+    var check_id='all_day_'+val;
+    if(document.getElementById(check_id).checked == false)
+    {
+        document.getElementById('syswide_holi_'+val).style.display="block";
+    }
+    else
+    {
+        document.getElementById('syswide_holi_'+val).style.display="none";
+    }
+}

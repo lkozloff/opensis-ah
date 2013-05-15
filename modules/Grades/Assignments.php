@@ -64,6 +64,7 @@ if(clean_param($_REQUEST['day_tables'],PARAM_NOTAGS) && ($_POST['day_tables'] ||
 if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUEST['ajax']))
 {
 	$table = $_REQUEST['table'];
+        $err=false;
 	foreach($_REQUEST['tables'] as $id=>$columns)
 	{
 		if($table=='gradebook_assignment_types' && $programconfig['WEIGHT']=='Y')
@@ -99,6 +100,35 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 					$value = $course_period_id;
 					$sql .= 'COURSE_ID=NULL,';
 				}*/
+                                if($column=='DUE_DATE' || $column=='ASSIGNED_DATE')
+                                {
+                                    
+                                    $due_date_sql = DBGet(DBQuery("SELECT ASSIGNED_DATE,DUE_DATE FROM gradebook_assignments WHERE ASSIGNMENT_ID='$_REQUEST[assignment_id]'"));
+                                    if($columns['DUE_DATE'] && $columns['ASSIGNED_DATE'])
+                                    {   
+                                        if(strtotime($columns['DUE_DATE'])<strtotime($columns['ASSIGNED_DATE']))
+                                        {
+                                            $err=true;
+                                            continue;
+                                        }
+                                    }
+                                    if($columns['DUE_DATE'] && !$columns['ASSIGNED_DATE'])
+                                    {   
+                                        if(strtotime($columns['DUE_DATE'])<strtotime($due_date_sql[1]['ASSIGNED_DATE']) && $due_date_sql[1]['ASSIGNED_DATE']!='')
+                                        {
+                                            $err=true;
+                                            continue;
+                                        }
+                                    }
+                                    if(!$columns['DUE_DATE'] && $columns['ASSIGNED_DATE'])
+                                    {   
+                                        if(strtotime($due_date_sql[1]['DUE_DATE'])<strtotime($columns['ASSIGNED_DATE']) && $due_date_sql[1]['DUE_DATE']!='')
+                                        {
+                                            $err=true;
+                                            continue;
+                                        }
+                                    }
+                                }
 
                                 if($column=='COURSE_ID' && $value=='Y' && $table=='gradebook_assignments')
 				{
@@ -178,7 +208,14 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 					$value = $course_period_id;
 				}
                                 */
-
+                                if($columns['DUE_DATE'] && $columns['ASSIGNED_DATE'])
+                                {   
+                                    if(strtotime($columns['DUE_DATE'])<strtotime($columns['ASSIGNED_DATE']))
+                                    {
+                                        $err=true;
+                                        break 2;
+                                    }
+                                }
                                 if($column=='COURSE_ID' && $value=='Y')
 					$value = $course_id;
 				elseif($column=='COURSE_ID')
@@ -211,7 +248,8 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 	unset($_REQUEST['tables']);
 	unset($_SESSION['_REQUEST_vars']['tables']);
 }
-
+if($err)
+    echo '<Font color=red>Due date must be greater than assigned date.</FONT>';
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete')
 {
 		if($_REQUEST['assignment_id'])
@@ -361,7 +399,7 @@ if(!$_REQUEST['modfunc'] && $course_id)
 		$header .= '<TD valign=top>' . DateInput($new && Preferences('DEFAULT_DUE','Gradebook')=='Y'?DBDate():$RET['DUE_DATE'],'tables['.$_REQUEST['assignment_id'].'][DUE_DATE]','Due',!$new) . '</TD>';
 		$header .= '<TD rowspan=2 colspan=2>' . TextareaInput($RET['DESCRIPTION'],'tables['.$_REQUEST['assignment_id'].'][DESCRIPTION]','Description') . '</TD>';
 		$header .= '</TR>';
-		$header .= '<TR><TD valign=top colspan=2>'.($RET['DATE_ERROR']=='Y'?'<Font color=red>Due date earlier than assigned date!</FONT>':'').'</TD></TR>';
+//		$header .= '<TR><TD valign=top colspan=2>'.($RET['DATE_ERROR']=='Y'?'<Font color=red>Due date earlier than assigned date!</FONT>':'').'</TD></TR>';
 		$header .= '</TABLE>';
 	}
 	elseif($_REQUEST['assignment_type_id'])

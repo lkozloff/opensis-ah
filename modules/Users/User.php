@@ -117,12 +117,12 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
                        
                         
                         
-	if(count($_POST['staff']) && (User('PROFILE')=='admin' || basename($_SERVER['PHP_SELF'])=='index.php') || $_REQUEST['ajax'])
+	if(count($_POST['staff']) && (User('PROFILE')=='admin' || basename($_SERVER['PHP_SELF'])!='index.php') || $_REQUEST['ajax'])
 	{
 		if($_REQUEST['staff_id'] && $_REQUEST['staff_id']!='new')
 		{ 
                     
-                    $sql=DBQuery("select password from staff where password='".$password."'  AND SYEAR='".UserSyear()."'");
+                    $sql=DBQuery("select password from staff where password='".$password."'  AND SYEAR='".UserSyear()."' and staff_id!='".$_REQUEST['staff_id']."'");
                     $number=mysql_num_rows($sql);
                     
                     
@@ -199,17 +199,19 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
 				if(count($existing_staff))
 					BackPrompt('A user with that username already exists for the '.$existing_staff[1]['SYEAR'].' school year. Choose a different username and try again.');
 			}
-
-
+                                                      $go=false;
+                        
 			$sql = "UPDATE staff SET ";
-                        $i=0;
 			foreach($_REQUEST['staff'] as $column_name=>$value)
-                                                      { 
+                                                      {
+                                                            if((User('PROFILE')!='admin' || $_REQUEST['category_id']!=1) && $column_name=='SCHOOLS')
+                                                                continue;
                                                         if (get_magic_quotes_gpc()) {
                                                          $value=stripcslashes( $value);
                                                         }
                                                             $value=paramlib_validation($column_name,$value);
                                                             if(strpos($column_name,"CUSTOM")==0){
+                                                                $go=true;
                                                                 $custom=DBGet(DBQuery("SHOW COLUMNS FROM staff WHERE FIELD='".$column_name."'"));
                                                                  $custom=$custom[1];
                                                                 if($custom['NULL']=='NO' && trim($value)=='' && $custom['DEFAULT']){
@@ -244,19 +246,23 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
 
                                         if($column_name=='PASSWORD' && $value!='')
                                         {
+                                            $go=true;
                                             $sql .= "$column_name='".str_replace("\'","''",str_replace("`","''",md5($value)))."',";
                                           }
                                        elseif($column_name=='FIRST_NAME' && $value!='')
                                        {
+                                           $go=true;
                                             $sql .= "$column_name='".str_replace("\'","''",str_replace("`","''",$value))."',";
                                        }
                                         elseif($column_name=='LAST_NAME' && $value!='')
                                        {
+                                            $go=true;
                                             $sql .= "$column_name='".str_replace("\'","''",str_replace("`","''",$value))."',";
                                        }
 
                                         elseif(strtoupper($column_name)=='PROFILE')
                                         {
+                                            $go=true;
                                             $profile_TYPE=DBGet(DBQuery("SELECT PROFILE FROM user_profiles WHERE ID='".$value."'"));
                                             $p_ID=$value;
                                             $value=$profile_TYPE[1]['PROFILE'];
@@ -268,6 +274,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
                                         {
                                             if(!$value)
                                             {
+                                                $go=true;
                                                 DBQuery("DELETE FROM staff_exceptions WHERE USER_ID='$_REQUEST[staff_id]'");
                                                 DBQuery("INSERT INTO staff_exceptions (USER_ID,MODNAME,CAN_USE,CAN_EDIT) SELECT s.STAFF_ID,e.MODNAME,e.CAN_USE,e.CAN_EDIT FROM staff s,profile_exceptions e WHERE s.STAFF_ID='$_REQUEST[staff_id]' AND s.PROFILE_ID=e.PROFILE_ID");
                                                 $sql .= "PROFILE_ID='".str_replace("\'","''",str_replace("`","''",$value))."',";
@@ -275,30 +282,37 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
                                         }
                                         else
                                         {
-                                          if($_REQUEST['category_id']==1 || ($_REQUEST['category_id']!=1 && $column_name!="SCHOOLS"))
-                                          $sql .= "$column_name='".str_replace("\'","''",str_replace("'","''",$value))."',";
+                                            $go=true;
+                                            $sql .= "$column_name='".str_replace("\'","''",str_replace("'","''",$value))."',";
                                         }
                                         if($column_name=='IS_DISABLE' && $value!='Y'){
                                             DBQuery("UPDATE staff SET FAILED_LOGIN=NULL,LAST_LOGIN=NOW() WHERE STAFF_ID=$_REQUEST[staff_id]");
                                         }
-                                        $i++;
 			}
 				
 			$sql = substr($sql,0,-1) . " WHERE STAFF_ID='$_REQUEST[staff_id]'";
 			
-			
-			if(User('PROFILE')=='admin' && $error!=true)
-                        {
-                            if($_REQUEST['category_id']==1 || ($_REQUEST['category_id']!=1 && $i>1))
-                            DBQuery($sql);
+                                        if($error!=true && $go==true && $number==0)
+                                        {
+                                                DBQuery($sql);
+                                                $name_sql=DBGet(DBQuery("SELECT  CONCAT(FIRST_NAME,' ',LAST_NAME) AS FULL_NAME FROM staff WHERE STAFF_ID='$_REQUEST[staff_id]'"));
+                                                $name='- '.$name_sql[1]['FULL_NAME'];
+                                                $course_period_sql=  DBGet(DBQuery("SELECT COURSE_PERIOD_ID,TITLE FROM course_periods WHERE TEACHER_ID='$_REQUEST[staff_id]'"));
+                                                
+                                                for($i=1;$i<=count($course_period_sql);$i++)
+                                                {
+                                                    $title=$course_period_sql[$i]['TITLE'];
+                                                    $loc=  strrchr($title,'-');
+                                                    $title=  str_replace($loc,$name,$title);
+                                                     DBQuery("UPDATE course_periods SET TITLE ='".$title."' WHERE COURSE_PERIOD_ID='".$course_period_sql[$i]['COURSE_PERIOD_ID']."'");
+                                        }
 		}
 		}
 		}
-                elseif($num_pass != 0){
-                        
-                        echo '<font color = red><b>Invalid password</b></font>';
-			 $_REQUEST['staff_id'] = 'new';
-			}
+                                    elseif($num_pass != 0){
+                                        echo '<font color = red><b>Invalid password</b></font>';
+                                        $_REQUEST['staff_id'] = 'new';
+                                    }
 		else
 		{
 			if($_REQUEST['staff']['PROFILE']=='admin')
@@ -312,7 +326,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
 			
 			$sql = "INSERT INTO staff ";
 			$fields = 'SYEAR,CURRENT_SCHOOL_ID,';
-			$values = "'".UserSyear()."','".UserSchool()."',";
+			$values = "'".UserSyear()."','".$_REQUEST ['staff']['SCHOOLS'][1]."',";
 			if(basename($_SERVER['PHP_SELF'])=='index.php')
 			{
 				$fields .= 'PROFILE,';
@@ -529,7 +543,9 @@ if((UserStaffID() || $_REQUEST['staff_id']=='new') && ((basename($_SERVER['PHP_S
 		include('modules/Users/includes/Other_Info.inc.php');
 	}
 	PopTable('footer');
-	echo '<CENTER>'.SubmitButton('Save','','class=btn_medium onclick="return formcheck_user_user('.$staff_school_chkbox_id.');"').'</CENTER>';
-	echo '</FORM>';
+     
+        echo "<CENTER id='sb'>".SubmitButton('Save','','class=btn_medium; onclick="return formcheck_user_user('.$staff_school_chkbox_id.');"').'</CENTER>';
+        
+        echo '</FORM>';
 }
 ?>

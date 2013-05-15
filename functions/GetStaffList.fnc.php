@@ -73,7 +73,12 @@ function GetStaffList(& $extra)
 		if($_REQUEST['first'])
 			$sql .= "AND UPPER(s.FIRST_NAME) LIKE '".str_replace("'","\'",strtoupper($_REQUEST['first']))."%' ";
 		if($_REQUEST['profile'])
-			$sql .= "AND s.PROFILE='".$_REQUEST['profile']."' ";
+                {
+                    if(is_number($_REQUEST['profile'])==FALSE)
+                        $sql .= "AND s.PROFILE='".$_REQUEST['profile']."' AND s.PROFILE_ID IS NULL";
+                     else 
+                        $sql .= "AND s.PROFILE_ID='".$_REQUEST['profile']."' ";
+                }
 
 		$sql .= $extra['WHERE'].' ';
 		$sql .= "ORDER BY FULL_NAME";

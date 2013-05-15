@@ -2137,7 +2137,7 @@ function ListOutputPrint_Report($result,$column_names,$singular='',$plural='',$l
 			// SHADOW
 			if(!isset($_REQUEST['_openSIS_PDF']))
 				echo '<TABLE width=100% cellpadding=0 cellspacing=0><TR><TD align=center>';
-			echo "<TABLE cellpadding=6 width=100% cellspacing=1 border=\"1px solid #a9d5e9 \" style=\"border-collapse:collapse\" align=center>";
+			echo "<TABLE cellpadding=6 width=100% cellspacing=1 border=\"1 \" style=\"border-collapse:collapse\" align=center>";
 			if(!isset($_REQUEST['_openSIS_PDF']) && ($stop-$start)>10)
 				echo '<THEAD>';
 			if(!isset($_REQUEST['_openSIS_PDF']))
@@ -2333,7 +2333,7 @@ function ListOutputPrint_Report($result,$column_names,$singular='',$plural='',$l
 							  $room=explode(',',$item[$key]);
 							  for($v=0;$v<count(explode(',',$item[$key])); $v++)
 							   {
-							    echo $room[$v].'<br/>';
+							    echo $room[$v].'';
 							   }
 							  }	
 							  else

@@ -39,7 +39,8 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save' && AllowEdit())
 	}
 	unset($_REQUEST['modfunc']);
                   unset($_SESSION['_REQUEST_vars']['modfunc']);
-	$note = "The selected user's profile now includes access to the selected students.";
+        if($_REQUEST['staff'])
+            $note = "The selected user's profile now includes access to the selected students.";
 }
 DrawBC("Students > ".ProgramTitle());
 
@@ -98,7 +99,7 @@ if($_REQUEST['modfunc']!='delete')
 			$extra['link'] = array('FULL_NAME'=>false);
 			$extra['SELECT'] = ",CAST(NULL AS CHAR(1)) AS CHECKBOX";
 			$extra['functions'] = array('CHECKBOX'=>'_makeChooseCheckbox');
-			$extra['columns_before'] = array('CHECKBOX'=>'</A><INPUT type=checkbox value=Y name=controller onclick="checkAll(this.form,this.form.controller.checked,\'student\');"><A>');
+			$extra['columns_before'] = array('CHECKBOX'=>'</A><INPUT type=checkbox value=Y name=controller onclick="checkAll(this.form,this.form.controller.checked,\'staff\');"><A>');
 			$extra['new'] = true;
 			$extra['options']['search'] = false;
 			$extra['profile'] = 'parent';
@@ -109,7 +110,7 @@ if($_REQUEST['modfunc']!='delete')
 
 		echo '</TD></TR></TABLE></CENTER>';
 
-		if($_REQUEST['modfunc']=='list')
+		if($_REQUEST['modfunc']=='list' && $_SESSION['count_stf'])
 			echo "<BR><CENTER>".SubmitButton('Add Selected Parents','','class=btn_large')."</CENTER></FORM>";
 	}
 }

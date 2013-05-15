@@ -47,13 +47,17 @@ if($_REQUEST['day_values'] && ($_POST['day_values'] || $_REQUEST['ajax']))
 $profiles_RET = DBGet(DBQuery("SELECT ID,TITLE FROM user_profiles ORDER BY ID"));
 if((($_REQUEST['profiles'] && ($_POST['profiles']  || $_REQUEST['ajax'])) || ($_REQUEST['values'] && ($_POST['values'] || $_REQUEST['ajax']))) && AllowEdit())
 {
-	$notes_RET = DBGet(DBQuery("SELECT ID FROM portal_notes WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
+	$notes_RET = DBGet(DBQuery("SELECT ID FROM portal_notes WHERE (SCHOOL_ID='".UserSchool()."' OR SCHOOL_ID IS NULL) AND SYEAR='".UserSyear()."'"));
 
 	foreach($notes_RET as $note_id)
 	{
 		$note_id = $note_id['ID'];
+                if($_REQUEST['profiles'][$note_id]['all']=='Y')
+                    $allschool='Y';
+                else
+                    $allschool='';
 		$_REQUEST['values'][$note_id]['PUBLISHED_PROFILES'] = '';
-		foreach(array('admin','teacher','parent') as $profile_id)
+		foreach(array('all','admin','teacher','parent') as $profile_id)
 			if($_REQUEST['profiles'][$note_id][$profile_id])
 				$_REQUEST['values'][$note_id]['PUBLISHED_PROFILES'] .= ','.$profile_id;
 		if(count($_REQUEST['profiles'][$note_id]))
@@ -88,7 +92,8 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
                                                     else
                                                     {
 			$sql = "UPDATE portal_notes SET ";
-
+                        if($allschool=='Y')
+                            $sql.="SCHOOL_ID=NULL, ";
 #################### code differ for windows and Linux machine ########################
                                                     foreach($columns as $column=>$value)
                                                     {
@@ -128,7 +133,11 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
 		{
 			if(count($_REQUEST['profiles']['new']))
 			{
-				foreach(array('admin','teacher','parent') as $profile_id)
+                            if($_REQUEST['profiles']['new']['all']=='Y')
+                                $allschool='Y';
+                            else
+                                $allschool='';
+				foreach(array('all','admin','teacher','parent') as $profile_id)
 				{
 					if($_REQUEST['profiles']['new'][$profile_id])
 						$_REQUEST['values']['new']['PUBLISHED_PROFILES'] .= $profile_id.',';
@@ -154,7 +163,10 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
 			*/
 			
 			$fields = 'SCHOOL_ID,SYEAR,PUBLISHED_DATE,PUBLISHED_USER,';
-			$values = UserSchool().",'".UserSyear()."',CURRENT_TIMESTAMP,'".User('STAFF_ID')."',";
+                        if($allschool=='Y')
+                            $values ="NULL,'".UserSyear()."',CURRENT_TIMESTAMP,'".User('STAFF_ID')."',";
+                        else
+                            $values = UserSchool().",'".UserSyear()."',CURRENT_TIMESTAMP,'".User('STAFF_ID')."',";
 
 			$go = 0;
                                                         foreach($columns as $column=>$value)
@@ -204,7 +216,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='remove' && AllowEdit())
 
 if($_REQUEST['modfunc']!='remove')
 {
-	$sql = "SELECT ID,SORT_ORDER,TITLE,CONTENT,START_DATE,END_DATE,PUBLISHED_PROFILES,CASE WHEN END_DATE IS NOT NULL AND END_DATE<CURRENT_DATE THEN 'Y' ELSE NULL END AS EXPIRED FROM portal_notes WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY EXPIRED DESC,SORT_ORDER,PUBLISHED_DATE DESC";
+	$sql = "SELECT ID,SORT_ORDER,TITLE,CONTENT,START_DATE,END_DATE,PUBLISHED_PROFILES,CASE WHEN END_DATE IS NOT NULL AND END_DATE<CURRENT_DATE THEN 'Y' ELSE NULL END AS EXPIRED FROM portal_notes WHERE (SCHOOL_ID='".UserSchool()."' OR SCHOOL_ID IS NULL) AND SYEAR='".UserSyear()."' ORDER BY EXPIRED DESC,SORT_ORDER,PUBLISHED_DATE DESC";
 	$QI = DBQuery($sql);
 	$notes_RET = DBGet($QI,array('TITLE'=>'_makeTextInput','CONTENT'=>'_makeContentInput','SORT_ORDER'=>'_makeTextInput','START_DATE'=>'_makePublishing'));
 
@@ -274,7 +286,7 @@ function _makePublishing($value,$name)
 		$profiles_RET = DBGet(DBQuery("SELECT ID,TITLE FROM user_profiles ORDER BY ID"));
 
 	$return .= '<TABLE border=0 cellspacing=0 cellpadding=0 width=96% class=LO_field><TR><TD colspan=4><b>Visible To: </b></TD></TR>';
-	foreach(array('admin'=>'Administrator w/Custom','teacher'=>'Teacher w/Custom','parent'=>'Parent w/Custom') as $profile_id=>$profile)
+	foreach(array('all'=>'All School','admin'=>'Administrator w/Custom','teacher'=>'Teacher w/Custom','parent'=>'Parent w/Custom') as $profile_id=>$profile)
 		$return .= "<tr><TD colspan=4><INPUT type=checkbox name=profiles[$id][$profile_id] value=Y".(strpos($THIS_RET['PUBLISHED_PROFILES'],",$profile_id,")!==false?' CHECKED':'')."> $profile</TD></tr>";
 	$i = 3;
 	foreach($profiles_RET as $profile)

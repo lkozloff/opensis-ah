@@ -100,19 +100,6 @@ function GetAllMP($mp,$marking_period_id='0')
 					$_openSIS['GetAllMP'][$mp][$marking_period_id] .= ",'$value[MARKING_PERIOD_ID]'";
 			break;
                         
-                        case 'TRAN':
-				// there should be exactly one fy marking period
-				$RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID FROM school_years WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
-				$fy = $RET[1]['MARKING_PERIOD_ID'];
-                                $_openSIS['GetAllMP'][$mp][$marking_period_id]=$fy;
-                                
-				$RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID FROM school_semesters WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
-                                foreach($RET as $value)
-				{ 
-                                    $_openSIS['GetAllMP'][$mp][$marking_period_id] .= ",'$value[MARKING_PERIOD_ID]'";
-				}
-			
-                        break;
 		}
 	}
 
