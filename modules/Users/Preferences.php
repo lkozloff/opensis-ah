@@ -31,7 +31,7 @@ DrawBC("Users > ".ProgramTitle());
 if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUEST['ajax']))
 {
 	if(clean_param($_REQUEST['tab'],PARAM_ALPHAMOD)=='password')
-	{ 
+	{
             $column_name= PASSWORD;
             $pass_current= paramlib_validation($column_name,$_REQUEST['values']['current']);
             $pass_new= paramlib_validation($column_name,$_REQUEST['values']['new']);
@@ -40,13 +40,13 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
 		
             $pass_new_after= md5($pass_new);
 		
-            $profile_RET = DBGet(DBQuery("SELECT PROFILE FROM staff WHERE STAFF_ID='".User('STAFF_ID')."' AND SYEAR='".UserSyear()."'"));
+            $profile_RET = DBGet(DBQuery('SELECT s.PROFILE FROM staff s , staff_school_relationship ssr WHERE s.STAFF_ID=ssr.STAFF_ID AND s.STAFF_ID=\''.User('STAFF_ID').'\' AND ssr.SYEAR=\''.UserSyear().'\''));
            
             
             
            
-            $sql=DBQuery("select password from staff where password='".$pass_new_after."'  AND SYEAR='".UserSyear()."'");
-            $number=mysql_num_rows($sql);  
+            $sql=DBQuery('SELECT PASSWORD FROM staff s , staff_school_relationship ssr where s.password=\''.$pass_new_after.'\'  AND ssr.SYEAR=\''.UserSyear().'\'');
+            $number=mysql_num_rows($sql);            
                        
 		if($pass_new != $pass_verify)
 			$error = 'Your new passwords did not match.';
@@ -58,12 +58,12 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
                
 		else
 		{
-			$password_RET = DBGet(DBQuery("SELECT PASSWORD FROM staff WHERE STAFF_ID='".User('STAFF_ID')."' AND SYEAR='".UserSyear()."'"));
-			if($password_RET[1]['PASSWORD'] != md5($pass_current))
+			$password_RET = DBGet(DBQuery('SELECT PASSWORD FROM staff s , staff_school_relationship ssr WHERE s.STAFF_ID AND ssr.STAFF_ID AND s.STAFF_ID=\''.User('STAFF_ID').'\' AND ssr.SYEAR=\''.UserSyear().'\''));
+                        if($password_RET[1]['PASSWORD'] != md5($pass_current))
 				$error = 'Your current password was incorrect.';
 			else
 			{
-				DBQuery("UPDATE staff SET PASSWORD='".md5($pass_new)."' WHERE STAFF_ID='".User('STAFF_ID')."' AND SYEAR='".UserSyear()."'");
+				DBQuery('UPDATE staff SET PASSWORD=\''.md5($pass_new).'\' WHERE STAFF_ID=\''.User('STAFF_ID').'\'');
 				$note = 'Your new password was saved.';
 			}
 		}
@@ -87,7 +87,7 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
 	}
 	else
 	{
-		$current_RET = DBGet(DBQuery("SELECT TITLE,VALUE,PROGRAM FROM program_user_config WHERE USER_ID='".User('STAFF_ID')."' AND PROGRAM IN ('Preferences','StudentFieldsSearch','StudentFieldsView') "),array(),array('PROGRAM','TITLE'));
+		$current_RET = DBGet(DBQuery('SELECT TITLE,VALUE,PROGRAM FROM program_user_config WHERE USER_ID=\''.User('STAFF_ID').'\' AND PROGRAM IN (\''.'Preferences'.'\',\''.'StudentFieldsSearch'.'\',\''.'StudentFieldsView'.'\') '),array(),array('PROGRAM','TITLE'));
 
 		if($_REQUEST['tab']=='student_listing' && $_REQUEST['values']['Preferences']['SEARCH']!='Y')
 			$_REQUEST['values']['Preferences']['SEARCH'] = 'N';
@@ -109,14 +109,14 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
 		}
 		if(clean_param($_REQUEST['tab'],PARAM_ALPHAMOD)=='student_fields')
 		{
-			DBQuery("DELETE FROM program_user_config WHERE USER_ID='".User('STAFF_ID')."' AND PROGRAM IN ('StudentFieldsSearch','StudentFieldsView')");
+			DBQuery('DELETE FROM program_user_config WHERE USER_ID=\''.User('STAFF_ID').'\' AND PROGRAM IN (\''.'StudentFieldsSearch'.'\',\''.'StudentFieldsView'.'\')');
 
 			foreach($_REQUEST['values'] as $program=>$values)
 			{
 				foreach($values as $name=>$value)
 				{
 					if(isset($value))
-						DBQuery("INSERT INTO program_user_config (USER_ID,PROGRAM,TITLE,VALUE) values('".User('STAFF_ID')."','$program','$name','$value')");
+						DBQuery('INSERT INTO program_user_config (USER_ID,PROGRAM,TITLE,VALUE) values(\''.User('STAFF_ID').'\',\''.$program.'\',\''.$name.'\',\''.$value.'\')');
 				}
 			}
 		}
@@ -127,11 +127,11 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
 				foreach($values as $name=>$value)
 				{
 					if(!$current_RET[$program][$name] && $value!='')
-						DBQuery("INSERT INTO program_user_config (USER_ID,PROGRAM,TITLE,VALUE) values('".User('STAFF_ID')."','$program','$name','$value')");
+						DBQuery('INSERT INTO program_user_config (USER_ID,PROGRAM,TITLE,VALUE) values(\''.User('STAFF_ID').'\',\''.$program.'\',\''.$name.'\',\''.$value.'\')');
 					elseif($value!='')
-						DBQuery("UPDATE program_user_config SET VALUE='$value' WHERE USER_ID='".User('STAFF_ID')."' AND PROGRAM='$program' AND TITLE='$name'");
+						DBQuery('UPDATE program_user_config SET VALUE=\''.$value.'\' WHERE USER_ID=\''.User('STAFF_ID').'\' AND PROGRAM=\''.$program.'\' AND TITLE=\''.$name.'\'');
 					else
-						DBQuery("DELETE FROM program_user_config WHERE USER_ID='".User('STAFF_ID')."' AND PROGRAM='$program' AND TITLE='$name'");
+						DBQuery('DELETE FROM program_user_config WHERE USER_ID=\''.User('STAFF_ID').'\' AND PROGRAM=\''.$program.'\' AND TITLE=\''.$name.'\'');
 				}
 			}
 		}
@@ -152,7 +152,7 @@ unset($_SESSION['_REQUEST_vars']['search_modfunc']);
 
 if(!$_REQUEST['modfunc'])
 {
-	$current_RET = DBGet(DBQuery("SELECT TITLE,VALUE,PROGRAM FROM program_user_config WHERE USER_ID='".User('STAFF_ID')."' AND PROGRAM IN ('Preferences','StudentFieldsSearch','StudentFieldsView') "),array(),array('PROGRAM','TITLE'));
+	$current_RET = DBGet(DBQuery('SELECT TITLE,VALUE,PROGRAM FROM program_user_config WHERE USER_ID=\''.User('STAFF_ID').'\' AND PROGRAM IN (\''.'Preferences'.'\',\''.'StudentFieldsSearch'.'\',\''.'StudentFieldsView'.'\') '),array(),array('PROGRAM','TITLE'));
 
 	if(!$_REQUEST['tab'])
 		$_REQUEST['tab'] = 'display_options';
@@ -266,9 +266,9 @@ if(!$_REQUEST['modfunc'])
 	if(clean_param($_REQUEST['tab'],PARAM_ALPHAMOD)=='student_fields')
 	{
 		if(User('PROFILE_ID'))
-			$custom_fields_RET = DBGet(DBQuery("SELECT CONCAT('<b>',sfc.TITLE,'</b>') AS CATEGORY,cf.ID,cf.TITLE,'' AS SEARCH,'' AS DISPLAY FROM custom_fields cf,student_field_categories sfc WHERE sfc.ID=cf.CATEGORY_ID AND (SELECT DISTINCT CAN_USE FROM profile_exceptions WHERE PROFILE_ID='".User('PROFILE_ID')."' AND MODNAME=CONCAT('Students/Student.php&category_id=',cf.CATEGORY_ID))='Y' ORDER BY sfc.SORT_ORDER,sfc.TITLE,cf.SORT_ORDER,cf.TITLE"),array('SEARCH'=>'_make','DISPLAY'=>'_make'),array('CATEGORY'));
+			$custom_fields_RET = DBGet(DBQuery('SELECT CONCAT(\''.'<b>'.'\',sfc.TITLE,\''.'</b>'.'\') AS CATEGORY,cf.ID,cf.TITLE,\''.''.'\' AS SEARCH,\''.''.'\' AS DISPLAY FROM custom_fields cf,student_field_categories sfc WHERE sfc.ID=cf.CATEGORY_ID AND (SELECT DISTINCT CAN_USE FROM profile_exceptions WHERE PROFILE_ID=\''.User('PROFILE_ID').'\' AND MODNAME=CONCAT(\''.'Students/Student.php&category_id='.'\',cf.CATEGORY_ID))=\''.'Y'.'\' ORDER BY sfc.SORT_ORDER,sfc.TITLE,cf.SORT_ORDER,cf.TITLE'),array('SEARCH'=>'_make','DISPLAY'=>'_make'),array('CATEGORY'));
 		else
-			$custom_fields_RET = DBGet(DBQuery("SELECT CONCAT('<b>',sfc.TITLE,'</b>') AS CATEGORY,cf.ID,cf.TITLE,'' AS SEARCH,'' AS DISPLAY FROM custom_fields cf,student_field_categories sfc WHERE sfc.ID=cf.CATEGORY_ID AND (SELECT DISTINCT CAN_USE FROM staff_exceptions WHERE USER_ID='".User('STAFF_ID')."' AND MODNAME=CONCAT('Students/Student.php&category_id=',cf.CATEGORY_ID))='Y' ORDER BY sfc.SORT_ORDER,sfc.TITLE,cf.SORT_ORDER,cf.TITLE"),array('SEARCH'=>'_make','DISPLAY'=>'_make'),array('CATEGORY'));
+			$custom_fields_RET = DBGet(DBQuery('SELECT CONCAT(\''.'<b>'.'\',sfc.TITLE,\''.'</b>'.'\') AS CATEGORY,cf.ID,cf.TITLE,\''.''.'\' AS SEARCH,\''.''.'\' AS DISPLAY FROM custom_fields cf,student_field_categories sfc WHERE sfc.ID=cf.CATEGORY_ID AND (SELECT DISTINCT CAN_USE FROM staff_exceptions WHERE USER_ID=\''.User('STAFF_ID').'\' AND MODNAME=CONCAT(\''.'Students/Student.php&category_id='.'\',cf.CATEGORY_ID))=\''.'Y'.'\' ORDER BY sfc.SORT_ORDER,sfc.TITLE,cf.SORT_ORDER,cf.TITLE'),array('SEARCH'=>'_make','DISPLAY'=>'_make'),array('CATEGORY'));
 
 		$THIS_RET['ID'] = 'CONTACT_INFO';
 		$custom_fields_RET[-1][1] = array('CATEGORY'=>'<B>Contact Information</B>','ID'=>'CONTACT_INFO','TITLE'=>'<IMG SRC=assets/down_phone_button.gif width=15> Contact Info Rollover','DISPLAY'=>_make('','DISPLAY'));

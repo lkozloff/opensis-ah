@@ -38,7 +38,7 @@ function Currency($num,$sign,$red=false)
 		$cr = true;
 		$num *= -1;
 	}
-	 $current_RET = DBGet(DBQuery("SELECT TITLE,VALUE,PROGRAM FROM program_config WHERE PROGRAM='Currency' AND SYEAR ='".UserSyear()."' AND SCHOOL_ID ='".UserSchool()."' ") );
+	 $current_RET = DBGet(DBQuery('SELECT TITLE,VALUE,PROGRAM FROM program_config WHERE PROGRAM=\'Currency\' AND SYEAR =\''.UserSyear().'\' AND SCHOOL_ID =\''.UserSchool().'\' ') );
          $val = $current_RET[1]['VALUE'];
 
         switch($val)

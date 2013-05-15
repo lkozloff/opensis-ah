@@ -30,7 +30,7 @@ include 'modules/Grades/config.inc.php';
 
 if($_REQUEST['modfunc']=='save')
 {
- $cur_session_RET=DBGet(DBQuery("SELECT YEAR(start_date) AS PRE,YEAR(end_date) AS POST FROM school_years WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
+ $cur_session_RET=DBGet(DBQuery('SELECT YEAR(start_date) AS PRE,YEAR(end_date) AS POST FROM school_years WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\''));
  if($cur_session_RET[1]['PRE']==$cur_session_RET[1]['POST'])
  {
     $cur_session=$cur_session_RET[1]['PRE'];
@@ -45,26 +45,26 @@ if($_REQUEST['modfunc']=='save')
 	$mp_list = '\''.implode('\',\'',$_REQUEST['mp_arr']).'\'';
 	$last_mp = end($_REQUEST['mp_arr']);
 	$st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
-	$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
+	$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
 
-	$extra['SELECT'] .= ",rc_cp.COURSE_WEIGHT,rpg.TITLE as GRADE_TITLE,sg1.GRADE_PERCENT,sg1.WEIGHTED_GP,sg1.UNWEIGHTED_GP ,sg1.CREDIT_ATTEMPTED , sg1.COMMENT as COMMENT_TITLE,sg1.STUDENT_ID,sg1.COURSE_PERIOD_ID,sg1.MARKING_PERIOD_ID,c.TITLE as COURSE_TITLE,rc_cp.TITLE AS TEACHER,sp.SORT_ORDER,
-                                                    stat.cum_unweighted_factor*sc.reporting_gp_scale as UNWEIGHTED_GPA";
+	$extra['SELECT'] .= ',rc_cp.COURSE_WEIGHT,rpg.TITLE as GRADE_TITLE,sg1.GRADE_PERCENT,sg1.WEIGHTED_GP,sg1.UNWEIGHTED_GP ,sg1.CREDIT_ATTEMPTED , sg1.COMMENT as COMMENT_TITLE,sg1.STUDENT_ID,sg1.COURSE_PERIOD_ID,sg1.MARKING_PERIOD_ID,c.TITLE as COURSE_TITLE,rc_cp.TITLE AS TEACHER,sp.SORT_ORDER,
+                                                    stat.cum_unweighted_factor*sc.reporting_gp_scale as UNWEIGHTED_GPA';
 	if($_REQUEST['elements']['period_absences']=='Y')
-		$extra['SELECT'] .= ",rc_cp.DOES_ATTENDANCE,
+		$extra['SELECT'] .= ',rc_cp.DOES_ATTENDANCE,
 				(SELECT count(*) FROM attendance_period ap,attendance_codes ac
-					WHERE ac.ID=ap.ATTENDANCE_CODE AND ac.STATE_CODE='A' AND ap.COURSE_PERIOD_ID=sg1.COURSE_PERIOD_ID AND ap.STUDENT_ID=ssm.STUDENT_ID) AS YTD_ABSENCES,
+					WHERE ac.ID=ap.ATTENDANCE_CODE AND ac.STATE_CODE=\'A\' AND ap.COURSE_PERIOD_ID=sg1.COURSE_PERIOD_ID AND ap.STUDENT_ID=ssm.STUDENT_ID) AS YTD_ABSENCES,
 				(SELECT count(*) FROM attendance_period ap,attendance_codes ac
-					WHERE ac.ID=ap.ATTENDANCE_CODE AND ac.STATE_CODE='A' AND ap.COURSE_PERIOD_ID=sg1.COURSE_PERIOD_ID AND sg1.MARKING_PERIOD_ID=ap.MARKING_PERIOD_ID AND ap.STUDENT_ID=ssm.STUDENT_ID) AS MP_ABSENCES";
+					WHERE ac.ID=ap.ATTENDANCE_CODE AND ac.STATE_CODE=\'A\' AND ap.COURSE_PERIOD_ID=sg1.COURSE_PERIOD_ID AND sg1.MARKING_PERIOD_ID=ap.MARKING_PERIOD_ID AND ap.STUDENT_ID=ssm.STUDENT_ID) AS MP_ABSENCES';
         if($_REQUEST['elements']['gpa']=='Y')
             $extra['SELECT'] .=",sg1.weighted_gp as GPA";
         if($_REQUEST['elements']['comments']=='Y')
                 $extra['SELECT'] .= ',s.gender AS GENDER,s.common_name AS NICKNAME';
-	$extra['FROM'] .= ",student_report_card_grades sg1 LEFT OUTER JOIN report_card_grades rpg ON (rpg.ID=sg1.REPORT_CARD_GRADE_ID),
-					course_periods rc_cp,courses c,school_periods sp,student_mp_stats stat,marking_periods mp,schools sc ";
-	$extra['WHERE'] .= " AND sg1.MARKING_PERIOD_ID IN (".$mp_list.")
+	$extra['FROM'] .= ',student_report_card_grades sg1 LEFT OUTER JOIN report_card_grades rpg ON (rpg.ID=sg1.REPORT_CARD_GRADE_ID),
+					course_periods rc_cp,courses c,school_periods sp,student_mp_stats stat,marking_periods mp,schools sc ';
+	$extra['WHERE'] .= ' AND sg1.MARKING_PERIOD_ID IN ('.$mp_list.')
 					AND rc_cp.COURSE_PERIOD_ID=sg1.COURSE_PERIOD_ID AND c.COURSE_ID = rc_cp.COURSE_ID AND sg1.STUDENT_ID=ssm.STUDENT_ID AND sp.PERIOD_ID=rc_cp.PERIOD_ID
-                                                                                          AND mp.marking_period_id=stat.marking_period_id AND sc.id=mp.school_id and stat.student_id=ssm.student_id";
-	$extra['ORDER'] .= ",sp.SORT_ORDER,c.TITLE";
+                                                                                          AND mp.marking_period_id=stat.marking_period_id AND sc.id=mp.school_id and stat.student_id=ssm.student_id';
+	$extra['ORDER'] .= ',sp.SORT_ORDER,c.TITLE';
 	$extra['functions']['TEACHER'] = '_makeTeacher';
 	$extra['group']	= array('STUDENT_ID','COURSE_PERIOD_ID','MARKING_PERIOD_ID');
 
@@ -74,28 +74,28 @@ if($_REQUEST['modfunc']=='save')
 	{
 		// GET THE COMMENTS
 		unset($extra);
-		$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
-		$extra['SELECT_ONLY'] = "s.STUDENT_ID,sc.COURSE_PERIOD_ID,sc.MARKING_PERIOD_ID,sc.REPORT_CARD_COMMENT_ID,sc.COMMENT,(SELECT SORT_ORDER FROM report_card_comments WHERE ID=sc.REPORT_CARD_COMMENT_ID) AS SORT_ORDER";
-		$extra['FROM'] = ",student_report_card_comments sc";
-		$extra['WHERE'] .= " AND sc.STUDENT_ID=s.STUDENT_ID AND sc.MARKING_PERIOD_ID='$last_mp'";
+		$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
+		$extra['SELECT_ONLY'] = 's.STUDENT_ID,sc.COURSE_PERIOD_ID,sc.MARKING_PERIOD_ID,sc.REPORT_CARD_COMMENT_ID,sc.COMMENT,(SELECT SORT_ORDER FROM report_card_comments WHERE ID=sc.REPORT_CARD_COMMENT_ID) AS SORT_ORDER';
+		$extra['FROM'] = ',student_report_card_comments sc';
+		$extra['WHERE'] .= ' AND sc.STUDENT_ID=s.STUDENT_ID AND sc.MARKING_PERIOD_ID=\''.$last_mp.'\'';
 		$extra['ORDER_BY'] = 'SORT_ORDER';
 		$extra['group'] = array('STUDENT_ID','COURSE_PERIOD_ID','MARKING_PERIOD_ID');
 		$comments_RET = GetStuList($extra);
 		//echo '<pre>'; var_dump($comments_RET); echo '</pre>'; exit;
 
-		$all_commentsA_RET = DBGet(DBQuery("SELECT ID,TITLE,SORT_ORDER FROM report_card_comments WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' AND COURSE_ID IS NOT NULL AND COURSE_ID='0' ORDER BY SORT_ORDER,ID"),array(),array('ID'));
-		$commentsA_RET = DBGet(DBQuery("SELECT ID,TITLE,SORT_ORDER FROM report_card_comments WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' AND COURSE_ID IS NOT NULL AND COURSE_ID!='0'"),array(),array('ID'));
-		$commentsB_RET = DBGet(DBQuery("SELECT ID,TITLE,SORT_ORDER FROM report_card_comments WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' AND COURSE_ID IS NULL"),array(),array('ID'));
+		$all_commentsA_RET = DBGet(DBQuery('SELECT ID,TITLE,SORT_ORDER FROM report_card_comments WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' AND COURSE_ID IS NOT NULL AND COURSE_ID=\'0\' ORDER BY SORT_ORDER,ID'),array(),array('ID'));
+		$commentsA_RET = DBGet(DBQuery('SELECT ID,TITLE,SORT_ORDER FROM report_card_comments WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' AND COURSE_ID IS NOT NULL AND COURSE_ID!=\'0\''),array(),array('ID'));
+		$commentsB_RET = DBGet(DBQuery('SELECT ID,TITLE,SORT_ORDER FROM report_card_comments WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' AND COURSE_ID IS NULL'),array(),array('ID'));
 	}
 
 	if($_REQUEST['elements']['mp_tardies']=='Y' || $_REQUEST['elements']['ytd_tardies']=='Y')
 	{
 		// GET THE ATTENDANCE
 		unset($extra);
-		$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
-		$extra['SELECT_ONLY'] = "ap.SCHOOL_DATE,ap.COURSE_PERIOD_ID,ac.ID AS ATTENDANCE_CODE,ap.MARKING_PERIOD_ID,ssm.STUDENT_ID";
-		$extra['FROM'] = ",attendance_codes ac,attendance_period ap";
-		$extra['WHERE'] .= " AND ac.ID=ap.ATTENDANCE_CODE AND (ac.DEFAULT_CODE!='Y' OR ac.DEFAULT_CODE IS NULL) AND ac.SYEAR=ssm.SYEAR AND ap.STUDENT_ID=ssm.STUDENT_ID";
+		$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
+		$extra['SELECT_ONLY'] = 'ap.SCHOOL_DATE,ap.COURSE_PERIOD_ID,ac.ID AS ATTENDANCE_CODE,ap.MARKING_PERIOD_ID,ssm.STUDENT_ID';
+		$extra['FROM'] = ',attendance_codes ac,attendance_period ap';
+		$extra['WHERE'] .= ' AND ac.ID=ap.ATTENDANCE_CODE AND (ac.DEFAULT_CODE!=\'Y\' OR ac.DEFAULT_CODE IS NULL) AND ac.SYEAR=ssm.SYEAR AND ap.STUDENT_ID=ssm.STUDENT_ID';
 		$extra['group'] = array('STUDENT_ID','ATTENDANCE_CODE','MARKING_PERIOD_ID');
 		$attendance_RET = GetStuList($extra);
 	}
@@ -104,10 +104,10 @@ if($_REQUEST['modfunc']=='save')
 	{
 		// GET THE DAILY ATTENDANCE
 		unset($extra);
-		$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
-		$extra['SELECT_ONLY'] = "ad.SCHOOL_DATE,ad.MARKING_PERIOD_ID,ad.STATE_VALUE,ssm.STUDENT_ID";
-		$extra['FROM'] = ",attendance_day ad";
-		$extra['WHERE'] .= " AND ad.STUDENT_ID=ssm.STUDENT_ID AND ad.SYEAR=ssm.SYEAR AND (ad.STATE_VALUE='0.0' OR ad.STATE_VALUE='.5') AND ad.SCHOOL_DATE<='".GetMP($last_mp,'END_DATE')."'";
+		$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
+		$extra['SELECT_ONLY'] = 'ad.SCHOOL_DATE,ad.MARKING_PERIOD_ID,ad.STATE_VALUE,ssm.STUDENT_ID';
+		$extra['FROM'] = ',attendance_day ad';
+		$extra['WHERE'] .= ' AND ad.STUDENT_ID=ssm.STUDENT_ID AND ad.SYEAR=ssm.SYEAR AND (ad.STATE_VALUE=\'0.0\' OR ad.STATE_VALUE=\'.5\') AND ad.SCHOOL_DATE<=\''.GetMP($last_mp,'END_DATE').'\'';
 		$extra['group'] = array('STUDENT_ID','MARKING_PERIOD_ID');
 		$attendance_day_RET = GetStuList($extra);
 	}

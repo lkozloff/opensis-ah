@@ -81,9 +81,9 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save')
 			$note = '<IMG SRC=assets/warning_button.gif>No data was entered.';
 
 		if($next_school!='')
-			DBQuery("UPDATE student_enrollment SET NEXT_SCHOOL='".$next_school."' WHERE SYEAR='".UserSyear()."' AND STUDENT_ID IN (".substr($students,1).") ");
+			DBQuery('UPDATE student_enrollment SET NEXT_SCHOOL='.$next_school.' WHERE SYEAR='.UserSyear().' AND STUDENT_ID IN ('.substr($students,1).') ');
 		if($calendar)
-			DBQuery("UPDATE student_enrollment SET CALENDAR_ID='".$calendar."' WHERE SYEAR='".UserSyear()."' AND STUDENT_ID IN (".substr($students,1).") ");
+			DBQuery('UPDATE student_enrollment SET CALENDAR_ID='.$calendar.' WHERE SYEAR='.UserSyear().' AND STUDENT_ID IN ('.substr($students,1).') ');
 
 		if(!$note)
 			$note = '<IMG SRC=assets/check.gif>The specified information was applied to the selected students.';
@@ -104,7 +104,7 @@ DrawBC("Students > ".ProgramTitle());
 if(!$_REQUEST['modfunc'])
 {
 	$extra['link'] = array('FULL_NAME'=>false);
-	$extra['SELECT'] = ",CAST(NULL AS CHAR(1)) AS CHECKBOX";
+	$extra['SELECT'] = ',CAST(NULL AS CHAR(1)) AS CHECKBOX';
 
 	if($_REQUEST['search_modfunc']=='list')
 	{
@@ -112,13 +112,13 @@ if(!$_REQUEST['modfunc'])
 
 		if($_REQUEST['category_id'])
 		{
-			$fields_RET = DBGet(DBQuery("SELECT ID,TITLE,TYPE,SELECT_OPTIONS FROM custom_fields WHERE CATEGORY_ID='$_REQUEST[category_id]'"),array(),array('TYPE'));
+			$fields_RET = DBGet(DBQuery('SELECT ID,TITLE,TYPE,SELECT_OPTIONS FROM custom_fields WHERE CATEGORY_ID=\''.$_REQUEST[category_id].'\''),array(),array('TYPE'));
 		}	
 		else
 		{
-			$fields_RET = DBGet(DBQuery("SELECT ID,TITLE,TYPE,SELECT_OPTIONS FROM custom_fields"),array(),array('TYPE'));
+			$fields_RET = DBGet(DBQuery('SELECT ID,TITLE,TYPE,SELECT_OPTIONS FROM custom_fields'),array(),array('TYPE'));
 		}
-		$categories_RET = DBGet(DBQuery("SELECT ID,TITLE FROM student_field_categories WHERE ID=1 OR ID=2"));
+		$categories_RET = DBGet(DBQuery('SELECT ID,TITLE FROM student_field_categories WHERE ID=1 OR ID=2'));
 		$tmp_REQUEST = $_REQUEST;
 		unset($tmp_REQUEST['category_id']);
 		echo '<CENTER><TABLE align=center ><TR><TD align=center>';
@@ -139,7 +139,7 @@ if(!$_REQUEST['modfunc'])
 				 $p2=substr(trim($field['TITLE']),strpos(trim($field['TITLE']),' ')+1);
 				 $title=strtolower($p1.'_'.$p2);
 				}
-				$query=mysql_query("SELECT * FROM students");
+				$query=mysql_query('SELECT * FROM students');
 				$f=0;
 				while($colnames=mysql_fetch_field($query))
 				 {
@@ -212,7 +212,7 @@ if(!$_REQUEST['modfunc'])
 		{
 			echo '<TR><TD class=lable valign=top>Rolling Retention / Options</TD>';
 			echo '<TD>';
-			$schools_RET = DBGet(DBQuery("SELECT ID,TITLE FROM schools WHERE ID!='".UserSchool()."'"));
+			$schools_RET = DBGet(DBQuery('SELECT ID,TITLE FROM schools WHERE ID!=\''.UserSchool().'\''));
 			$options = array(UserSchool()=>'Next grade at current school','0'=>'Retain','-1'=>'Do not enroll after this school year');
 			if(count($schools_RET))
 			{
@@ -225,7 +225,7 @@ if(!$_REQUEST['modfunc'])
 
 			echo '<TD class=lable_right valign=top>Calendar</TD>';
 			echo '<TD>';
-			$calendars_RET = DBGet(DBQuery("SELECT CALENDAR_ID,DEFAULT_CALENDAR,TITLE FROM attendance_calendars WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY DEFAULT_CALENDAR ASC"));
+			$calendars_RET = DBGet(DBQuery('SELECT CALENDAR_ID,DEFAULT_CALENDAR,TITLE FROM attendance_calendars WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY DEFAULT_CALENDAR ASC'));
 			$options = array();
 			if(count($calendars_RET))
 			{

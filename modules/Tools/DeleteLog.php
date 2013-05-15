@@ -51,19 +51,19 @@ if(isset($_REQUEST['del']))
 	# ------------------------------- Deletion Of Log Records ----------------------------- #
         if(isset($conv_st_date) && isset($conv_end_date))
 	{
-		$sql_del = DBQuery("DELETE FROM login_records WHERE LOGIN_TIME >='".$conv_st_date."' AND LOGIN_TIME <='".$conv_end_date."'");
+		$sql_del = DBQuery('DELETE FROM login_records WHERE LOGIN_TIME >=\''.$conv_st_date.'\' AND LOGIN_TIME <=\''.$conv_end_date.'\'');
 		echo '<center><font color="red"><b>Log deleted successfully</b></font></center>';
 	}
 	
 	if(isset($conv_st_date) && !isset($conv_end_date))
 	{
-		$sql_del = DBQuery("DELETE FROM login_records WHERE LOGIN_TIME >='".$conv_st_date."''");
+		$sql_del = DBQuery('DELETE FROM login_records WHERE LOGIN_TIME >=\''.$conv_st_date.'\'\'');
 		echo '<center><font color="red"><b>Log deleted successfully</b></font></center>';
 	}
 
 	if(!isset($conv_st_date) && isset($conv_end_date))
 	{
-		$sql_del = DBQuery("DELETE FROM login_records WHERE LOGIN_TIME <='".$conv_end_date."'");
+		$sql_del = DBQuery('DELETE FROM login_records WHERE LOGIN_TIME <=\''.$conv_end_date.'\'');
 		echo '<center><font color="red"><b>Log deleted successfully</b></font></center>';
 	}
 	

@@ -38,7 +38,7 @@ function CustomFields($location,$table_arr='',$exp=0)
 
 		case 'where':
 		if(count($_REQUEST['cust']) || count($_REQUEST['cust_begin']))
-			$fields = DBGet(DBQuery("SELECT TITLE,ID,TYPE,SYSTEM_FIELD FROM custom_fields"),array(),array('ID'));
+			$fields = DBGet(DBQuery('SELECT TITLE,ID,TYPE,SYSTEM_FIELD FROM custom_fields'),array(),array('ID'));
 
 		if(count($_REQUEST['cust']))
 		{
@@ -56,12 +56,12 @@ function CustomFields($location,$table_arr='',$exp=0)
 							$_openSIS['SearchTerms'] .= '<font color=gray><b>'.$fields[$id][1]['TITLE'].': </b></font>';
 							if($value=='Y')
 							{
-								$string .= " and s.$field_name='$value' ";
+								$string .= ' and s.'.$field_name.'=\''.$value.'\' ';
 								$_openSIS['SearchTerms'] .= 'Yes';
 							}
 							elseif($value=='N')
 							{
-								$string .= " and (s.$field_name!='Y' OR s.$field_name IS NULL) ";
+								$string .= ' and (s.'.$field_name.'!=\'Y\' OR s.'.$field_name.' IS NULL) ';
 								$_openSIS['SearchTerms'] .= 'No';
 							}
 							$_openSIS['SearchTerms'] .= '<BR>';
@@ -71,12 +71,12 @@ function CustomFields($location,$table_arr='',$exp=0)
 							$_openSIS['SearchTerms'] .= '<font color=gray><b>'.$fields[$id][1]['TITLE'].': </b></font>';
 							if($value=='!')
 							{
-								$string .= " and (s.$field_name='' OR s.$field_name IS NULL) ";
+								$string .= ' and (s.'.$field_name.'=\'\' OR s.'.$field_name.' IS NULL) ';
 								$_openSIS['SearchTerms'] .= 'No Value';
 							}
 							else
 							{
-								$string .= " and s.$field_name='$value' ";
+								$string .= ' and s.'.$field_name.'=\''.$value.'\' ';
 								$_openSIS['SearchTerms'] .= $value;
 							}
 							$_openSIS['SearchTerms'] .= '<BR>';
@@ -86,12 +86,12 @@ function CustomFields($location,$table_arr='',$exp=0)
 							$_openSIS['SearchTerms'] .= '<font color=gray><b>'.$fields[$id][1]['TITLE'].': </b></font>';
 							if($value=='!')
 							{
-								$string .= " and (s.$field_name='' OR s.$field_name IS NULL) ";
+								$string .= ' and (s.'.$field_name.'=\'\' OR s.'.$field_name.' IS NULL) ';
 								$_openSIS['SearchTerms'] .= 'No Value';
 							}
 							else
 							{
-								$string .= " and s.$field_name='$value' ";
+								$string .= ' and s.'.$field_name.'=\''.$value.'\' ';
 								$_openSIS['SearchTerms'] .= $value;
 							}
 							$_openSIS['SearchTerms'] .= '<BR>';
@@ -101,12 +101,12 @@ function CustomFields($location,$table_arr='',$exp=0)
 							$_openSIS['SearchTerms'] .= '<font color=gray><b>'.$fields[$id][1]['TITLE'].': </b></font>';
 							if($value=='!')
 							{
-								$string .= " and (s.$field_name='' OR s.$field_name IS NULL) ";
+								$string .= ' and (s.'.$field_name.'=\'\' OR s.'.$field_name.' IS NULL) ';
 								$_openSIS['SearchTerms'] .= 'No Value';
 							}
 							else
 							{
-								$string .= " and s.$field_name='$value' ";
+								$string .= ' and s.'.$field_name.'=\''.$value.'\' ';
 								$_openSIS['SearchTerms'] .= $value;
 							}
 							$_openSIS['SearchTerms'] .= '<BR>';
@@ -116,7 +116,7 @@ function CustomFields($location,$table_arr='',$exp=0)
 							$_openSIS['SearchTerms'] .= '<font color=gray><b>'.$fields[$id][1]['TITLE'].': </b></font>';
 							if($value=='!')
 							{
-								$string .= " and (s.$field_name='' OR s.$field_name IS NULL) ";
+								$string .= ' and (s.'.$field_name.'=\'\' OR s.'.$field_name.' IS NULL) ';
 								$_openSIS['SearchTerms'] .= 'No Value';
 							}
 							elseif($value=='~')
@@ -126,7 +126,7 @@ function CustomFields($location,$table_arr='',$exp=0)
 							}
 							else
 							{
-								$string .= " and s.$field_name='$value' ";
+								$string .= ' and s.'.$field_name.'=\''.$value.'\' ';
 								$_openSIS['SearchTerms'] .= $value;
 							}
 							$_openSIS['SearchTerms'] .= '<BR>';
@@ -135,12 +135,12 @@ function CustomFields($location,$table_arr='',$exp=0)
 						case 'text':
 							if(substr($value,0,2)=='\"' && substr($value,-2)=='\"')
 							{
-								$string .= " and s.$field_name='".substr($value,2,-2)."' ";
+								$string .= ' and s.'.$field_name.'=\''.substr($value,2,-2).'\' ';
 								$_openSIS['SearchTerms'] .= '<font color=gray><b>'.$fields[$id][1]['TITLE'].': </b></font>'.substr($value,2,-2).'<BR>';
 							}
 							else
 							{
-								$string .= " and LOWER(s.$field_name) LIKE '".strtolower($value)."%' ";
+								$string .= ' and LOWER(s.'.$field_name.') LIKE \''.strtolower('.$value.').'%\' ';
                                                                 if($exp==1)
 								$_openSIS['Search'] .= '<font color=gray><b>'.$fields[$id][1]['TITLE'].' starts with: </b></font>'.$value.'<BR>';
                                                             elseif($exp==2){
@@ -178,7 +178,7 @@ function CustomFields($location,$table_arr='',$exp=0)
 						$_REQUEST['cust_end'][$field_name] = $value;
 						$value = $temp;
 					}
-					$string .= " and s.$column_name BETWEEN '$value' AND '".$_REQUEST['cust_end'][$field_name]."' ";
+					$string .= ' and s.'.$column_name.' BETWEEN '.$value.' AND \''.$_REQUEST['cust_end'][$field_name].'\' ';
 					if($fields[$id][1]['TYPE']=='date')
 						$_openSIS['SearchTerms'] .= '<font color=gray><b>'.$fields[$id][1]['TITLE'].' between: </b></font>'.ProperDate($value).' &amp; '.ProperDate($_REQUEST['cust_end'][$field_name]).'<BR>';
 					else

@@ -46,9 +46,9 @@ if (clean_param($_REQUEST['course_modfunc'], PARAM_ALPHAMOD) == 'search') {
     PopTable('footer');
 
     if ($_REQUEST['search_term']) {
-        $subjects_RET = DBGet(DBQuery("SELECT SUBJECT_ID,TITLE FROM course_subjects WHERE (UPPER(TITLE) LIKE '%" . strtoupper($_REQUEST['search_term']) . "%' OR UPPER(SHORT_NAME) = '" . strtoupper($_REQUEST['search_term']) . "') AND SYEAR='" . UserSyear() . "' AND SCHOOL_ID='" . UserSchool() . "'"));
-        $courses_RET = DBGet(DBQuery("SELECT SUBJECT_ID,COURSE_ID,TITLE FROM courses WHERE (UPPER(TITLE) LIKE '%" . strtoupper($_REQUEST['search_term']) . "%' OR UPPER(SHORT_NAME) = '" . strtoupper($_REQUEST['search_term']) . "') AND SYEAR='" . UserSyear() . "' AND SCHOOL_ID='" . UserSchool() . "'"));
-        $periods_RET = DBGet(DBQuery("SELECT c.SUBJECT_ID,cp.COURSE_ID,cp.COURSE_PERIOD_ID,cp.TITLE FROM course_periods cp,courses c WHERE cp.COURSE_ID=c.COURSE_ID AND (UPPER(cp.TITLE) LIKE '%" . strtoupper($_REQUEST['search_term']) . "%' OR UPPER(cp.SHORT_NAME) = '" . strtoupper($_REQUEST['search_term']) . "') AND cp.SYEAR='" . UserSyear() . "' AND cp.SCHOOL_ID='" . UserSchool() . "'"));
+        $subjects_RET = DBGet(DBQuery('SELECT SUBJECT_ID,TITLE FROM course_subjects WHERE (UPPER(TITLE) LIKE \'%' . strtoupper($_REQUEST['search_term']) . '%\' OR UPPER(SHORT_NAME) = \'' . strtoupper($_REQUEST['search_term']) . '\') AND SYEAR=\'' . UserSyear() . '\' AND SCHOOL_ID=\'' . UserSchool() . '\''));
+        $courses_RET = DBGet(DBQuery('SELECT SUBJECT_ID,COURSE_ID,TITLE FROM courses WHERE (UPPER(TITLE) LIKE \'%' . strtoupper($_REQUEST['search_term']) . '%\' OR UPPER(SHORT_NAME) = \'' . strtoupper($_REQUEST['search_term']) . '\') AND SYEAR=\'' . UserSyear() . '\' AND SCHOOL_ID=\'' . UserSchool() . '\''));
+        $periods_RET = DBGet(DBQuery('SELECT c.SUBJECT_ID,cp.COURSE_ID,cp.COURSE_PERIOD_ID,cp.TITLE FROM course_periods cp,courses c WHERE cp.COURSE_ID=c.COURSE_ID AND (UPPER(cp.TITLE) LIKE \'%' . strtoupper($_REQUEST['search_term']) . '%\' OR UPPER(cp.SHORT_NAME) = \'' . strtoupper($_REQUEST['search_term']) . '\') AND cp.SYEAR=\'' . UserSyear() . '\' AND cp.SCHOOL_ID=\'' . UserSchool() . '\''));
 
         echo '<TABLE><TR><TD valign=top>';
         $link['TITLE']['link'] = "Modules.php?modname=$_REQUEST[modname]&modfunc=$_REQUEST[modfunc]";
@@ -83,23 +83,27 @@ if (clean_param($_REQUEST['re_assignment_teacher'], PARAM_NOTAGS) && ($_POST['re
              {
                     if(scheduleAssociation($id))
                     {
-                        $reassigned=  DBGet(DBQuery("SELECT COURSE_PERIOD_ID,TEACHER_ID,ASSIGN_DATE,PRE_TEACHER_ID,MODIFIED_DATE,MODIFIED_BY,UPDATED FROM teacher_reassignment WHERE course_period_id='$id' AND assign_date='".$assign_date."'"));
+                        $reassigned=  DBGet(DBQuery('SELECT COURSE_PERIOD_ID,TEACHER_ID,ASSIGN_DATE,PRE_TEACHER_ID,MODIFIED_DATE,MODIFIED_BY,UPDATED FROM teacher_reassignment WHERE course_period_id=\''.$id.'\' AND assign_date=\''.$assign_date.'\''));
                         if($reassigned)
                         {
-                            DBQuery("UPDATE teacher_reassignment SET teacher_id='$staff_id',pre_teacher_id='$pre_staff_id',modified_date='$today',modified_by='".  User('STAFF_ID')."',updated='N' WHERE course_period_id='$id' AND assign_date='".$assign_date."'");
-                            $_SESSION['undo']="UPDATE teacher_reassignment SET teacher_id='$pre_staff_id',pre_teacher_id='".$reassigned[1]['PRE_TEACHER_ID']."',modified_date='".$reassigned[1]['MODIFIED_DATE']."',modified_by='".  $reassigned[1]['MODIFIED_BY']."',updated='".$reassigned[1]['UPDATED']."' WHERE course_period_id='$id' AND assign_date='".$assign_date."'";
+                            DBQuery('UPDATE teacher_reassignment SET teacher_id=\''.$staff_id.'\',pre_teacher_id=\''.$pre_staff_id.'\',modified_date=\''.$today.'\',modified_by=\''.  User('STAFF_ID').'\',updated=\'N\' WHERE course_period_id=\''.$id.'\' AND assign_date=\''.$assign_date.'\'');
+                            $_SESSION['undo']='UPDATE teacher_reassignment SET teacher_id=\''.$pre_staff_id.'\',pre_teacher_id=\''.$reassigned[1]['PRE_TEACHER_ID'].'\',modified_date=\''.$reassigned[1]['MODIFIED_DATE'].'\',modified_by=\''.  $reassigned[1]['MODIFIED_BY'].'\',updated=\''.$reassigned[1]['UPDATED'].'\' WHERE course_period_id=\''.$id.'\' AND assign_date=\''.$assign_date.'\'';
                         }
                         else
                         {
-                                DBQuery("INSERT INTO teacher_reassignment(course_period_id,teacher_id,assign_date,pre_teacher_id,modified_date,modified_by)VALUES('$id','$staff_id','$assign_date','$pre_staff_id','".$today."','".  User('STAFF_ID')."')");
-                                $_SESSION['undo']="DELETE FROM teacher_reassignment WHERE course_period_id='$id' AND teacher_id='$staff_id' AND assign_date='$assign_date'";
+                                DBQuery('INSERT INTO teacher_reassignment(course_period_id,teacher_id,assign_date,pre_teacher_id,modified_date,modified_by)VALUES(\''.$id.'\',\''.$staff_id.'\',\''.$assign_date.'\',\''.$pre_staff_id.'\',\''.$today.'\',\''.  User('STAFF_ID').'\')');
+                                $_SESSION['undo']='DELETE FROM teacher_reassignment WHERE course_period_id=\''.$id.'\' AND teacher_id=\''.$staff_id.'\' AND assign_date=\''.$assign_date.'\'';
                         }
                         $undo_possible=true;
-                        $title_RET=  DBGet(DBQuery("SELECT TITLE FROM course_periods WHERE COURSE_PERIOD_ID='$id'"));
+                        $title_RET=  DBGet(DBQuery('SELECT TITLE FROM course_periods WHERE COURSE_PERIOD_ID=\''.$id.'\''));
                         $_SESSION['undo_title']=$title_RET[1]['TITLE'];
                         DBQuery('CALL TEACHER_REASSIGNMENT()');
                         
                         //UpdateMissingAttendance($id);
+                    }
+                    else
+                    {
+                        ShowErrPhp('There is no associations in this Course Period. You can delete it from School Set Up>> Course Manager');
                     }
 
              }
@@ -118,7 +122,7 @@ if (clean_param($_REQUEST['re_assignment_teacher'], PARAM_NOTAGS) && ($_POST['re
 if($_REQUEST['action']=='undo')
 {
     DBQuery($_SESSION['undo']);
-    DBQuery("UPDATE course_periods set title='".$_SESSION['undo_title']."',teacher_id='".$_SESSION['undo_teacher']."' WHERE course_period_id='".$_REQUEST['course_period_id']."'");
+    DBQuery('UPDATE course_periods set title=\''.$_SESSION['undo_title'].'\',teacher_id=\''.$_SESSION['undo_teacher'].'\' WHERE course_period_id=\''.$_REQUEST['course_period_id'].'\'');
     //UpdateMissingAttendance($_REQUEST['course_period_id']);
     unset($_SESSION['undo']);
     unset($_SESSION['undo_teacher']);
@@ -128,16 +132,16 @@ if($_REQUEST['action']=='undo')
 if ((!$_REQUEST['modfunc'] || clean_param($_REQUEST['modfunc'], PARAM_ALPHAMOD) == 'choose_course') && !$_REQUEST['course_modfunc']) {
     if ($_REQUEST['modfunc'] != 'choose_course')
         DrawBC("Scheduling > " . ProgramTitle());
-    $sql = "SELECT SUBJECT_ID,TITLE FROM course_subjects WHERE SCHOOL_ID='" . UserSchool() . "' AND SYEAR='" . UserSyear() . "' ORDER BY TITLE";
+    $sql = 'SELECT SUBJECT_ID,TITLE FROM course_subjects WHERE SCHOOL_ID=\'' . UserSchool() . '\' AND SYEAR=\'' . UserSyear() . '\' ORDER BY TITLE';
     $QI = DBQuery($sql);
     $subjects_RET = DBGet($QI);
 
     if ($_REQUEST['modfunc'] != 'choose_course') {
         if (clean_param($_REQUEST['course_period_id'], PARAM_ALPHANUM)) 
         {
-            $sql = "SELECT TITLE,TEACHER_ID,SECONDARY_TEACHER_ID
+            $sql = 'SELECT TITLE,TEACHER_ID,SECONDARY_TEACHER_ID
 						FROM course_periods
-						WHERE COURSE_PERIOD_ID='$_REQUEST[course_period_id]'";
+						WHERE COURSE_PERIOD_ID=\''.$_REQUEST[course_period_id].'\'';
             $QI = DBQuery($sql);
             $RET = DBGet($QI);
             $RET = $RET[1];
@@ -150,7 +154,7 @@ if ((!$_REQUEST['modfunc'] || clean_param($_REQUEST['modfunc'], PARAM_ALPHAMOD) 
             $header .= '<TABLE cellpadding=3 width=760 >';
             $header .= '<TR>';
             $header .='<TD>Select New Teacher :</TD>';
-            $teachers_RET = DBGet(DBQuery("SELECT STAFF_ID,LAST_NAME,FIRST_NAME,MIDDLE_NAME FROM staff WHERE (SCHOOLS IS NULL OR FIND_IN_SET('" . UserSchool() . "',SCHOOLS)>0) AND SYEAR='" . UserSyear() . "' AND PROFILE='teacher' AND staff_id <>'".$RET['TEACHER_ID']."' AND ISNULL(IS_DISABLE) ORDER BY LAST_NAME,FIRST_NAME "));
+            $teachers_RET = DBGet(DBQuery('SELECT STAFF_ID,LAST_NAME,FIRST_NAME,MIDDLE_NAME FROM staff st INNER JOIN staff_school_relationship ssr USING (staff_id) WHERE SYEAR=\'' . UserSyear() . '\' AND PROFILE=\'teacher\' AND staff_id <>\''.$RET['TEACHER_ID'].'\' AND ISNULL(IS_DISABLE) ORDER BY LAST_NAME,FIRST_NAME '));
             if (count($teachers_RET)) {
                 foreach ($teachers_RET as $teacher)
                     $teachers[$teacher['STAFF_ID']] = $teacher['LAST_NAME'] . ', ' . $teacher['FIRST_NAME'] . ' ' . $teacher['MIDDLE_NAME'];
@@ -164,7 +168,7 @@ if ((!$_REQUEST['modfunc'] || clean_param($_REQUEST['modfunc'], PARAM_ALPHAMOD) 
             echo '</FORM>';
             //--------------------------------------------Re Assignment Record-------------------------------------------------------------
         
-        $sql = "SELECT COURSE_PERIOD_ID,(SELECT CONCAT_WS(' ',last_name,middle_name,first_name) FROM staff WHERE staff_id=teacher_id) AS TEACHER,ASSIGN_DATE,(SELECT CONCAT_WS(' ',last_name,middle_name,first_name) FROM staff WHERE staff_id=pre_teacher_id) AS PRE_TEACHER_ID,MODIFIED_DATE,(SELECT CONCAT_WS(' ',last_name,first_name) FROM staff WHERE staff_id=modified_by) AS MODIFIED_BY FROM teacher_reassignment WHERE course_period_id='".$_REQUEST['course_period_id']."' ORDER BY assign_date DESC";
+        $sql = 'SELECT COURSE_PERIOD_ID,(SELECT CONCAT_WS(\' \',last_name,middle_name,first_name) FROM staff WHERE staff_id=teacher_id) AS TEACHER,ASSIGN_DATE,(SELECT CONCAT_WS(\' \',last_name,middle_name,first_name) FROM staff WHERE staff_id=pre_teacher_id) AS PRE_TEACHER_ID,MODIFIED_DATE,(SELECT CONCAT_WS(\' \',last_name,first_name) FROM staff WHERE staff_id=modified_by) AS MODIFIED_BY FROM teacher_reassignment WHERE course_period_id=\''.$_REQUEST['course_period_id'].'\' ORDER BY assign_date DESC';
         $QI = DBQuery($sql);
         $courses_RET = DBGet($QI,array('ASSIGN_DATE'=>'ProperDAte','MODIFIED_DATE'=>'ProperDate'));
 
@@ -210,7 +214,7 @@ if ((!$_REQUEST['modfunc'] || clean_param($_REQUEST['modfunc'], PARAM_ALPHAMOD) 
     echo '</TD>';
 
     if (clean_param($_REQUEST['subject_id'], PARAM_ALPHANUM) && $_REQUEST['subject_id'] != 'new') {
-        $sql = "SELECT COURSE_ID,TITLE FROM courses WHERE SUBJECT_ID='$_REQUEST[subject_id]' ORDER BY TITLE";
+        $sql = 'SELECT COURSE_ID,TITLE FROM courses WHERE SUBJECT_ID=\''.$_REQUEST['subject_id'].'\' ORDER BY TITLE';
         $QI = DBQuery($sql);
         $courses_RET = DBGet($QI);
 
@@ -234,7 +238,7 @@ if ((!$_REQUEST['modfunc'] || clean_param($_REQUEST['modfunc'], PARAM_ALPHAMOD) 
 
         if (clean_param($_REQUEST['course_id'], PARAM_ALPHANUM) && $_REQUEST['course_id'] != 'new') {
 
-            $sql_mp_filter = "SELECT MP_TYPE, PARENT_ID, GRANDPARENT_ID FROM marking_periods WHERE MARKING_PERIOD_ID=" . UserMP();
+            $sql_mp_filter = 'SELECT MP_TYPE, PARENT_ID, GRANDPARENT_ID FROM marking_periods WHERE MARKING_PERIOD_ID=' . UserMP();
             $res_mp_filter = DBQuery($sql_mp_filter);
             $row_mp_filter = DBGet($res_mp_filter);
 
@@ -243,17 +247,17 @@ if ((!$_REQUEST['modfunc'] || clean_param($_REQUEST['modfunc'], PARAM_ALPHAMOD) 
             $gp_id = $row_mp_filter[1]['GRANDPARENT_ID'];
 
             if ($mp_type == 'quarter') {
-                $cond = " AND (MARKING_PERIOD_ID = " . UserMP() . " OR MARKING_PERIOD_ID = " . $p_id . " OR MARKING_PERIOD_ID = " . $gp_id . ")";
+                $cond = ' AND (MARKING_PERIOD_ID = ' . UserMP() . ' OR MARKING_PERIOD_ID = ' . $p_id . ' OR MARKING_PERIOD_ID = ' . $gp_id . ')';
             }
             if ($mp_type == 'semester') {
-                $cond = " AND (MARKING_PERIOD_ID = " . UserMP() . " OR MARKING_PERIOD_ID = " . $p_id . ")";
+                $cond = ' AND (MARKING_PERIOD_ID = ' . UserMP() . ' OR MARKING_PERIOD_ID = ' . $p_id . ')';
             }
             if ($mp_type == 'year') {
-                $cond = " AND MARKING_PERIOD_ID = " . UserMP();
+                $cond = ' AND MARKING_PERIOD_ID = ' . UserMP();
             }
 
 
-            $sql = "SELECT COURSE_PERIOD_ID,TITLE,COALESCE(TOTAL_SEATS-FILLED_SEATS,0) AS AVAILABLE_SEATS FROM course_periods WHERE COURSE_ID='$_REQUEST[course_id]'" . $cond . " ORDER BY TITLE";
+            $sql = 'SELECT COURSE_PERIOD_ID,TITLE,COALESCE(TOTAL_SEATS-FILLED_SEATS,0) AS AVAILABLE_SEATS FROM course_periods WHERE COURSE_ID=\''.$_REQUEST[course_id].'\'' . $cond . ' ORDER BY TITLE';
 
             $QI = DBQuery($sql);
             $periods_RET = DBGet($QI);

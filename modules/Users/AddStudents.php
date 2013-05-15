@@ -28,12 +28,12 @@
 include('../../Redirect_modules.php');
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save' && AllowEdit())
 {
-	$current_RET = DBGet(DBQuery("SELECT STUDENT_ID FROM students_join_users WHERE STAFF_ID='".UserStaffID()."'"),array(),array('STUDENT_ID'));
+	$current_RET = DBGet(DBQuery('SELECT STUDENT_ID FROM students_join_users WHERE STAFF_ID=\''.UserStaffID().'\''),array(),array('STUDENT_ID'));
 	foreach($_REQUEST['student'] as $student_id=>$yes)
 	{
 		if(!$current_RET[$student_id]&& UserStaffID()!='')
 		{
-			$sql = "INSERT INTO students_join_users (STUDENT_ID,STAFF_ID) values('".$student_id."','".UserStaffID()."')";
+			$sql = 'INSERT INTO students_join_users (STUDENT_ID,STAFF_ID) values(\''.$student_id.'\',\''.UserStaffID().'\')';
 			DBQuery($sql);
 		}
 	}
@@ -53,12 +53,12 @@ if(isset($_REQUEST['staff_id']) && $_REQUEST['staff_id']!='new' || (UserStaffID(
                 $staff_id=UserStaffID ();
 	//if(UserStudentID())
 	//	echo '<IMG SRC=assets/pixel_trans.gif height=2>';
-            $RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME FROM staff WHERE STAFF_ID='".$staff_id."'"));
-            $count_staff_RET=DBGet(DBQuery("SELECT COUNT(*) AS NUM FROM staff"));
+            $RET = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME FROM staff WHERE STAFF_ID=\''.$staff_id.'\''));
+            $count_staff_RET=DBGet(DBQuery('SELECT COUNT(*) AS NUM FROM staff'));
             if($count_staff_RET[1]['NUM']>1){
-                DrawHeaderHome( 'Selected User: '.$RET[1]['FIRST_NAME'].'&nbsp;'.$RET[1]['LAST_NAME'].' (<A HREF=Side.php?staff_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Users/User.php&ajax=true&bottom_back=true&return_session=true target=body>Back to User List</A>');
+                DrawHeaderHome( 'Selected User: '.$RET[1]['FIRST_NAME'].'&nbsp;'.$RET[1]['LAST_NAME'].' (<A HREF=Side.php?staff_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Deselect</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Users/User.php&ajax=true&bottom_back=true&return_session=true target=body>Back to User List</A>');
             }else{
-                DrawHeaderHome( 'Selected User: '.$RET[1]['FIRST_NAME'].'&nbsp;'.$RET[1]['LAST_NAME'].' (<A HREF=Side.php?staff_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>)');
+                DrawHeaderHome( 'Selected User: '.$RET[1]['FIRST_NAME'].'&nbsp;'.$RET[1]['LAST_NAME'].' (<A HREF=Side.php?staff_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Deselect</font></A>)');
             }
 }
 
@@ -67,7 +67,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete' && AllowEdit())
 {
 	if(DeletePromptCommon('student from that user','remove access to'))
 	{
-		DBQuery("DELETE FROM students_join_users WHERE STUDENT_ID='$_REQUEST[student_id]' AND STAFF_ID='".UserStaffID()."'");
+		DBQuery('DELETE FROM students_join_users WHERE STUDENT_ID=\''.$_REQUEST[student_id].'\' AND STAFF_ID=\''.UserStaffID().'\'');
 		unset($_REQUEST['modfunc']);
 	}
 }
@@ -79,7 +79,7 @@ if($_REQUEST['modfunc']!='delete')
 		Search('staff_id','parent');
 	else
 	{
-		$profile = DBGet(DBQuery("SELECT PROFILE FROM staff WHERE STAFF_ID='".UserStaffID()."'"));
+		$profile = DBGet(DBQuery('SELECT PROFILE FROM staff WHERE STAFF_ID=\''.UserStaffID().'\''));
 		if($profile[1]['PROFILE']!='parent')
 		{
 			unset($_SESSION['staff_id']);
@@ -103,7 +103,7 @@ if($_REQUEST['modfunc']!='delete')
 	{
 		echo '<CENTER><TABLE width="" align="center"><TR><TD valign=top>';
 		DrawHeader('<div class="big_font">Associated students with '.$RET[1]['FIRST_NAME'].'&nbsp;'.$RET[1]['LAST_NAME'].'</div>',$extra['header_right']);
-		$current_RET = DBGet(DBQuery("SELECT u.STUDENT_ID,CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME FROM students_join_users u,students s WHERE s.STUDENT_ID=u.STUDENT_ID AND u.STAFF_ID='".UserStaffID()."'"));
+		$current_RET = DBGet(DBQuery('SELECT u.STUDENT_ID,CONCAT(s.LAST_NAME,\' \',s.FIRST_NAME) AS FULL_NAME FROM students_join_users u,students s WHERE s.STUDENT_ID=u.STUDENT_ID AND u.STAFF_ID=\''.UserStaffID().'\''));
 		$link['remove'] = array('link'=>"Modules.php?modname=$_REQUEST[modname]&modfunc=delete",'variables'=>array('student_id'=>'STUDENT_ID'));
 		#$link['remove'] = array('link'=>"#"." onclick='check_content(\"ajax.php?modname=$_REQUEST[modname]&modfunc=delete\");'",'variables'=>array('student_id'=>'STUDENT_ID'));
 	//	$link['TITLE']['link'] = "#"." onclick='check_content(\"ajax.php?modname=$_REQUEST[modname]&modfunc=$_REQUEST[modfunc]&mp_term=FY\");'";		

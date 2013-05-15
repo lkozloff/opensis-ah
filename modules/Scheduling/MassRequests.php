@@ -150,10 +150,9 @@ if($_REQUEST['modfunc']!='choose_course')
 		echo '<TR><TD align=right valign=top>With</TD><TD>';
 		echo '<DIV id=WITH_TEACHER_PERIOD ><TABLE><TR><TD align=right>Teacher</TD><TD><SELECT name=with_teacher_id><OPTION value="">N/A</OPTION>';
 		
-		//$teachers_RET = DBGet(DBQuery("SELECT DISTINCT s.FIRST_NAME,s.LAST_NAME,s.STAFF_ID AS TEACHER_ID FROM staff s,course_periods cp WHERE s.STAFF_ID=cp.TEACHER_ID "));
-		
-		$teachers_RET = DBGet(DBQuery("SELECT STAFF_ID,LAST_NAME,FIRST_NAME,MIDDLE_NAME FROM staff WHERE SCHOOLS LIKE '%,".UserSchool().",%' AND SYEAR='".UserSyear()."' AND PROFILE='teacher' ORDER BY LAST_NAME,FIRST_NAME"));
-		foreach($teachers_RET as $teacher)
+		#$teachers_RET = DBGet(DBQuery("SELECT STAFF_ID,LAST_NAME,FIRST_NAME,MIDDLE_NAME FROM staff WHERE SCHOOLS LIKE '%,".UserSchool().",%' AND SYEAR='".UserSyear()."' AND PROFILE='teacher' ORDER BY LAST_NAME,FIRST_NAME"));
+		$teachers_RET = DBGet(DBQuery("SELECT s.STAFF_ID,s.LAST_NAME,s.FIRST_NAME,MIDDLE_NAME FROM staff s,staff_school_relationship ssr WHERE s.STAFF_ID=ssr.STAFF_ID AND s.CURRENT_SCHOOL_ID=ssr.SCHOOL_ID AND s.CURRENT_SCHOOL_ID LIKE '%".UserSchool()."%' AND ssr.SYEAR='".UserSyear()."' AND s.PROFILE='teacher' ORDER BY s.LAST_NAME,s.FIRST_NAME"));
+                foreach($teachers_RET as $teacher)
 		echo '<OPTION value='.$teacher['STAFF_ID'].'>'.$teacher['LAST_NAME'].', '.$teacher['FIRST_NAME'].' '.$teacher['MIDDLE_NAME'].'</OPTION>';
 		echo '</SELECT></TD></TR><TR><TD align=right>Period</TD><TD><SELECT name=with_period_id><OPTION value="">N/A</OPTION>';
 		$periods_RET = DBGet(DBQuery("SELECT PERIOD_ID,TITLE FROM school_periods WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY SORT_ORDER"));

@@ -3,7 +3,7 @@ include('../../Redirect_modules.php');
 DrawBC("School Setup >> ".ProgramTitle());
 if((clean_param($_REQUEST['action'],PARAM_ALPHAMOD) == 'update') && (clean_param($_REQUEST['button'],PARAM_ALPHAMOD)=='Save') && User('PROFILE')=='student')
 {
-	$stu_PASS=DBGet(DBQuery("SELECT PASSWORD FROM students WHERE STUDENT_ID='".UserStudentId()."'"));
+	$stu_PASS=DBGet(DBQuery('SELECT PASSWORD FROM students WHERE STUDENT_ID=\''.UserStudentId().'\''));
 	$pass_old=$_REQUEST['old'];
 	if($pass_old=="")
 	 {
@@ -23,7 +23,7 @@ if((clean_param($_REQUEST['action'],PARAM_ALPHAMOD) == 'update') && (clean_param
 	   {
 	 	if($pass_new==$pass_retype)
 		 {
-	 	  $sql="UPDATE students SET PASSWORD='".$pass_new."' WHERE STUDENT_ID='".UserStudentId()."'";
+	 	  $sql='UPDATE students SET PASSWORD=\''.$pass_new.'\' WHERE STUDENT_ID=\''.UserStudentId().'\'';
 		  DBQuery($sql);
 		  $note[] = "Password Sucessfully Changed";
 	 	    echo ErrorMessage($note,'note');

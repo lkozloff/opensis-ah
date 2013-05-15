@@ -42,12 +42,13 @@ $text = "
 
 
 
-INSERT INTO app (name, value) VALUES
-('version', '5.1'),
-('date', 'October 16, 2012'),
-('build', '10162012003'),
-('update', '3'),
-('last_updated', 'July 16, 2012');
+INSERT INTO `app` (`name`, `value`) VALUES
+('version', '5.2'),
+('date', 'April 22, 2013'),
+('build', '22042013002'),
+('update', '1'),
+('last_updated', 'April 22, 2013');
+
 
 --
 -- Dumping data for table `address`
@@ -251,6 +252,7 @@ INSERT INTO profile_exceptions (profile_id, modname, can_use, can_edit) VALUES
 (1, 'Grades/FixGPA.php', 'Y', 'Y'),
 (1, 'Grades/EditReportCardGrades.php', 'Y', 'Y'),
 (1, 'Grades/EditHistoryMarkingPeriods.php', 'Y', 'Y'),
+(1, 'Grades/HistoricalReportCardGrades.php', 'Y', 'Y'),
 (1, 'Attendance/Administration.php', 'Y', 'Y'),
 (1, 'Attendance/AddAbsences.php', 'Y', 'Y'),
 (1, 'Attendance/AttendanceData.php?list_by_day=true', 'Y', 'Y'),
@@ -379,7 +381,7 @@ INSERT INTO program_config (syear, school_id, program, title, `value`) VALUES
 (NULL, NULL, 'Currency', 'Thai Bhat  (THB)', '24'),
 (NULL, NULL, 'Currency', 'Turkish Lira  (TRY)', '25'),
 (NULL, NULL, 'Currency', 'United Arab Emirates Dirham (AED)', '26'),
-(NULL, NULL, 'MissingAttendance', 'LAST_UPDATE','".date('Y-m-d',  strtotime($_SESSION['user_school_beg_date']))."'),
+('".$_SESSION['syear']."',1, 'MissingAttendance', 'LAST_UPDATE','".date('Y-m-d',  strtotime($_SESSION['user_school_beg_date']))."'),
 (2010, 1, 'eligibility', 'START_DAY', '1'),
 (2010, 1, 'eligibility', 'START_HOUR', '8'),
 (2010, 1, 'eligibility', 'START_MINUTE', '00'),
@@ -486,9 +488,16 @@ INSERT INTO `school_years` (`marking_period_id`, `syear`, `school_id`, `title`, 
 -- Dumping data for table `staff`
 --
 
-INSERT INTO `staff` (`syear`, `current_school_id`, `title`, `first_name`, `last_name`, `middle_name`, `username`, `password`, `phone`, `email`, `profile`, `homeroom`, `schools`, `last_login`, `failed_login`, `profile_id`, `rollover_id`, `is_disable`) VALUES
-(".$_SESSION['syear'].", 1, NULL, 'Admin', 'Administrator', 'A', 'admin', md5('admin'), NULL, NULL, 'admin', NULL, ',1,', '', NULL, '1', NULL, NULL);
+INSERT INTO `staff` (`staff_id`, `current_school_id`, `first_name`, `last_name`, `middle_name`, `username`, `password`, `profile`, `profile_id`) VALUES
+(1, 1, 'Admin', 'Administrator', 'A', 'admin', md5('admin'), 'admin', 1);
 
+
+--
+-- Dumping data for table `staff_school_relationship`
+--
+
+INSERT INTO `staff_school_relationship` (`staff_id`, `school_id`, `syear`) VALUES
+(1, 1, ".$_SESSION['syear'].");
 
 --
 -- Dumping data for table `staff_exceptions`

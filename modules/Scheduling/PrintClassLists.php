@@ -38,10 +38,10 @@ if($_REQUEST['modfunc']=='save')
 	$extra['DATE'] = GetMP();
 
 	// get the fy marking period id, there should be exactly one fy marking period
-	$fy_id = DBGet(DBQuery("SELECT MARKING_PERIOD_ID FROM school_years WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+	$fy_id = DBGet(DBQuery('SELECT MARKING_PERIOD_ID FROM school_years WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 	$fy_id = $fy_id[1]['MARKING_PERIOD_ID'];
 
-	$course_periods_RET = DBGet(DBQuery("SELECT cp.TITLE,cp.COURSE_PERIOD_ID,cp.PERIOD_ID,cp.MARKING_PERIOD_ID,cp.DAYS,c.TITLE AS COURSE_TITLE,cp.TEACHER_ID,(SELECT CONCAT(LAST_NAME,', ',FIRST_NAME) FROM staff WHERE STAFF_ID=cp.TEACHER_ID) AS TEACHER FROM course_periods cp,courses c WHERE c.COURSE_ID=cp.COURSE_ID AND cp.COURSE_PERIOD_ID IN ($cp_list) ORDER BY TEACHER"));
+	$course_periods_RET = DBGet(DBQuery('SELECT cp.TITLE,cp.COURSE_PERIOD_ID,cp.PERIOD_ID,cp.MARKING_PERIOD_ID,cp.DAYS,c.TITLE AS COURSE_TITLE,cp.TEACHER_ID,(SELECT CONCAT(LAST_NAME,\''. ',' . '\',FIRST_NAME) FROM staff WHERE STAFF_ID=cp.TEACHER_ID) AS TEACHER FROM course_periods cp,courses c WHERE c.COURSE_ID=cp.COURSE_ID AND cp.COURSE_PERIOD_ID IN ('.$cp_list.') ORDER BY TEACHER'));
 
 	$first_extra = $extra;
 	$handle = PDFStart();
@@ -111,7 +111,7 @@ if(!$_REQUEST['modfunc'])
 		PopTable('header','Search');
 		echo '<TABLE border=0>';
 
-		$RET = DBGet(DBQuery("SELECT STAFF_ID,CONCAT(LAST_NAME,', ',FIRST_NAME) AS FULL_NAME FROM staff WHERE PROFILE='teacher' AND FIND_IN_SET('".UserSchool()."',SCHOOLS)>0 AND SYEAR='".UserSyear()."' ORDER BY FULL_NAME"));
+		$RET = DBGet(DBQuery('SELECT s.STAFF_ID,CONCAT(s.LAST_NAME,\''.','.'\',s.FIRST_NAME) AS FULL_NAME FROM staff s,staff_school_relationship ssr WHERE s.STAFF_ID=ssr.STAFF_ID AND s.PROFILE=\''.'teacher'.'\' AND FIND_IN_SET(\''.UserSchool().'\', ssr.SCHOOL_ID)>0 AND ssr.SYEAR=\''.UserSyear().'\' ORDER BY FULL_NAME'));
 		echo '<TR><TD align=right>Teacher</TD><TD>';
 		echo "<SELECT name=teacher_id style='max-width:250;'><OPTION value=''>N/A</OPTION>";
 		foreach($RET as $teacher)

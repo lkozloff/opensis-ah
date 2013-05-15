@@ -54,7 +54,7 @@ if ($fh == TRUE)
 }
 
 fclose($fh);
-$display_text='Your system has been successfully upgraded to version 5.0. Please click the Login button to proceed to login with your existing login credentials.
+$display_text='Your system has been successfully upgraded to version 5.2. Please click the Login button to proceed to login with your existing login credentials.
 ';
 echo "<html><head><link rel='stylesheet' type='text/css' href='../styles/installer.css'></head><body>
 <div class=\"heading\">Installation Successful

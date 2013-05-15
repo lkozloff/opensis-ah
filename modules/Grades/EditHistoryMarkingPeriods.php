@@ -48,15 +48,15 @@ if($_REQUEST['modfunc']=='update'){
     {
         if($id!='new')
         {
-            $sql = "UPDATE history_marking_periods SET ";
+            $sql = 'UPDATE history_marking_periods SET ';
 
             foreach($columns as $column=>$value)
-                $sql .= $column."='".str_replace("\'","''",trim($value))."',";
+                $sql .= $column.'=\''.str_replace("\'","''",trim($value)).'\',';
 
             if($_REQUEST['tab_id']!='new')
-                $sql = substr($sql,0,-1) . " WHERE MARKING_PERIOD_ID='$id'";
+                $sql = substr($sql,0,-1) . ' WHERE MARKING_PERIOD_ID=\''.$id.'\'';
             else
-                $sql = substr($sql,0,-1) . " WHERE MARKING_PERIOD_ID='$id'";
+                $sql = substr($sql,0,-1) . ' WHERE MARKING_PERIOD_ID=\''.$id.'\'';
             DBQuery($sql);
         }
         else
@@ -95,7 +95,7 @@ if($_REQUEST['modfunc']=='remove')
 {
     if(DeletePromptX('History Marking Period'))
     {
-        DBQuery("DELETE FROM history_marking_periods WHERE MARKING_PERIOD_ID='$_REQUEST[id]'");
+        DBQuery('DELETE FROM history_marking_periods WHERE MARKING_PERIOD_ID=\''.$_REQUEST['id'].'\'');
     }
 }  
 
@@ -109,16 +109,19 @@ if(!$_REQUEST['modfunc']){
                                         'NAME'=>'makeTextInput',
                                         'POST_END_DATE'=>'makeDateInput',
                                         'SYEAR'=>'makeSchoolYearSelectInput'
+                                       
                                         );
                     $LO_columns = array('MP_TYPE'=>'Type',
                                         'NAME'=>'Name',
                                         'POST_END_DATE'=>'Grade Post Date',
                                         'SYEAR'=>'School Year'
+                                        
                                         );
                     $link['add']['html'] = array('MP_TYPE'=>makeSelectInput('','MP_TYPE'),
                                         'NAME'=>makeTextInput('','NAME'),
                                         'POST_END_DATE'=>makeDateInput('','POST_END_DATE'),
                                         'SYEAR'=>makeSchoolYearSelectInput('','SYEAR')
+                                         
                                         );
                                         
 //                }
@@ -170,7 +173,7 @@ function makeSelectInput($value,$name)
     else
         $id = 'new';
 
-    $options = array('semester'=>'semester', 'quarter'=>'quarter');
+    $options = array('year'=>'Year','semester'=>'Semester', 'quarter'=>'Quarter');
 
     return SelectInput(trim($value),"values[$id][$name]",'',$options,false);
 }
@@ -182,7 +185,7 @@ function makeSchoolYearSelectInput($value,$name)
     else
         $id = 'new';
     $options = array();
-    foreach (range(UserSyear()-9, UserSyear()) as $year)
+    foreach (range(UserSyear()-15, UserSyear()) as $year)
         $options[$year] = $year.'-'.($year+1);
 
     return SelectInput(trim($value),"values[$id][$name]",'',$options,false);

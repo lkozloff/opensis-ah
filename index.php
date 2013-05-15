@@ -27,7 +27,6 @@
 #***************************************************************************************
 #error_reporting(1);
 error_reporting(0);
-
 include("functions/del_directory.fnc.php");
 include("functions/ParamLib.php");
 include("remove_backup.php");
@@ -118,8 +117,18 @@ if(optional_param('USERNAME','',PARAM_RAW) && optional_param('PASSWORD','',PARAM
 	DBQuery("SELECT STUDENT_DISABLE('".$student_disable_storeproc_RET[1]['STUDENT_ID']."')");
 	}
 $maintain_RET=DBGet(DBQuery("SELECT SYSTEM_MAINTENANCE_SWITCH FROM system_preference_misc LIMIT 1"));
-	 $maintain=$maintain_RET[1];
-	   $login_RET = DBGet(DBQuery("SELECT USERNAME,PROFILE,STAFF_ID,CURRENT_SCHOOL_ID,LAST_LOGIN,FIRST_NAME,LAST_NAME,PROFILE,IS_DISABLE,PROFILE_ID,FAILED_LOGIN FROM staff WHERE SYEAR=(SELECT MAX(SYEAR) FROM staff WHERE UPPER(USERNAME)=UPPER('$username') AND UPPER(PASSWORD)=UPPER('$password')) AND UPPER(USERNAME)=UPPER('$username') AND UPPER(PASSWORD)=UPPER('$password')"));
+	 $maintain=$maintain_RET[1];	   
+         $login_Check=DBGet(DBQuery("SELECT USERNAME FROM staff WHERE UPPER(USERNAME)=UPPER('$username') AND UPPER(PASSWORD)=UPPER('$password')"));
+         if($login_Check[1]['USERNAME']!='')
+         {
+         $login_RET = DBGet(DBQuery("SELECT USERNAME,PROFILE,STAFF_ID,CURRENT_SCHOOL_ID,LAST_LOGIN,FIRST_NAME,LAST_NAME,PROFILE_ID,FAILED_LOGIN,IS_DISABLE,MAX(ssr.SYEAR) AS SYEAR
+                                        FROM staff s INNER JOIN staff_school_relationship ssr USING(staff_id),school_years sy
+                                        WHERE sy.school_id=s.current_school_id AND sy.syear=ssr.syear AND UPPER(USERNAME)=UPPER('$username') AND UPPER(PASSWORD)=UPPER('$password')"));
+         }
+         else
+         {
+             $error[]="Incorrect username or password. Please try again.";
+         }
            $loged_staff_id = $login_RET[1]['STAFF_ID'];
            if($login_RET[1]['PROFILE']=='parent')
            {
@@ -130,7 +139,17 @@ $maintain_RET=DBGet(DBQuery("SELECT SYSTEM_MAINTENANCE_SWITCH FROM system_prefer
 		  header("location:index.php?modfunc=logout&dis=assoc_mis");
                }
            }
-
+           
+           if($login_RET[1]['PROFILE']=='teacher')
+           {
+               $sql='SELECT STAFF_ID FROM staff_school_relationship WHERE STAFF_ID='.$loged_staff_id.' AND (END_DATE>=CURDATE() OR END_DATE=\'0000-00-00\') AND SYEAR=\''.$login_RET[1]['SYEAR'].'\'';
+               $is_teacher_assoc=DBGet(DBQuery('SELECT STAFF_ID FROM staff_school_relationship WHERE STAFF_ID='.$loged_staff_id.' AND (END_DATE>=CURDATE() OR END_DATE=\'0000-00-00\') AND SYEAR=\''.$login_RET[1]['SYEAR'].'\''));
+               if(empty($is_teacher_assoc))
+               {
+                    //$error[]="error";
+                    header("location:index.php?modfunc=logout&staff=na");
+               }
+           }
     $student_RET = DBGet(DBQuery("SELECT s.USERNAME,s.STUDENT_ID,s.FIRST_NAME,s.LAST_NAME,s.LAST_LOGIN,s.IS_DISABLE,s.FAILED_LOGIN,se.SYEAR,se.SCHOOL_ID FROM students s,student_enrollment se WHERE UPPER(s.USERNAME)=UPPER('$username') AND UPPER(s.PASSWORD)=UPPER('$password') AND se.STUDENT_ID=s.STUDENT_ID AND se.SYEAR=(SELECT MAX(SYEAR) FROM student_enrollment WHERE STUDENT_ID=s.STUDENT_ID) AND CURRENT_DATE>=se.START_DATE AND (CURRENT_DATE<=se.END_DATE OR se.END_DATE IS NULL)"));
 
     if($maintain['SYSTEM_MAINTENANCE_SWITCH']==Y && ( $login_RET || $student_RET)){   
@@ -144,17 +163,18 @@ $maintain_RET=DBGet(DBQuery("SELECT SYSTEM_MAINTENANCE_SWITCH FROM system_prefer
 if(!$login_RET && !$student_RET)
 {
             $valid_pass=false;
-            $db_pass=DBGet(DBQuery("SELECT STAFF_ID FROM staff WHERE SYEAR=(SELECT MAX(SYEAR) FROM staff WHERE UPPER(USERNAME)=UPPER('$username')) AND PROFILE='admin' AND UPPER(PASSWORD)=UPPER('$password')"));
+            $db_pass=DBGet(DBQuery("SELECT STAFF_ID FROM staff WHERE PROFILE='admin' AND UPPER(PASSWORD)=UPPER('$password')"));
             if(count($db_pass)>0)
                     $valid_pass=true;
             if($valid_pass==true)
             {
-                $login_RET = DBGet(DBQuery("SELECT USERNAME,PROFILE,STAFF_ID,CURRENT_SCHOOL_ID,LAST_LOGIN,FIRST_NAME,LAST_NAME,PROFILE_ID,FAILED_LOGIN,IS_DISABLE FROM staff WHERE SYEAR=(SELECT MAX(SYEAR) FROM staff WHERE UPPER(USERNAME)=UPPER('$username')) AND UPPER(USERNAME)=UPPER('$username')"));
+//                $login_RET = DBGet(DBQuery("SELECT USERNAME,PROFILE,STAFF_ID,CURRENT_SCHOOL_ID,LAST_LOGIN,FIRST_NAME,LAST_NAME,PROFILE_ID,FAILED_LOGIN,IS_DISABLE FROM staff WHERE SYEAR=(SELECT MAX(SYEAR) FROM staff WHERE UPPER(USERNAME)=UPPER('$username')) AND UPPER(USERNAME)=UPPER('$username')"));
+   $login_RET = DBGet(DBQuery("SELECT s.USERNAME AS USERNAME,s.PROFILE AS PROFILE,s.STAFF_ID AS STAFF_ID,s.CURRENT_SCHOOL_ID AS CURRENT_SCHOOL_ID,s.LAST_LOGIN AS LAST_LOGIN,s.FIRST_NAME AS FIRST_NAME,s.LAST_NAME AS LAST_NAME,s.PROFILE_ID AS PROFILE_ID,s.FAILED_LOGIN AS FAILED_LOGIN,s.IS_DISABLE AS IS_DISABLE FROM staff s,staff_school_relationship ssr WHERE s.STAFF_ID=ssr.STAFF_ID AND ssr.SYEAR=(SELECT MAX(ssr1.SYEAR) FROM staff_school_relationship ssr1,staff s1 WHERE ssr1.STAFF_ID=s1.STAFF_ID AND UPPER(s1.USERNAME)=UPPER('$username')) AND UPPER(s.USERNAME)=UPPER('$username')")); //pinki             
                 $student_RET = DBGet(DBQuery("SELECT s.FIRST_NAME as FIRST_NAME,s.USERNAME,s.STUDENT_ID,s.LAST_LOGIN,s.FAILED_LOGIN FROM students s,student_enrollment se WHERE UPPER(s.USERNAME)=UPPER('$username') AND se.STUDENT_ID=s.STUDENT_ID AND se.SYEAR=(SELECT MAX(SYEAR) FROM student_enrollment WHERE STUDENT_ID=s.STUDENT_ID) AND CURRENT_DATE>=se.START_DATE AND (CURRENT_DATE<=se.END_DATE OR se.END_DATE IS NULL)"));
             }
             else
             {
-                    $admin_RET = DBGet(DBQuery("SELECT STAFF_ID FROM staff WHERE PROFILE='$username' AND SYEAR=(SELECT MAX(SYEAR) FROM staff WHERE PROFILE='$username') AND UPPER(PASSWORD)=UPPER('$password')"));  // Uid and Password Checking
+                    $admin_RET = DBGet(DBQuery("SELECT STAFF_ID FROM staff WHERE PROFILE='$username' AND UPPER(PASSWORD)=UPPER('$password')"));  // Uid and Password Checking
                     if($admin_RET)
                     {
                     $login_RET = DBGet(DBQuery("SELECT USERNAME,PROFILE,STAFF_ID,CURRENT_SCHOOL_ID,LAST_LOGIN,FIRST_NAME,LAST_NAME,PROFILE_ID,FAILED_LOGIN,IS_DISABLE FROM staff WHERE SYEAR=(SELECT MAX(SYEAR) FROM staff WHERE UPPER(USERNAME)=UPPER('$username') AND UPPER(PASSWORD)=UPPER('$password')) AND UPPER(USERNAME)=UPPER('$username')"));
@@ -253,8 +273,8 @@ if(!$login_RET && !$student_RET)
 
 		if ( $activity && $activity!=0 && $days>$activity && $profile_id!=1 && $last_login)
 		{
-		  DBQuery("UPDATE staff SET IS_DISABLE='Y' WHERE STAFF_ID='".$_SESSION['STAFF_ID']."' AND SYEAR='$_SESSION[UserSyear]' AND PROFILE_ID!=1");
-
+		 // DBQuery("UPDATE staff SET IS_DISABLE='Y' WHERE STAFF_ID='".$_SESSION['STAFF_ID']."' AND SYEAR='$_SESSION[UserSyear]' AND PROFILE_ID!=1");
+       DBQuery("UPDATE staff s,staff_school_relationship ssp SET s.IS_DISABLE='Y' WHERE s.STAFF_ID=ssp.STAFF_ID AND s.STAFF_ID='".$_SESSION['STAFF_ID']."' AND ssp.SYEAR='$_SESSION[UserSyear]' AND s.PROFILE_ID!=1"); //pinki
 		  session_destroy();
 		  #header("location:index.php?modfunc=logout");
 		  header("location:index.php?modfunc=logout&dis=fl_count");
@@ -351,10 +371,10 @@ if(!$login_RET && !$student_RET)
     }
     else
     {  /* cleaning using other parameters other than ALPHAEXT is not working----*/
-        $stf_fl_cnt_syear= DBGet(DBQuery("SELECT MAX(SYEAR) AS SYEAR FROM staff WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')"));
+        $stf_fl_cnt_syear= DBGet(DBQuery("SELECT MAX(SYEAR) AS SYEAR FROM staff INNER JOIN staff_school_relationship ssr USING(staff_id) WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')"));
 
-      DBQuery("UPDATE staff SET FAILED_LOGIN=".db_case(array('FAILED_LOGIN',"''",'1','FAILED_LOGIN+1'))." WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."') AND SYEAR='".$stf_fl_cnt_syear[1]['SYEAR']."'");
-      DBQuery("UPDATE students SET FAILED_LOGIN=".db_case(array('FAILED_LOGIN',"''",'1','FAILED_LOGIN+1'))." WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')");
+      DBQuery("UPDATE staff SET FAILED_LOGIN=FAILED_LOGIN+1 WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')");
+      DBQuery("UPDATE students SET FAILED_LOGIN=FAILED_LOGIN+1 WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')");
          #  $error[] = "Incorrect username or password. Please try again.";
     #	DBQuery("UPDATE staff SET FAILED_LOGIN=".db_case(array('FAILED_LOGIN',"''",'1','FAILED_LOGIN+1'))." WHERE UPPER(USERNAME)=UPPER('$_REQUEST[USERNAME]') AND SYEAR='$DefaultSyear'");
 	#	DBQuery("UPDATE students SET FAILED_LOGIN=".db_case(array('FAILED_LOGIN',"''",'1','FAILED_LOGIN+1'))." WHERE UPPER(USERNAME)=UPPER('$_REQUEST[USERNAME]')");
@@ -380,20 +400,32 @@ if(!$login_RET && !$student_RET)
             $admin_failed_count = DBGet(DBQuery("SELECT FAIL_COUNT FROM system_preference_misc"));
             $ad_f_cnt = $admin_failed_count[1]['FAIL_COUNT'];
 
-            $res= DBGet(DBQuery("SELECT FAILED_LOGIN,PROFILE FROM staff WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."') AND SYEAR='".$stf_fl_cnt_syear[1]['SYEAR']."'"));
+            $res= DBGet(DBQuery("SELECT FAILED_LOGIN,PROFILE FROM staff WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')"));
             $failed_login_staff=$res[1]['FAILED_LOGIN'];
             if($failed_login_staff!='')
             {
                 if ($ad_f_cnt && $ad_f_cnt!=0 && $failed_login_staff >= $ad_f_cnt && $res[1]['PROFILE']!='admin')
                 {
-                    DBQuery("UPDATE staff SET IS_DISABLE='Y' WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."') AND SYEAR='".$stf_fl_cnt_syear[1]['SYEAR']."'");
+                    #DBQuery("UPDATE staff SET IS_DISABLE='Y' WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."') AND SYEAR='".$stf_fl_cnt_syear[1]['SYEAR']."'");
+                     DBQuery("UPDATE staff SET IS_DISABLE='Y' WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')");
                     if($failed_login_staff == $ad_f_cnt)
+                    {
+                        unset($error);
                         $error[] = "Incorrect username or password. Please try again.";
-                     else 
-                        $error[] = "Due to excessive incorrect login attempts your account has been disabled. Contact the school administration to enable your account.";                       
+                        
+                    
+                    }
+                        else {
+                        unset($error);
+                        $error[] = "Due to excessive incorrect login attempts your account has been disabled. Contact the school administration to enable your account.";
+                        }
+                
                 }
-                else
+                else{
+                    unset($error);
                     $error[] = "Incorrect username or password. Please try again.";
+                    }
+                
             }
 
             $res= DBGet(DBQuery("SELECT FAILED_LOGIN FROM students WHERE UPPER(USERNAME)=UPPER('".optional_param('USERNAME', 0, PARAM_RAW)."')"));
@@ -413,6 +445,10 @@ if(!$login_RET && !$student_RET)
             }
     }
 }
+if($_REQUEST[staff]=='na')
+{
+    $error[]="You are not asigned to any school";
+} 
 
 //if($_REQUEST['modfunc']=='create_account')
 if(optional_param('modfunc','',PARAM_ALPHA)=='create_account')

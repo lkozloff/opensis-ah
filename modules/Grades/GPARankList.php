@@ -53,7 +53,7 @@ if($_REQUEST['search_modfunc'] == 'list')
 			if(!$_REQUEST['mp'])
 			{
 				$_REQUEST['mp'] = $pro;
-				$current_RET = DBGet(DBQuery("SELECT g.STUDENT_ID,g.REPORT_CARD_GRADE_ID,g.REPORT_CARD_COMMENT_ID,g.COMMENT FROM student_report_card_grades g,course_periods cp WHERE cp.COURSE_PERIOD_ID=g.COURSE_PERIOD_ID AND cp.COURSE_PERIOD_ID='$course_period_id' AND g.MARKING_PERIOD_ID='".$_REQUEST['mp']."'"),array(),array('STUDENT_ID'));
+				$current_RET = DBGet(DBQuery('SELECT g.STUDENT_ID,g.REPORT_CARD_GRADE_ID,g.REPORT_CARD_COMMENT_ID,g.COMMENT FROM student_report_card_grades g,course_periods cp WHERE cp.COURSE_PERIOD_ID=g.COURSE_PERIOD_ID AND cp.COURSE_PERIOD_ID='.$course_period_id.' AND g.MARKING_PERIOD_ID=\''.$_REQUEST['mp'].'\''),array(),array('STUDENT_ID'));
 			}
 			$pro_grading = true;
 			$pro_select .= "<OPTION value=".$pro.(($pro==$_REQUEST['mp'])?' SELECTED':'').">".GetMP($pro)."</OPTION><OPTION value=".$sem.(('E'.$sem==$_REQUEST['mp'])?' SELECTED':'').">".GetMP($sem).' Exam</OPTION>';
@@ -94,7 +94,7 @@ if(!$_REQUEST['list_gpa'])
     if(strpos($extra['FROM'],'student_mp_stats sms')===false)
     {
             $extra['FROM'] .= ',student_gpa_calculated sgc';
-            $extra['WHERE'] .= " AND sgc.STUDENT_ID=ssm.STUDENT_ID AND sgc.MARKING_PERIOD_ID='".$_REQUEST['mp']."'";
+            $extra['WHERE'] .= ' AND sgc.STUDENT_ID=ssm.STUDENT_ID AND sgc.MARKING_PERIOD_ID=\''.$_REQUEST['mp'].'\'';
     }
 }
 
@@ -106,7 +106,7 @@ $extra['new'] = true;
 
 if(User('PROFILE')=='parent' || User('PROFILE')=='student')
 	$_REQUEST['search_modfunc'] = 'list';
-$SCHOOL_RET = DBGet(DBQuery("SELECT * from schools where ID = '".UserSchool()."'"));
+$SCHOOL_RET = DBGet(DBQuery('SELECT * from schools where ID = \''.UserSchool().'\''));
 Search('student_id',$extra,'true');
 
 function _roundGPA($gpa,$column)

@@ -37,17 +37,17 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
 			{
 				 if($id!='new')
                                              {
-					$sql = "UPDATE honor_roll SET ";
+					$sql = 'UPDATE honor_roll SET ';
 					foreach($columns as $column=>$value)
                                         {
                                               $value= paramlib_validation($column,$value);
-                                               $values .= ' " '.trim(str_replace("\'","'",str_replace("'","\'",$value))).' ",';
+                                               $values .= ' \' '.trim(str_replace("\'","'",str_replace("'","\'",$value))).' \',';
 						if($value)
-                                              $sql .= $column . '="'.trim(str_replace("\'","'",str_replace("'","\'",$value))).'",';
+                                              $sql .= $column . '=\''.trim(str_replace("\'","'",str_replace("'","\'",$value))).'\',';
                                                else
                                                    $sql .= $column . '=NULL ,';
                                         }
-					$sql = substr($sql,0,-1) . " WHERE id='$id'";
+					$sql = substr($sql,0,-1) . ' WHERE id=\''.$id.'\'';
 					DBQuery($sql);
 				}
 				else

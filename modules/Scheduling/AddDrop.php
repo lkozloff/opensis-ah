@@ -60,17 +60,19 @@ if($_REQUEST['modfunc']=='save')
   if(count($_REQUEST['st_arr']))
 	{
 	$st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
-	$extra['WHERE'] = "  se.ID IN ($st_list)";
+	$extra['WHERE'] = '  se.ID IN ('.$st_list.')';
         }
   
   $start_date = $_REQUEST['sday'];
   $end_date = $_REQUEST['eday'];
 
-  
+//$enrollment_RET = DBGet(DBQuery( "SELECT c.TITLE AS COURSE_TITLE,cp.TITLE,se.START_DATE AS START_DATE,NULL AS END_DATE,se.START_DATE AS DATE,se.STUDENT_ID,CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME FROM schedule se,students s,courses c,course_periods cp WHERE c.COURSE_ID=se.COURSE_ID AND cp.COURSE_PERIOD_ID=se.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND s.STUDENT_ID=se.STUDENT_ID AND se.SCHOOL_ID='".UserSchool()."' AND se.START_DATE BETWEEN '$start_date' AND '$end_date' AND $extra[WHERE]
+//							UNION SELECT c.TITLE AS COURSE_TITLE,cp.TITLE,NULL AS START_DATE,se.END_DATE AS END_DATE,se.END_DATE AS DATE,se.STUDENT_ID,CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME FROM schedule se,students s,courses c,course_periods cp WHERE c.COURSE_ID=se.COURSE_ID AND cp.COURSE_PERIOD_ID=se.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND s.STUDENT_ID=se.STUDENT_ID AND se.SCHOOL_ID='".UserSchool()."' AND se.END_DATE BETWEEN '$start_date' AND '$end_date' AND $extra[WHERE]
+//								ORDER BY DATE DESC"),array('START_DATE'=>'ProperDate','END_DATE'=>'ProperDate')) ;  
 
-$enrollment_RET = DBGet(DBQuery( "SELECT c.TITLE AS COURSE_TITLE,cp.TITLE,se.START_DATE AS START_DATE,NULL AS END_DATE,se.START_DATE AS DATE,se.STUDENT_ID,CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME FROM schedule se,students s,courses c,course_periods cp WHERE c.COURSE_ID=se.COURSE_ID AND cp.COURSE_PERIOD_ID=se.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND s.STUDENT_ID=se.STUDENT_ID AND se.SCHOOL_ID='".UserSchool()."' AND se.START_DATE BETWEEN '$start_date' AND '$end_date' AND $extra[WHERE]
-							UNION SELECT c.TITLE AS COURSE_TITLE,cp.TITLE,NULL AS START_DATE,se.END_DATE AS END_DATE,se.END_DATE AS DATE,se.STUDENT_ID,CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME FROM schedule se,students s,courses c,course_periods cp WHERE c.COURSE_ID=se.COURSE_ID AND cp.COURSE_PERIOD_ID=se.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND s.STUDENT_ID=se.STUDENT_ID AND se.SCHOOL_ID='".UserSchool()."' AND se.END_DATE BETWEEN '$start_date' AND '$end_date' AND $extra[WHERE]
-								ORDER BY DATE DESC"),array('START_DATE'=>'ProperDate','END_DATE'=>'ProperDate')) ;
+$enrollment_RET = DBGet(DBQuery( 'SELECT c.TITLE AS COURSE_TITLE,cp.TITLE,se.START_DATE AS START_DATE,se.END_DATE AS END_DATE,se.END_DATE AS DATE,se.STUDENT_ID,CONCAT(s.LAST_NAME,\''.','.'\',s.FIRST_NAME) AS FULL_NAME FROM schedule se,students s,courses c,course_periods cp WHERE c.COURSE_ID=se.COURSE_ID AND cp.COURSE_PERIOD_ID=se.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND s.STUDENT_ID=se.STUDENT_ID AND se.SCHOOL_ID=\''.UserSchool().'\' AND (se.START_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\' OR se.END_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\') AND '.$extra[WHERE].'
+								ORDER BY DATE DESC'),array('START_DATE'=>'ProperDate','END_DATE'=>'ProperDate')) ;
+
 $columns = array('FULL_NAME'=>'Student','STUDENT_ID'=>'Student ID','COURSE_TITLE'=>'Course','TITLE'=>'Course Period','START_DATE'=>'Enrolled','END_DATE'=>'Dropped');
 if(count($enrollment_RET)>0)
     echo "<table width=100%><tr><td width=105>".DrawLogo()."</td><td  style=\"font-size:15px; font-weight:bold; padding-top:20px;\">". GetSchool(UserSchool())."<div style=\"font-size:12px;\">Add / Drop Report</div></td><td align=right style=\"padding-top:20px;\">". ProperDate(DBDate()) ."<br />Powered by openSIS</td></tr><tr><td colspan=3 style=\"border-top:1px solid #333;\">&nbsp;</td></tr></table>";
@@ -82,10 +84,11 @@ ListOutputPrint($enrollment_RET,$columns,'Schedule Record','Schedule Records');
 echo "<FORM name=addr id=addr action='for_export.php?modname=$_REQUEST[modname]&head_html=Add+/+Drop+Report&modfunc=save&sday=$start_date&eday=$end_date&include_inactive=$_REQUEST[include_inactive]&_openSIS_PDF=true&flag=list' method=POST target=_blank>";
 
 
-$enrollment_RET1 = DBGet(DBQuery("SELECT se.ID CHECKBOX,c.TITLE AS COURSE_TITLE,cp.TITLE,se.START_DATE AS START_DATE,NULL AS END_DATE,se.START_DATE AS DATE,se.STUDENT_ID,CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME FROM schedule se,students s,courses c,course_periods cp WHERE c.COURSE_ID=se.COURSE_ID AND cp.COURSE_PERIOD_ID=se.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND s.STUDENT_ID=se.STUDENT_ID AND se.SCHOOL_ID='".UserSchool()."' AND se.START_DATE BETWEEN '$start_date' AND '$end_date'
-							UNION SELECT se.ID as CHECKBOX,c.TITLE AS COURSE_TITLE,cp.TITLE,NULL AS START_DATE,se.END_DATE AS END_DATE,se.END_DATE AS DATE,se.STUDENT_ID,CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME FROM schedule se,students s,courses c,course_periods cp WHERE c.COURSE_ID=se.COURSE_ID AND cp.COURSE_PERIOD_ID=se.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND s.STUDENT_ID=se.STUDENT_ID AND se.SCHOOL_ID='".UserSchool()."' AND se.END_DATE BETWEEN '$start_date' AND '$end_date'
-								ORDER BY DATE DESC"),array('START_DATE'=>'ProperDate','END_DATE'=>'ProperDate','CHECKBOX'=>'_makeChooseCheckbox'));
-
+//$enrollment_RET1 = DBGet(DBQuery("SELECT se.ID CHECKBOX,c.TITLE AS COURSE_TITLE,cp.TITLE,se.START_DATE AS START_DATE,NULL AS END_DATE,se.START_DATE AS DATE,se.STUDENT_ID,CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME FROM schedule se,students s,courses c,course_periods cp WHERE c.COURSE_ID=se.COURSE_ID AND cp.COURSE_PERIOD_ID=se.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND s.STUDENT_ID=se.STUDENT_ID AND se.SCHOOL_ID='".UserSchool()."' AND se.START_DATE BETWEEN '$start_date' AND '$end_date'
+//							UNION SELECT se.ID as CHECKBOX,c.TITLE AS COURSE_TITLE,cp.TITLE,NULL AS START_DATE,se.END_DATE AS END_DATE,se.END_DATE AS DATE,se.STUDENT_ID,CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME FROM schedule se,students s,courses c,course_periods cp WHERE c.COURSE_ID=se.COURSE_ID AND cp.COURSE_PERIOD_ID=se.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND s.STUDENT_ID=se.STUDENT_ID AND se.SCHOOL_ID='".UserSchool()."' AND se.END_DATE BETWEEN '$start_date' AND '$end_date'
+//								ORDER BY DATE DESC"),array('START_DATE'=>'ProperDate','END_DATE'=>'ProperDate','CHECKBOX'=>'_makeChooseCheckbox'));
+$enrollment_RET1 = DBGet(DBQuery('SELECT se.ID CHECKBOX,c.TITLE AS COURSE_TITLE,cp.TITLE,se.START_DATE AS START_DATE,se.END_DATE AS END_DATE,se.END_DATE AS DATE,se.STUDENT_ID,CONCAT(s.LAST_NAME,\''.','.'\',s.FIRST_NAME) AS FULL_NAME FROM schedule se,students s,courses c,course_periods cp WHERE c.COURSE_ID=se.COURSE_ID AND cp.COURSE_PERIOD_ID=se.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND s.STUDENT_ID=se.STUDENT_ID AND se.SCHOOL_ID=\''.UserSchool().'\' AND (se.START_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\' OR se.END_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\')
+								ORDER BY DATE DESC'),array('START_DATE'=>'ProperDate','END_DATE'=>'ProperDate','CHECKBOX'=>'_makeChooseCheckbox'));
 
 
 $columns_b = array('CHECKBOX'=>'</A><INPUT type=checkbox value=Y name=controller  onclick="checkAll(this.form,this.form.controller.checked,\'st_arr\');"><A>');

@@ -50,7 +50,7 @@ DrawBC("School Setup >> ".ProgramTitle());
 
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='create')
 {
-	$fy_RET = DBGet(DBQuery("SELECT START_DATE,END_DATE FROM school_years WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
+	$fy_RET = DBGet(DBQuery('SELECT START_DATE,END_DATE FROM school_years WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\''));
 	$fy_RET = $fy_RET[1];
 
 	$message = '<TABLE cellspacing=0 cellpadding=0 border=0 ><TR><TD colspan=7 align=center>Title <INPUT type=text name=title class=cell_floating id=title> <INPUT type=checkbox name=default value=Y> Default Calendar for this School<BR><BR></TD></TR><TR><TD colspan=7 align=center>From '.PrepareDate($fy_RET['START_DATE'],'_min').' To '.PrepareDate($fy_RET['END_DATE'],'_max').'</TD></TR><tr><td class=clear></td></tr><TR><TD><INPUT type=checkbox value=Y name=weekdays[0]>Sunday</TD><TD><INPUT type=checkbox value=Y name=weekdays[1] CHECKED>Monday</TD><TD><INPUT type=checkbox value=Y name=weekdays[2] CHECKED>Tuesday</TD><TD><INPUT type=checkbox value=Y name=weekdays[3] CHECKED>Wednesday</TD><TD><INPUT type=checkbox value=Y name=weekdays[4] CHECKED>Thursday</TD><TD><INPUT type=checkbox value=Y name=weekdays[5] CHECKED>Friday</TD><TD><INPUT type=checkbox value=Y name=weekdays[6]>Saturday</TD></TR></TABLE>';
@@ -63,7 +63,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='create')
 		$weekday = date('w',$begin);
 
 		//$calendar_id = DBGet(DBQuery("SELECT ".db_seq_nextval('CALENDARS_SEQ')." AS CALENDAR_ID ".FROM_DUAL));
-                $fetch_calendar_id = DBGet(DBQuery("SHOW TABLE STATUS LIKE 'attendance_calendars'"));
+                $fetch_calendar_id = DBGet(DBQuery('SHOW TABLE STATUS LIKE \'attendance_calendars\''));
                 $calendar_id[1]['CALENDAR_ID']= $fetch_calendar_id[1]['AUTO_INCREMENT'];
                 $calendar_id = $calendar_id[1]['CALENDAR_ID'];
 
@@ -72,7 +72,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='create')
 			if($_REQUEST['weekdays'][$weekday]=='Y')
 			{
                           
-				DBQuery("INSERT INTO attendance_calendar (SYEAR,SCHOOL_ID,SCHOOL_DATE,MINUTES,CALENDAR_ID) values('".UserSyear()."','".UserSchool()."','".date('Y-m-d',$i)."','999','".$calendar_id."')");
+				DBQuery('INSERT INTO attendance_calendar (SYEAR,SCHOOL_ID,SCHOOL_DATE,MINUTES,CALENDAR_ID) values(\''.UserSyear().'\',\''.UserSchool().'\',\''.date('Y-m-d',$i).'\',\'999\',\''.$calendar_id.'\')');
                         }
 			$weekday++;
 			if($weekday==7)
@@ -81,21 +81,21 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='create')
                 $col=Calender_Title;
                 $cal_title=paramlib_validation($col,$_REQUEST['title']);
                 if($_REQUEST['default'])
-                    DBQuery("Update attendance_calendars SET DEFAULT_CALENDAR=NULL WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear ()."'");
-                DBQuery("INSERT INTO attendance_calendars (SYEAR,SCHOOL_ID,TITLE,DEFAULT_CALENDAR) values('".UserSyear()."','".UserSchool()."','".str_replace("'","\'",$cal_title)."','".$_REQUEST['default']."')");
+                    DBQuery('Update attendance_calendars SET DEFAULT_CALENDAR=NULL WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear ().'\'');
+                DBQuery('INSERT INTO attendance_calendars (SYEAR,SCHOOL_ID,TITLE,DEFAULT_CALENDAR) values(\''.UserSyear().'\',\''.UserSchool().'\',\''.str_replace("'","\'",$cal_title).'\',\''.$_REQUEST['default'].'\')');
 
                 if(count($_REQUEST['profiles']))
                 {
-                    $profile_sql="INSERT INTO calendar_events_visibility(calendar_id,profile_id,profile) VALUES";
+                    $profile_sql='INSERT INTO calendar_events_visibility(calendar_id,profile_id,profile) VALUES';
                     foreach($_REQUEST['profiles'] as $key=>$profile)
                     {
                         if(is_numeric($key))
                         {
-                            $profile_sql .="('$calendar_id','$key',NULL),";
+                            $profile_sql .='(\'$calendar_id\',\'$key\',NULL),';
                         }  
                         else 
                         {
-                            $profile_sql .="('$calendar_id',NULL,'$key'),";
+                            $profile_sql .='(\'$calendar_id\',NULL,\'$key\'),';
                         }
                     }
                     $profile_sql =  substr($profile_sql, 0,-1);
@@ -110,14 +110,14 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='create')
 }
 
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete_calendar')
-{
+{   #echo "<script>alert('a')</script>";
         $colmn=Calender_Id;
         $cal_title=paramlib_validation($colmn,$_REQUEST[calendar_id]);
-	$has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_enrollment WHERE CALENDAR_ID='$cal_title'"));
+	$has_assigned_RET=DBGet(DBQuery('SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_enrollment WHERE CALENDAR_ID='.$cal_title.''));
 	$has_assigned=$has_assigned_RET[1]['TOTAL_ASSIGNED'];
                   if($has_assigned==0)
                   {
-                        $has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM course_periods WHERE CALENDAR_ID='$cal_title'"));
+                        $has_assigned_RET=DBGet(DBQuery('SELECT COUNT(*) AS TOTAL_ASSIGNED FROM course_periods WHERE CALENDAR_ID='.$cal_title.''));
                         $has_assigned=$has_assigned_RET[1]['TOTAL_ASSIGNED'];
                   }
 	if($has_assigned>0){
@@ -125,14 +125,14 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete_calendar')
 	}else{
 	if(DeletePromptCommon('calendar'))
 	{
-		DBQuery("DELETE FROM attendance_calendar WHERE CALENDAR_ID='$cal_title'");
-		DBQuery("DELETE FROM attendance_calendars WHERE CALENDAR_ID='$cal_title'");
-		$default_RET = DBGet(DBQuery("SELECT CALENDAR_ID FROM attendance_calendars WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND DEFAULT_CALENDAR='Y'"));
+		DBQuery('DELETE FROM attendance_calendar WHERE CALENDAR_ID='.$cal_title.'');
+		DBQuery('DELETE FROM attendance_calendars WHERE CALENDAR_ID='.$cal_title.'');
+		$default_RET = DBGet(DBQuery('SELECT CALENDAR_ID FROM attendance_calendars WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND DEFAULT_CALENDAR=\'Y\''));
 		if(count($default_RET))
 			$_REQUEST['calendar_id'] = $default_RET[1]['CALENDAR_ID'];
 		else
 		{
-			$calendars_RET = DBGet(DBQuery("SELECT CALENDAR_ID FROM attendance_calendars WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+			$calendars_RET = DBGet(DBQuery('SELECT CALENDAR_ID FROM attendance_calendars WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 			if(count($calendars_RET))
 				$_REQUEST['calendar_id'] = $calendars_RET[1]['CALENDAR_ID'];
 			else
@@ -149,12 +149,12 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='edit_calendar')
 {
         $colmn=Calender_Id;
         $cal_id=paramlib_validation($colmn,$_REQUEST['calendar_id']);
-        $acs_RET=DBGet(DBQuery("SELECT TITLE, DEFAULT_CALENDAR FROM attendance_calendars WHERE CALENDAR_ID='$cal_id'"));
+        $acs_RET=DBGet(DBQuery('SELECT TITLE, DEFAULT_CALENDAR FROM attendance_calendars WHERE CALENDAR_ID=\''.$cal_id.'\''));
         $acs_RET=$acs_RET[1];
-        $ac_RET = DBGet(DBQuery("SELECT MIN(SCHOOL_DATE) AS START_DATE,MAX(SCHOOL_DATE) AS END_DATE FROM attendance_calendar WHERE CALENDAR_ID='$cal_id'"));
+        $ac_RET = DBGet(DBQuery('SELECT MIN(SCHOOL_DATE) AS START_DATE,MAX(SCHOOL_DATE) AS END_DATE FROM attendance_calendar WHERE CALENDAR_ID=\''.$cal_id.'\''));
 	$ac_RET = $ac_RET[1];
         
-        $day_RET=DBGet(DBQuery("SELECT DAYNAME(SCHOOL_DATE) AS DAY_NAME FROM attendance_calendar WHERE CALENDAR_ID='$cal_id' ORDER BY SCHOOL_DATE LIMIT 0, 7"));
+        $day_RET=DBGet(DBQuery('SELECT DAYNAME(SCHOOL_DATE) AS DAY_NAME FROM attendance_calendar WHERE CALENDAR_ID=\''.$cal_id.'\' ORDER BY SCHOOL_DATE LIMIT 0, 7'));
         $i=0;
         foreach ($day_RET as $day)
         {
@@ -169,22 +169,22 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='edit_calendar')
             $col=Calender_Title;
             $cal_title=paramlib_validation($col,$_REQUEST['title']);
             if(isset ($_REQUEST['default']))
-                DBQuery("UPDATE attendance_calendars SET DEFAULT_CALENDAR = NULL WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'");
+                DBQuery('UPDATE attendance_calendars SET DEFAULT_CALENDAR = NULL WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\'');
             
-            DBQuery("UPDATE attendance_calendars SET TITLE = '$cal_title', DEFAULT_CALENDAR = '".$_REQUEST['default']."' WHERE CALENDAR_ID='$cal_id'");
-            DBQuery("DELETE FROM calendar_events_visibility WHERE calendar_id='$cal_id'");
+            DBQuery('UPDATE attendance_calendars SET TITLE = \''.$cal_title.'\', DEFAULT_CALENDAR = \''.$_REQUEST['default'].'\' WHERE CALENDAR_ID=\''.$cal_id.'\'');
+            DBQuery('DELETE FROM calendar_events_visibility WHERE calendar_id=\''.$cal_id.'\'');
             if(count($_REQUEST['profiles']))
             {
-                $profile_sql="INSERT INTO calendar_events_visibility(calendar_id,profile_id,profile) VALUES";
+                $profile_sql='INSERT INTO calendar_events_visibility(calendar_id,profile_id,profile) VALUES';
                 foreach($_REQUEST['profiles'] as $key=>$profile)
                 {
                     if(is_numeric($key))
                     {
-                        $profile_sql .="('$cal_id','$key',NULL),";
+                        $profile_sql .='(\''.$cal_id.'\',\''.$key.'\',NULL),';
                     }  
                     else 
                     {
-                        $profile_sql .="('$cal_id',NULL,'$key'),";
+                        $profile_sql .='(\''.$cal_id.'\',NULL,\''.$key.'\'),';
                     }
                 }
                 $profile_sql =  substr($profile_sql, 0,-1);
@@ -202,23 +202,23 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='edit_calendar')
 
 if(User('PROFILE')!='admin')
 {
-	$course_RET = DBGet(DBQuery("SELECT CALENDAR_ID FROM course_periods WHERE COURSE_PERIOD_ID='".UserCoursePeriod()."'"));
+	$course_RET = DBGet(DBQuery('SELECT CALENDAR_ID FROM course_periods WHERE COURSE_PERIOD_ID=\''.UserCoursePeriod().'\''));
 	if($course_RET[1]['CALENDAR_ID'])
 		$_REQUEST['calendar_id'] = $course_RET[1]['CALENDAR_ID'];
 	else
 	{
-		$default_RET = DBGet(DBQuery("SELECT CALENDAR_ID FROM attendance_calendars WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND DEFAULT_CALENDAR='Y'"));
+		$default_RET = DBGet(DBQuery('SELECT CALENDAR_ID FROM attendance_calendars WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND DEFAULT_CALENDAR=\'Y\''));
 		$_REQUEST['calendar_id'] = $default_RET[1]['CALENDAR_ID'];
 	}
 }
 elseif(!$_REQUEST['calendar_id'])
 {
-	$default_RET = DBGet(DBQuery("SELECT CALENDAR_ID FROM attendance_calendars WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND DEFAULT_CALENDAR='Y'"));
+	$default_RET = DBGet(DBQuery('SELECT CALENDAR_ID FROM attendance_calendars WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND DEFAULT_CALENDAR=\'Y\''));
 	if(count($default_RET))
 		$_REQUEST['calendar_id'] = $default_RET[1]['CALENDAR_ID'];
 	else
 	{
-		$calendars_RET = DBGet(DBQuery("SELECT CALENDAR_ID FROM attendance_calendars WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+		$calendars_RET = DBGet(DBQuery('SELECT CALENDAR_ID FROM attendance_calendars WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 		if(count($calendars_RET))
 			$_REQUEST['calendar_id'] = $calendars_RET[1]['CALENDAR_ID'];
 		else
@@ -243,7 +243,7 @@ if($_REQUEST['modfunc']=='detail')
                                             $go = false;
                                             if($_REQUEST['event_id']!='new')
                                             {
-                                                    $sql = "UPDATE calendar_events SET ";
+                                                    $sql = 'UPDATE calendar_events SET ';
 
                                                     foreach($_REQUEST['values'] as $column=>$value){
                                                             $value=paramlib_validation($column,$value);
@@ -254,7 +254,7 @@ if($_REQUEST['modfunc']=='detail')
                                                                     $value=  mysql_real_escape_string($value);
                                                                     $value=str_replace('%u201D', "\"", $value);
                                                             }
-                                                            $sql .= $column.'="'.str_replace("","",trim($value)).'",';
+                                                            $sql .= $column.'=\''.str_replace("","",trim($value)).'\',';
                                                             $go=true;
                                                     }
                                                     $sql = substr($sql,0,-1);
@@ -262,12 +262,12 @@ if($_REQUEST['modfunc']=='detail')
                                                     {
                                                         if($_REQUEST['show_all']=='Y')
                                                         {
-                                                            $sql.=" CALENDAR_ID='0'";
+                                                            $sql.=' CALENDAR_ID=\'0\'';
                                                             $go=true;
                                                         }
                                                         if(isset($_REQUEST['show_all']) && $_REQUEST['show_all']!='Y')
                                                         {
-                                                            $sql.=" CALENDAR_ID='$_REQUEST[calendar_id]'";
+                                                            $sql.=' CALENDAR_ID=\''.$_REQUEST[calendar_id].'\'';
                                                             $go=true;
                                                         }
                                                     }
@@ -275,14 +275,14 @@ if($_REQUEST['modfunc']=='detail')
                                                     {
                                                         if($_REQUEST['show_all']=='Y')
                                                         {
-                                                            $sql.=",CALENDAR_ID='0'";
+                                                            $sql.=',CALENDAR_ID=\'0\'';
                                                         }
                                                         if(isset($_REQUEST['show_all']) && $_REQUEST['show_all']!='Y')
                                                         {
-                                                            $sql.=" CALENDAR_ID='$_REQUEST[calendar_id]'";
+                                                            $sql.=' CALENDAR_ID=\''.$_REQUEST[calendar_id].'\'';
                                                         }
                                                     }
-                                                    $sql.= " WHERE ID='$_REQUEST[event_id]'";
+                                                    $sql.= ' WHERE ID=\''.$_REQUEST[event_id].'\'';
                                                     if($go)
                                                     DBQuery($sql);
                                             }
@@ -291,13 +291,13 @@ if($_REQUEST['modfunc']=='detail')
                                                     if(!$_REQUEST['values']['SCHOOL_DATE'])
                                                     $_REQUEST['values']['SCHOOL_DATE'] = $_REQUEST['dd'];
 
-                                                    $sql = "INSERT INTO calendar_events ";
+                                                    $sql = 'INSERT INTO calendar_events ';
                                                     if($_REQUEST['show_all']=='Y')
                                                         $cal_id='0';
                                                     else
                                                         $cal_id=$_REQUEST['calendar_id'];
                                                     $fields = 'SYEAR,SCHOOL_ID,CALENDAR_ID,';
-                                                    $values = "'".UserSyear()."','".UserSchool()."','".$cal_id."',";
+                                                    $values = '\''.UserSyear().'\',\''.UserSchool().'\',\''.$cal_id.'\',';
 
                                                     foreach($_REQUEST['values'] as $column=>$value)
                                                     {
@@ -306,12 +306,12 @@ if($_REQUEST['modfunc']=='detail')
                                                                     $value=paramlib_validation($column,$value);
                                                                     $fields .= $column.',';
                                                                     if($column=="SCHOOL_DATE")
-                                                                        $values .= "'".date('Y-m-d',strtotime($value))."',";
+                                                                        $values .= '\''.date('Y-m-d',strtotime($value)).'\',';
                                                                     else{
                                                                         if(stripos($_SERVER['SERVER_SOFTWARE'], 'linux')){
                                                                             $value=  mysql_real_escape_string($value);
                                                                         }
-                                                                        $values .= '"'.str_replace("","",trim($value)).'",';
+                                                                        $values .= '\''.str_replace("","",trim($value)).'\',';
                                                                     }
                                                                     $go = true;
                                                             }
@@ -361,7 +361,7 @@ if($_REQUEST['modfunc']=='detail')
 		}
 		else
 		{
-			$RET = DBGet(DBQuery("SELECT TITLE,STAFF_ID,DATE_FORMAT(DUE_DATE,'%d-%b-%y') AS SCHOOL_DATE,ASSIGNED_DATE,DUE_DATE,DESCRIPTION FROM gradebook_assignments WHERE ASSIGNMENT_ID='$_REQUEST[assignment_id]'"));
+			$RET = DBGet(DBQuery('SELECT TITLE,STAFF_ID,DATE_FORMAT(DUE_DATE,\'%d-%b-%y\') AS SCHOOL_DATE,ASSIGNED_DATE,DUE_DATE,DESCRIPTION FROM gradebook_assignments WHERE ASSIGNMENT_ID=\''.$_REQUEST[assignment_id].'\''));
 			$title = $RET[1]['TITLE'];
 			$RET[1]['STAFF_ID'] = GetTeacher($RET[1]['STAFF_ID']);
 		}
@@ -409,7 +409,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='list_events')
 	}
 	else
 	{
-		$min_date = DBGet(DBQuery("SELECT min(SCHOOL_DATE) AS MIN_DATE FROM attendance_calendar WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+		$min_date = DBGet(DBQuery('SELECT min(SCHOOL_DATE) AS MIN_DATE FROM attendance_calendar WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 		if($min_date[1]['MIN_DATE'])
 			$start_date = $min_date[1]['MIN_DATE'];
 		else
@@ -423,7 +423,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='list_events')
 	}
 	else
 	{
-		$max_date = DBGet(DBQuery("SELECT max(SCHOOL_DATE) AS MAX_DATE FROM attendance_calendar WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+		$max_date = DBGet(DBQuery('SELECT max(SCHOOL_DATE) AS MAX_DATE FROM attendance_calendar WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 		if($max_date[1]['MAX_DATE'])
 			$end_date = $max_date[1]['MAX_DATE'];
 		else
@@ -437,7 +437,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='list_events')
 	DrawHeaderHome(PrepareDateSchedule($start_date,'_start').' <div style="float:left;">&nbsp;-&nbsp;</div> '.PrepareDateSchedule($end_date,'_end').' <div style="float:left; padding-left:5px; padding-top:2px;"><A HREF=Modules.php?modname='.$_REQUEST['modname'].'&calendar_id='.$_REQUEST['calendar_id'].'&month='.$_REQUEST['month'].'&year='.$_REQUEST['year'].'>Back to Calendar</A></div>','<div style="float:left;"><INPUT type=submit class=btn_medium value=Go></div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a href="for_export.php?modname=School_Setup/Calendar.php&modfunc=print&_openSIS_PDF=true" target=_blank ><img src="assets/print.png" alt="Print" title="Print" /> Print</a>');
 	
 	$functions = array('SCHOOL_DATE'=>'ProperDate');									// <A HREF=Modules.php?modname='.$_REQUEST["modname"].'&month='.$_REQUEST["month"].'&year='.$_REQUEST["year"].'>
-	$events_RET = DBGet(DBQuery("SELECT ID,SCHOOL_DATE,TITLE,DESCRIPTION FROM calendar_events WHERE SCHOOL_DATE BETWEEN '".$start_date."' AND '".$end_date."' AND SYEAR='".UserSyear()."'  AND (calendar_id='".$_REQUEST['calendar_id']."' OR calendar_id='0') ORDER BY SCHOOL_DATE DESC"),$functions);
+	$events_RET = DBGet(DBQuery('SELECT ID,SCHOOL_DATE,TITLE,DESCRIPTION FROM calendar_events WHERE SCHOOL_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\' AND SYEAR=\''.UserSyear().'\'  AND (calendar_id=\''.$_REQUEST['calendar_id'].'\' OR calendar_id=\'0\') ORDER BY SCHOOL_DATE DESC'),$functions);
 	$_SESSION['events_RET']=$events_RET;
 
 #echo "<a href=\"for_export.php?modname=$_REQUEST[modname]&modfunc=print&_openSIS_PDF=true\" target=_blank ><img src=\"assets/print_new.png\" alt=\"Print\" title=\"Print\" /></a>";
@@ -454,7 +454,7 @@ if(!$_REQUEST['modfunc'])
 	while(!checkdate($_REQUEST['month'], $last, $_REQUEST['year']))
 		$last--;
 
-	$calendar_RET = DBGet(DBQuery("SELECT DATE_FORMAT(SCHOOL_DATE,'%d-%b-%y') as SCHOOL_DATE,MINUTES,BLOCK FROM attendance_calendar WHERE SCHOOL_DATE BETWEEN '".date('Y-m-d',$time)."' AND '".date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year']))."' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND CALENDAR_ID='".$_REQUEST['calendar_id']."'"),array(),array('SCHOOL_DATE'));
+	$calendar_RET = DBGet(DBQuery('SELECT DATE_FORMAT(SCHOOL_DATE,\'%d-%b-%y\') as SCHOOL_DATE,MINUTES,BLOCK FROM attendance_calendar WHERE SCHOOL_DATE BETWEEN \''.date('Y-m-d',$time).'\' AND \''.date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year'])).'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND CALENDAR_ID=\''.$_REQUEST['calendar_id'].'\''),array(),array('SCHOOL_DATE'));
 	if($_REQUEST['minutes'])
 	{
 		foreach($_REQUEST['minutes'] as $date=>$minutes)
@@ -462,20 +462,20 @@ if(!$_REQUEST['modfunc'])
 			if($calendar_RET[$date])
 			{
 				if($minutes!='0' && $minutes!='')
-					DBQuery("UPDATE attendance_calendar SET MINUTES='$minutes' WHERE SCHOOL_DATE='$date' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND CALENDAR_ID='".$_REQUEST['calendar_id']."'");
+					DBQuery('UPDATE attendance_calendar SET MINUTES=\''.$minutes.'\' WHERE SCHOOL_DATE=\''.$date.'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND CALENDAR_ID=\''.$_REQUEST['calendar_id'].'\'');
 				else
-                                                                        {
-					DBQuery("DELETE FROM attendance_calendar WHERE SCHOOL_DATE='$date' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND CALENDAR_ID='".$_REQUEST['calendar_id']."'");
+                                {
+					DBQuery('DELETE FROM attendance_calendar WHERE SCHOOL_DATE=\''.$date.'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND CALENDAR_ID=\''.$_REQUEST['calendar_id'].'\'');
                                                                                           //DeleteMissingAttendanceByDate($_REQUEST['calendar_id'],$date);
-			}
+                                }
 			}
 			elseif($minutes!='0' && $minutes!='')
                                                       {
-				DBQuery("INSERT INTO attendance_calendar (SYEAR,SCHOOL_ID,SCHOOL_DATE,CALENDAR_ID,MINUTES) values('".UserSyear()."','".UserSchool()."','".$date."','".$_REQUEST['calendar_id']."','".$minutes."')");
+				DBQuery('INSERT INTO attendance_calendar (SYEAR,SCHOOL_ID,SCHOOL_DATE,CALENDAR_ID,MINUTES) values(\''.UserSyear().'\',\''.UserSchool().'\',\''.$date.'\',\''.$_REQUEST['calendar_id'].'\',\''.$minutes.'\')');
 //                                                                UpdateMissingAttendanceByDate($date);
 		}
 		}
-		$calendar_RET = DBGet(DBQuery("SELECT DATE_FORMAT(SCHOOL_DATE,'%d-%b-%y') as SCHOOL_DATE,MINUTES,BLOCK FROM attendance_calendar WHERE SCHOOL_DATE BETWEEN '".date('Y-m-d',$time)."' AND '".date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year']))."' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND CALENDAR_ID='".$_REQUEST['calendar_id']."'"),array(),array('SCHOOL_DATE'));
+		$calendar_RET = DBGet(DBQuery('SELECT DATE_FORMAT(SCHOOL_DATE,\'%d-%b-%y\') as SCHOOL_DATE,MINUTES,BLOCK FROM attendance_calendar WHERE SCHOOL_DATE BETWEEN \''.date('Y-m-d',$time).'\' AND \''.date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year'])).'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND CALENDAR_ID=\''.$_REQUEST['calendar_id'].'\''),array(),array('SCHOOL_DATE'));
 		unset($_REQUEST['minutes']);
 		unset($_SESSION['_REQUEST_vars']['minutes']);
 	}
@@ -487,33 +487,42 @@ if(!$_REQUEST['modfunc'])
 			if($yes=='Y')
 			{
 				if($calendar_RET[$date])
-					DBQuery("UPDATE attendance_calendar SET MINUTES='999' WHERE SCHOOL_DATE='$date' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND CALENDAR_ID='".$_REQUEST['calendar_id']."'");
+					DBQuery('UPDATE attendance_calendar SET MINUTES=\'999\' WHERE SCHOOL_DATE=\''.$date.'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND CALENDAR_ID=\''.$_REQUEST['calendar_id'].'\'');
 				else{
-					DBQuery("INSERT INTO attendance_calendar (SYEAR,SCHOOL_ID,SCHOOL_DATE,CALENDAR_ID,MINUTES) values('".UserSyear()."','".UserSchool()."','".$date."','".$_REQUEST['calendar_id']."','999')");
+					DBQuery('INSERT INTO attendance_calendar (SYEAR,SCHOOL_ID,SCHOOL_DATE,CALENDAR_ID,MINUTES) values(\''.UserSyear().'\',\''.UserSchool().'\',\''.$date.'\',\''.$_REQUEST['calendar_id'].'\',\'999\')');
                                                                                       //    UpdateMissingAttendanceByDate($date);
 			}
 			}
 			else
                         {
-                            $get_date=  DBGet(DBQuery("SELECT COUNT(SCHOOL_DATE) AS SCHOOL_DATE FROM attendance_completed WHERE SCHOOL_DATE='$date'"));
+                            $per_id=DBGet(DBQuery('SELECT PERIOD_ID FROM school_periods WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\''));
+                            foreach ($per_id as $key => $value) 
+                            {
+                                $period.=$value['PERIOD_ID'].',';
+                            }
+                            $period= substr($period, 0,-1);
+                            if($period!='')
+                                $get_date=  DBGet(DBQuery('SELECT COUNT(SCHOOL_DATE) AS SCHOOL_DATE FROM attendance_completed WHERE SCHOOL_DATE=\''.$date.'\' AND PERIOD_ID IN('.$period.')'));
+                            else
+                                $get_date=  DBGet(DBQuery('SELECT COUNT(SCHOOL_DATE) AS SCHOOL_DATE FROM attendance_completed WHERE SCHOOL_DATE=\''.$date.'\''));
                             if($_REQUEST['show_all'][$date]=='Y')
                             {
                                 if($get_date[1]['SCHOOL_DATE']==0)
-                                    DBQuery("DELETE FROM attendance_calendar WHERE SCHOOL_DATE='$date' AND SYEAR='".UserSyear()."'");
+                                    DBQuery('DELETE FROM attendance_calendar WHERE SCHOOL_DATE=\''.$date.'\' AND SYEAR=\''.UserSyear().'\'');
                                 else
                                     echo '<font color=red><b>Selected Day has association</b></font>';
                             }
                             else
                             {
                                 if($get_date[1]['SCHOOL_DATE']==0)
-				DBQuery("DELETE FROM attendance_calendar WHERE SCHOOL_DATE='$date' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND CALENDAR_ID='".$_REQUEST['calendar_id']."'");
+				DBQuery('DELETE FROM attendance_calendar WHERE SCHOOL_DATE=\''.$date.'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND CALENDAR_ID=\''.$_REQUEST['calendar_id'].'\'');
                                 else
                                     echo '<font color=red><b>Selected Day has association</b></font>';
                             }
                                                                         //DeleteMissingAttendanceByDate($_REQUEST['calendar_id'],$date);
 		}
 		}
-		$calendar_RET = DBGet(DBQuery("SELECT DATE_FORMAT(SCHOOL_DATE,'%d-%b-%y') as SCHOOL_DATE,MINUTES,BLOCK FROM attendance_calendar WHERE SCHOOL_DATE BETWEEN '".date('Y-m-d',$time)."' AND '".date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year']))."' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND CALENDAR_ID='".$_REQUEST['calendar_id']."'"),array(),array('SCHOOL_DATE'));
+		$calendar_RET = DBGet(DBQuery('SELECT DATE_FORMAT(SCHOOL_DATE,\'%d-%b-%y\') as SCHOOL_DATE,MINUTES,BLOCK FROM attendance_calendar WHERE SCHOOL_DATE BETWEEN \''.date('Y-m-d',$time).'\' AND \''.date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year'])).'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND CALENDAR_ID=\''.$_REQUEST['calendar_id'].'\''),array(),array('SCHOOL_DATE'));
 		unset($_REQUEST['all_day']);
 		unset($_SESSION['_REQUEST_vars']['all_day']);
 	}
@@ -523,17 +532,17 @@ if(!$_REQUEST['modfunc'])
 		{
 			if($calendar_RET[$date])
 			{
-				DBQuery("UPDATE attendance_calendar SET BLOCK='".$block."' WHERE SCHOOL_DATE='$date' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND CALENDAR_ID='".$_REQUEST['calendar_id']."'");
+				DBQuery('UPDATE attendance_calendar SET BLOCK=\''.$block.'\' WHERE SCHOOL_DATE=\''.$date.'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND CALENDAR_ID=\''.$_REQUEST['calendar_id'].'\'');
 			}
 		}
-		$calendar_RET = DBGet(DBQuery("SELECT DATE_FORMAT(SCHOOL_DATE,'%d-%b-%y') as SCHOOL_DATE,MINUTES,BLOCK FROM attendance_calendar WHERE SCHOOL_DATE BETWEEN '".date('Y-m-d',$time)."' AND '".date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year']))."' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND CALENDAR_ID='".$_REQUEST['calendar_id']."'"),array(),array('SCHOOL_DATE'));
+		$calendar_RET = DBGet(DBQuery('SELECT DATE_FORMAT(SCHOOL_DATE,\'%d-%b-%y\') as SCHOOL_DATE,MINUTES,BLOCK FROM attendance_calendar WHERE SCHOOL_DATE BETWEEN \''.date('Y-m-d',$time).'\' AND \''.date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year'])).'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND CALENDAR_ID=\''.$_REQUEST['calendar_id'].'\''),array(),array('SCHOOL_DATE'));
 		unset($_REQUEST['blocks']);
 		unset($_SESSION['_REQUEST_vars']['blocks']);
 	}
 
 	echo "<FORM action=Modules.php?modname=$_REQUEST[modname] METHOD=POST>";
 	$link = '';
-	$title_RET = DBGet(DBQuery("SELECT CALENDAR_ID,TITLE FROM attendance_calendars WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY DEFAULT_CALENDAR ASC"));
+	$title_RET = DBGet(DBQuery('SELECT CALENDAR_ID,TITLE FROM attendance_calendars WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY DEFAULT_CALENDAR ASC'));
 	foreach($title_RET as $title)
 	{
 		$options[$title['CALENDAR_ID']] = $title['TITLE'];
@@ -562,12 +571,12 @@ if(!$_REQUEST['modfunc'])
 	}
 	echo '<BR>';
 
-	$events_RET = DBGet(DBQuery("SELECT ID,DATE_FORMAT(SCHOOL_DATE,'%d-%b-%y') AS SCHOOL_DATE,TITLE FROM calendar_events WHERE SCHOOL_DATE BETWEEN '".date('Y-m-d',$time)."' AND '".date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year']))."' AND SYEAR='".UserSyear()."' AND (calendar_id='".$_REQUEST['calendar_id']."' OR calendar_id='0')"),array(),array('SCHOOL_DATE'));
+	$events_RET = DBGet(DBQuery('SELECT ID,DATE_FORMAT(SCHOOL_DATE,\'%d-%b-%y\') AS SCHOOL_DATE,TITLE FROM calendar_events WHERE SCHOOL_DATE BETWEEN \''.date('Y-m-d',$time).'\' AND \''.date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year'])).'\' AND SYEAR=\''.UserSyear().'\' AND (calendar_id=\''.$_REQUEST['calendar_id'].'\' OR calendar_id=\'0\')'),array(),array('SCHOOL_DATE'));
 	if(User('PROFILE')=='parent' || User('PROFILE')=='student')
 		#$assignments_RET = DBGet(DBQuery("SELECT ASSIGNMENT_ID AS ID,DATE_FORMAT(a.DUE_DATE,'%d-%b-%y') AS SCHOOL_DATE,a.TITLE,'Y' AS ASSIGNED FROM gradebook_assignments a,schedule s WHERE (a.COURSE_PERIOD_ID=s.COURSE_PERIOD_ID OR a.COURSE_ID=s.COURSE_ID) AND s.STUDENT_ID='".UserStudentID()."' AND (a.DUE_DATE BETWEEN s.START_DATE AND s.END_DATE OR s.END_DATE IS NULL) AND (a.ASSIGNED_DATE<=CURRENT_DATE OR a.ASSIGNED_DATE IS NULL) AND a.DUE_DATE BETWEEN '".date('Y-m-d',$time)."' AND '".date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year']))."'"),array(),array('SCHOOL_DATE'));
-	$assignments_RET = DBGet(DBQuery("SELECT ASSIGNMENT_ID AS ID,DATE_FORMAT(a.DUE_DATE,'%d-%b-%y') AS SCHOOL_DATE,a.TITLE,'Y' AS ASSIGNED FROM gradebook_assignments a,schedule s WHERE (a.COURSE_PERIOD_ID=s.COURSE_PERIOD_ID OR a.COURSE_ID=s.COURSE_ID) AND s.STUDENT_ID='".UserStudentID()."' AND s.DROPPED!='Y' AND (CURRENT_DATE>=a.ASSIGNED_DATE OR CURRENT_DATE<=a.ASSIGNED_DATE) AND (a.DUE_DATE IS NULL OR CURRENT_DATE<=a.DUE_DATE) "),array(),array('SCHOOL_DATE'));
+	$assignments_RET = DBGet(DBQuery('SELECT ASSIGNMENT_ID AS ID,DATE_FORMAT(a.DUE_DATE,\'%d-%b-%y\') AS SCHOOL_DATE,a.TITLE,\'Y\' AS ASSIGNED FROM gradebook_assignments a,schedule s WHERE (a.COURSE_PERIOD_ID=s.COURSE_PERIOD_ID OR a.COURSE_ID=s.COURSE_ID) AND s.STUDENT_ID=\''.UserStudentID().'\' AND s.DROPPED!=\'Y\' AND (CURRENT_DATE>=a.ASSIGNED_DATE OR CURRENT_DATE<=a.ASSIGNED_DATE) AND (a.DUE_DATE IS NULL OR CURRENT_DATE<=a.DUE_DATE) '),array(),array('SCHOOL_DATE'));
 	elseif(User('PROFILE')=='teacher')
-		$assignments_RET = DBGet(DBQuery("SELECT ASSIGNMENT_ID AS ID,DATE_FORMAT(a.DUE_DATE,'%d-%b-%y') AS SCHOOL_DATE,a.TITLE,CASE WHEN a.ASSIGNED_DATE<=CURRENT_DATE OR a.ASSIGNED_DATE IS NULL THEN 'Y' ELSE NULL END AS ASSIGNED FROM gradebook_assignments a WHERE a.STAFF_ID='".User('STAFF_ID')."' AND a.DUE_DATE BETWEEN '".date('Y-m-d',$time)."' AND '".date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year']))."'"),array(),array('SCHOOL_DATE'));
+		$assignments_RET = DBGet(DBQuery('SELECT ASSIGNMENT_ID AS ID,DATE_FORMAT(a.DUE_DATE,\'%d-%b-%y\') AS SCHOOL_DATE,a.TITLE,CASE WHEN a.ASSIGNED_DATE<=CURRENT_DATE OR a.ASSIGNED_DATE IS NULL THEN \'Y\' ELSE NULL END AS ASSIGNED FROM gradebook_assignments a WHERE a.STAFF_ID=\''.User('STAFF_ID').'\' AND a.DUE_DATE BETWEEN \''.date('Y-m-d',$time).'\' AND \''.date('Y-m-d',mktime(0,0,0,$_REQUEST['month'],$last,$_REQUEST['year'])).'\''),array(),array('SCHOOL_DATE'));
 
 	$skip = date("w",$time);
 	echo "<CENTER><TABLE border=0 cellpadding=0 cellspacing=0 class=pixel_border><TR><TD>";
@@ -580,7 +589,7 @@ if(!$_REQUEST['modfunc'])
 		echo "<td colspan=" . $skip . "></td>";
 		$return_counter = $skip;
 	}
-		$blocks_RET = DBGet(DBQuery("SELECT DISTINCT BLOCK FROM school_periods WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND BLOCK IS NOT NULL ORDER BY BLOCK"));
+		$blocks_RET = DBGet(DBQuery('SELECT DISTINCT BLOCK FROM school_periods WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND BLOCK IS NOT NULL ORDER BY BLOCK'));
 	for($i=1;$i<=$last;$i++)
 	{
 		$day_time = mktime(0,0,0,$_REQUEST['month'],$i,$_REQUEST['year']);
@@ -648,8 +657,8 @@ function calendarEventsVisibility()
                   $id=$_REQUEST['calendar_id'];
 	$return = '<TABLE width=216 border=0>';
 	$return .= '<TR><TD colspan=4>';
-	$profiles_RET = DBGet(DBQuery("SELECT ID,TITLE FROM user_profiles ORDER BY ID"));
-                  $visibility_RET=DBGet(DBQuery("SELECT PROFILE_ID,PROFILE FROM calendar_events_visibility WHERE calendar_id='$id' "));
+	$profiles_RET = DBGet(DBQuery('SELECT ID,TITLE FROM user_profiles ORDER BY ID'));
+                  $visibility_RET=DBGet(DBQuery('SELECT PROFILE_ID,PROFILE FROM calendar_events_visibility WHERE calendar_id=\''.$id.'\''));
                   foreach($visibility_RET as $visibility)
                   {
                       if($visibility['PROFILE_ID']!='')

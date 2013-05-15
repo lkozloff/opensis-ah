@@ -31,7 +31,7 @@ DrawBC("Students >> ".ProgramTitle());
 PopTable ('header','Upload Student\'s Photo');
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='edit')
 {
-	if($StudentPicturesPath && (($file = @fopen($picture_path=$StudentPicturesPath.UserSyear().'/'.UserStudentID().'.JPG','r')) || ($file = @fopen($picture_path=$StudentPicturesPath.(UserSyear()-1).'/'.UserStudentID().'.JPG','r'))))
+	if($StudentPicturesPath && (($file = @fopen($picture_path=$StudentPicturesPath.'/'.UserStudentID().'.JPG','r')) || ($file = @fopen($picture_path=$StudentPicturesPath.'/'.UserStudentID().'.JPG','r'))))
 	{
 	echo '<div align=center><IMG SRC="'.$picture_path.'?id='.rand(6,100000).'" width=150 class=pic></div><div class=break></div>';
 	}
@@ -41,8 +41,8 @@ if(UserStudentID())
 {
 if(clean_param($_REQUEST['action'],PARAM_ALPHAMOD)=='upload' && $_FILES['file']['name'])
 {
-	$target_path=$StudentPicturesPath.UserSyear().'/'.UserStudentID().'.JPG';
-	$destination_path = $StudentPicturesPath.UserSyear();	    #$target_path=$StudentPicturesPath.UserSyear().'/'.UserStudentID().'.JPG';
+	$target_path=$StudentPicturesPath.'/'.UserStudentID().'.JPG';
+	$destination_path = $StudentPicturesPath;	    #$target_path=$StudentPicturesPath.UserSyear().'/'.UserStudentID().'.JPG';
 	$upload= new upload();
 	$upload->target_path=$target_path;
 	$upload->deleteOldImage();

@@ -53,7 +53,7 @@ elseif(!$_REQUEST['month_From'] && !$_REQUEST['day_From'] && !$_REQUEST['year_Fr
      $to=date('Y-m-d',strtotime(DBDate()));
 //    $extra['WHERE1']  = " AND acc.SCHOOL_DATE>='".$From."' AND acc.SCHOOL_DATE<'".$to."'";
 
-    $extra['WHERE2']  = " AND mi.school_date>='".$From."' AND mi.school_date<'".$to."'";
+    $extra['WHERE2']  = ' AND mi.school_date>=\''.$From.'\' AND mi.school_date<\''.$to.'\'';
 
 if(User('PROFILE')=='admin')
 {

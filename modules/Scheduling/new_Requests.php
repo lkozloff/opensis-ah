@@ -38,13 +38,13 @@ if(!$_REQUEST['modfunc'] && UserStudentID())
 
 if($_REQUEST['modfunc']=='verify')
 {
-	$QI = DBQuery("SELECT TITLE,COURSE_ID,SUBJECT_ID FROM courses WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'");
+	$QI = DBQuery('SELECT TITLE,COURSE_ID,SUBJECT_ID FROM courses WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\'');
 	$courses_RET = DBGet($QI,array(),array('COURSE_ID'));
 
 	//$QI = DBQuery("SELECT COURSE_WEIGHT,COURSE_ID FROM COURSE_WEIGHTS WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'");
 	//$weights_RET = DBGet($QI,array(),array('COURSE_ID','COURSE_WEIGHT'));
 
-	DBQuery("DELETE FROM schedule_requests WHERE STUDENT_ID='".UserStudentID()."' AND SYEAR='".UserSyear()."'");
+	DBQuery('DELETE FROM schedule_requests WHERE STUDENT_ID=\''.UserStudentID().'\' AND SYEAR=\''.UserSyear().'\'');
 	
 	foreach($_REQUEST['courses'] as $subject=>$courses)
 	{
@@ -68,8 +68,8 @@ if($_REQUEST['modfunc']=='verify')
 //				continue;
 //			}
 			
-			$sql = "INSERT INTO schedule_requests (SYEAR,SCHOOL_ID,STUDENT_ID,SUBJECT_ID,COURSE_ID,MARKING_PERIOD_ID,WITH_TEACHER_ID,NOT_TEACHER_ID,WITH_PERIOD_ID,NOT_PERIOD_ID)
-						values('".UserSyear()."','".UserSchool()."','".UserStudentID()."','".$courses_RET[$course][1]['SUBJECT_ID']."','".$course."',NULL,'".$_REQUEST['with_teacher'][$subject][$i]."','".$_REQUEST['without_teacher'][$subject][$i]."','".$_REQUEST['with_period'][$subject][$i]."','".$_REQUEST['without_period'][$subject][$i]."')";
+			$sql = 'INSERT INTO schedule_requests (SYEAR,SCHOOL_ID,STUDENT_ID,SUBJECT_ID,COURSE_ID,MARKING_PERIOD_ID,WITH_TEACHER_ID,NOT_TEACHER_ID,WITH_PERIOD_ID,NOT_PERIOD_ID)
+						values(\''.UserSyear().'\',\''.UserSchool().'\',\''.UserStudentID().'\',\''.$courses_RET[$course][1]['SUBJECT_ID'].'\',\''.$course.'\',NULL,\''.$_REQUEST['with_teacher'][$subject][$i].'\',\''.$_REQUEST['without_teacher'][$subject][$i].'\',\''.$_REQUEST['with_period'][$subject][$i].'\',\''.$_REQUEST['without_period'][$subject][$i].'\')';
 			DBQuery($sql);
 		}
 	}
@@ -84,9 +84,9 @@ if($_REQUEST['modfunc']=='verify')
 if($_REQUEST['modfunc']=='choose')
 {
 	$functions = array('WITH_PERIOD_ID'=>'_makeWithSelects','NOT_PERIOD_ID'=>'_makeWithoutSelects');
-	$requests_RET = DBGet(DBQuery("SELECT sr.COURSE_ID,c.COURSE_TITLE,sr.WITH_PERIOD_ID,sr.NOT_PERIOD_ID,sr.WITH_TEACHER_ID,
+	$requests_RET = DBGet(DBQuery('SELECT sr.COURSE_ID,c.COURSE_TITLE,sr.WITH_PERIOD_ID,sr.NOT_PERIOD_ID,sr.WITH_TEACHER_ID,
 										sr.NOT_TEACHER_ID FROM schedule_requests sr,courses c
-									WHERE sr.SYEAR='".UserSyear()."' AND sr.STUDENT_ID='".UserStudentID()."' AND sr.COURSE_ID=c.COURSE_ID"),$functions);
+									WHERE sr.SYEAR=\''.UserSyear().'\' AND sr.STUDENT_ID=\''.UserStudentID().'\' AND sr.COURSE_ID=c.COURSE_ID'),$functions);
 
 	echo "<FORM name=vary id=vary action=Modules.php?modname=$_REQUEST[modname]&modfunc=verify method=POST>";
 	DrawHeader('',SubmitButton('Save','','class=btn_medium onclick=\'formload_ajax("vary");\''));

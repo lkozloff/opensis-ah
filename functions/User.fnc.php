@@ -35,12 +35,12 @@ function User($item)
 	{
 		if($_SESSION['STAFF_ID'])
 		{
-			$sql = "SELECT STAFF_ID,USERNAME,CONCAT(FIRST_NAME,' ',LAST_NAME) AS NAME,PROFILE,PROFILE_ID,SCHOOLS,CURRENT_SCHOOL_ID,EMAIL,SYEAR FROM staff WHERE SYEAR='$_SESSION[UserSyear]' AND USERNAME=(SELECT USERNAME FROM staff WHERE STAFF_ID='$_SESSION[STAFF_ID]')";
+			$sql = 'SELECT STAFF_ID,USERNAME,CONCAT(FIRST_NAME,\' \',LAST_NAME) AS NAME,PROFILE,PROFILE_ID,CURRENT_SCHOOL_ID,EMAIL FROM staff WHERE STAFF_ID='.$_SESSION[STAFF_ID];
 			$_openSIS['User'] = DBGet(DBQuery($sql));
 		}
 		elseif($_SESSION['STUDENT_ID'])
 		{
-			$sql = "SELECT s.USERNAME,CONCAT(s.FIRST_NAME,' ',s.LAST_NAME) AS NAME,'student' AS PROFILE,'0' AS PROFILE_ID,CONCAT(',',se.SCHOOL_ID,',') AS SCHOOLS,se.SYEAR,se.SCHOOL_ID FROM students s,student_enrollment se WHERE s.STUDENT_ID='$_SESSION[STUDENT_ID]' AND se.SYEAR='$_SESSION[UserSyear]' AND se.STUDENT_ID=s.STUDENT_ID ORDER BY se.END_DATE DESC LIMIT 1";
+			$sql = 'SELECT s.USERNAME,CONCAT(s.FIRST_NAME,\' \',s.LAST_NAME) AS NAME,\'student\' AS PROFILE,\'0\' AS PROFILE_ID,CONCAT(\',\',se.SCHOOL_ID,\',\') AS SCHOOLS,se.SYEAR,se.SCHOOL_ID FROM students s,student_enrollment se WHERE s.STUDENT_ID='.$_SESSION[STUDENT_ID].' AND se.SYEAR=\''.$_SESSION[UserSyear].'\' AND se.STUDENT_ID=s.STUDENT_ID ORDER BY se.END_DATE DESC LIMIT 1';
 			$_openSIS['User'] = DBGet(DBQuery($sql));
 			$_SESSION['UserSchool'] = $_openSIS['User'][1]['SCHOOL_ID'];
 		}
@@ -56,7 +56,7 @@ function Preferences($item,$program='Preferences')
 
 	if($_SESSION['STAFF_ID'] && !$_openSIS['Preferences'][$program])
 	{
-		$QI=DBQuery("SELECT TITLE,VALUE FROM program_user_config WHERE USER_ID='$_SESSION[STAFF_ID]' AND PROGRAM='$program'");
+		$QI=DBQuery('SELECT TITLE,VALUE FROM program_user_config WHERE USER_ID='.$_SESSION[STAFF_ID].' AND PROGRAM=\''.$program.'\'');
 		$_openSIS['Preferences'][$program] = DBGet($QI,array(),array('TITLE'));
 	}
 

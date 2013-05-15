@@ -34,9 +34,9 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
                                 $error=false;
 		if($id!='new')
 		{
-                     $select_enroll=DBGet(DBQuery("SELECT TYPE FROM student_enrollment_codes WHERE ID='$id'"));
+                     $select_enroll=DBGet(DBQuery('SELECT TYPE FROM student_enrollment_codes WHERE ID=\''.$id.'\''));
             
-			$sql = "UPDATE student_enrollment_codes SET ";
+			$sql = 'UPDATE student_enrollment_codes SET ';
 							
 			foreach($columns as $column=>$value)
 			{
@@ -44,12 +44,12 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
                                                                 $error=true;
                                                                 continue;
                                                             }
-                                                                        $value= paramlib_validation($column,$value);
-				$sql .= $column."='".str_replace("\'","''",$value)."',";
+                                                                        $value= paramlib_validation($column,trim($value));
+				$sql .= $column.'=\''.str_replace("\'","''",$value).'\',';
                                                                         $go=true;
                                                             
 			}
-			$sql = substr($sql,0,-1) . " WHERE ID='$id'";
+			$sql = substr($sql,0,-1) . ' WHERE ID=\''.$id.'\'';
 			if($go)
                                                         DBQuery($sql);
 //		}
@@ -60,11 +60,11 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
 		else
 		{
                         if($columns[TYPE]!='Roll' &&  $columns[TYPE]!='TrnD' && $columns[TYPE]!='TrnE'){
-			$sql = "INSERT INTO student_enrollment_codes ";
+			$sql = 'INSERT INTO student_enrollment_codes ';
 
 			$fields = 'SYEAR,';
-			$values = "'".UserSyear()."',";
-
+			$values = '\''.UserSyear().'\',';
+                        
 			$go = 0;
 			foreach($columns as $column=>$value)
 			{
@@ -72,7 +72,7 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
 				{
                                         $value= paramlib_validation($column,$value);
 					$fields .= $column.',';
-					$values .= "'".str_replace("\'","''",$value)."',";
+					$values .= '\''.str_replace("\'","''",$value).'\',';
 					$go = true;
 				}
 			}
@@ -92,17 +92,17 @@ DrawBC("Students > ".ProgramTitle());
 
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='remove')
 {
-        $select_enroll=DBGet(DBQuery("SELECT TYPE FROM student_enrollment_codes WHERE ID='$_REQUEST[id]'"));
+        $select_enroll=DBGet(DBQuery('SELECT TYPE FROM student_enrollment_codes WHERE ID=\''.$_REQUEST[id].'\''));
         
         if($select_enroll[1][TYPE]!='Roll' &&  $select_enroll[1][TYPE]!='TrnD' && $select_enroll[1][TYPE]!='TrnE'){
-        $has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_enrollment WHERE  ENROLLMENT_CODE='$_REQUEST[id]'"));
+        $has_assigned_RET=DBGet(DBQuery('SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_enrollment WHERE  ENROLLMENT_CODE=\''.$_REQUEST[id].'\''));
 	$has_assigned=$has_assigned_RET[1]['TOTAL_ASSIGNED'];
 	if($has_assigned>0){
 	UnableDeletePrompt('Cannot delete because enrollment codes are associated.');
 	}else{
 	if(DeletePrompt('enrollment code'))
 	{
-		DBQuery("DELETE FROM student_enrollment_codes WHERE ID='$_REQUEST[id]'");
+		DBQuery('DELETE FROM student_enrollment_codes WHERE ID=\''.$_REQUEST[id].'\'');
 		unset($_REQUEST['modfunc']);
 	}
 	}
@@ -115,7 +115,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='remove')
 
 if($_REQUEST['modfunc']!='remove')
 {
-	$sql = "SELECT ID,TITLE,SHORT_NAME,TYPE FROM student_enrollment_codes WHERE SYEAR='".UserSyear()."'  ORDER BY TITLE";
+	$sql = 'SELECT ID,TITLE,SHORT_NAME,TYPE FROM student_enrollment_codes WHERE SYEAR=\''.UserSyear().'\'  ORDER BY TITLE';
 	$QI = DBQuery($sql);
 	$codes_RET = DBGet($QI,array('TITLE'=>'makeTextInput','SHORT_NAME'=>'makeTextInput','TYPE'=>'makeSelectInput'));
 	

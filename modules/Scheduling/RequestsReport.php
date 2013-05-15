@@ -26,7 +26,7 @@
 #
 #***************************************************************************************
 include('../../Redirect_modules.php');
-	$count_RET = DBGet(DBQuery("SELECT cs.TITLE as SUBJECT_TITLE,c.TITLE as COURSE_TITLE,sr.COURSE_ID,COUNT(*) AS COUNT,(SELECT (sum(TOTAL_SEATS)-sum(filled_seats)) FROM course_periods cp WHERE cp.COURSE_ID=sr.COURSE_ID AND cp.MARKING_PERIOD_ID =sr.MARKING_PERIOD_ID ) AS SEATS FROM schedule_requests sr,courses c,course_subjects cs WHERE cs.SUBJECT_ID=c.SUBJECT_ID AND sr.COURSE_ID=c.COURSE_ID AND sr.SYEAR='".UserSyear()."' AND sr.SCHOOL_ID='".UserSchool()."' AND sr.MARKING_PERIOD_ID='".UserMP()."'  GROUP BY sr.COURSE_ID,cs.TITLE,c.TITLE"),array(),array('SUBJECT_TITLE'));
+	$count_RET = DBGet(DBQuery('SELECT cs.TITLE as SUBJECT_TITLE,c.TITLE as COURSE_TITLE,sr.COURSE_ID,COUNT(*) AS COUNT,(SELECT (sum(TOTAL_SEATS)-sum(filled_seats)) FROM course_periods cp WHERE cp.COURSE_ID=sr.COURSE_ID AND cp.MARKING_PERIOD_ID =sr.MARKING_PERIOD_ID ) AS SEATS FROM schedule_requests sr,courses c,course_subjects cs WHERE cs.SUBJECT_ID=c.SUBJECT_ID AND sr.COURSE_ID=c.COURSE_ID AND sr.SYEAR=\''.UserSyear().'\' AND sr.SCHOOL_ID=\''.UserSchool().'\' AND sr.MARKING_PERIOD_ID=\''.UserMP().'\'  GROUP BY sr.COURSE_ID,cs.TITLE,c.TITLE'),array(),array('SUBJECT_TITLE'));
 	$columns = array('SUBJECT_TITLE'=>'Subject','COURSE_TITLE'=>'Course','COUNT'=>'Number of Requests','SEATS'=>'Seats');
 	
 	DrawBC("Scheduling > ".ProgramTitle());

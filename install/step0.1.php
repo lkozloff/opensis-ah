@@ -52,9 +52,9 @@ if(page && page!="index.php"){
       <td>
 	      <table width="100%" style="height:270px;" border="0" cellspacing="12" cellpadding="12" align="center">
             <tr>
-			 	<td valign="middle" align="center" colspan="2" style="font-size:14px;">Please be advised that only openSIS-CE version 4.6 or 4.7 or 4.8X or 4.9 or 5.0 can be<br /> upgraded to the new version 5.1 via this installer.
+			 	<td valign="middle" align="center" colspan="2" style="font-size:14px;">Please be advised that only openSIS-CE version 4.6 or 4.7 or 4.8X or 4.9 or 5.0 or 5.1  can be<br /> upgraded to the new version 5.2 via this installer.
 			 <br /><br />
-             If you are running version 4.6 or 4.7 or 4.8X or 4.9 or 5.0 click Continue to upgrade,<br /> otherwise click Go Back and try New Installation.
+             If you are running version 4.6 or 4.7 or 4.8X or 4.9 or 5.0 or 5.1 click Continue to upgrade,<br /> otherwise click Go Back and try New Installation.
 				</td>
 			</tr>
 			<tr>

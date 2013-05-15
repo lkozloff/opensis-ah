@@ -49,7 +49,7 @@ if($_REQUEST['modfunc']=='save')
 	if(count($_REQUEST['st_arr']))
 	{
 	$st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
-	$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
+	$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
 
 	//$extra['functions'] = array('GRADE_ID'=>'_grade_id');
 	if($_REQUEST['mailing_labels']=='Y')
@@ -64,8 +64,8 @@ if($_REQUEST['modfunc']=='save')
 		//$categories_RET = DBGet(DBQuery("SELECT ID,TITLE,INCLUDE FROM student_field_categories ORDER BY SORT_ORDER,TITLE"),array(),array('ID'));
 
 		// get the address and contacts custom fields, create the select lists and expand select and codeds options
-		$address_categories_RET = DBGet(DBQuery("SELECT c.ID AS CATEGORY_ID,c.TITLE AS CATEGORY_TITLE,c.RESIDENCE,c.MAILING,c.BUS,f.ID,f.TITLE,f.TYPE,f.SELECT_OPTIONS,f.DEFAULT_SELECTION,f.REQUIRED FROM address_field_categories c,address_fields f WHERE f.CATEGORY_ID=c.ID ORDER BY c.SORT_ORDER,c.TITLE,f.SORT_ORDER,f.TITLE"),array(),array('CATEGORY_ID'));
-		$people_categories_RET = DBGet(DBQuery("SELECT c.ID AS CATEGORY_ID,c.TITLE AS CATEGORY_TITLE,c.CUSTODY,c.EMERGENCY,f.ID,f.TITLE,f.TYPE,f.SELECT_OPTIONS,f.DEFAULT_SELECTION,f.REQUIRED FROM people_field_categories c,people_fields f WHERE f.CATEGORY_ID=c.ID ORDER BY c.SORT_ORDER,c.TITLE,f.SORT_ORDER,f.TITLE"),array(),array('CATEGORY_ID'));
+		$address_categories_RET = DBGet(DBQuery('SELECT c.ID AS CATEGORY_ID,c.TITLE AS CATEGORY_TITLE,c.RESIDENCE,c.MAILING,c.BUS,f.ID,f.TITLE,f.TYPE,f.SELECT_OPTIONS,f.DEFAULT_SELECTION,f.REQUIRED FROM address_field_categories c,address_fields f WHERE f.CATEGORY_ID=c.ID ORDER BY c.SORT_ORDER,c.TITLE,f.SORT_ORDER,f.TITLE'),array(),array('CATEGORY_ID'));
+		$people_categories_RET = DBGet(DBQuery('SELECT c.ID AS CATEGORY_ID,c.TITLE AS CATEGORY_TITLE,c.CUSTODY,c.EMERGENCY,f.ID,f.TITLE,f.TYPE,f.SELECT_OPTIONS,f.DEFAULT_SELECTION,f.REQUIRED FROM people_field_categories c,people_fields f WHERE f.CATEGORY_ID=c.ID ORDER BY c.SORT_ORDER,c.TITLE,f.SORT_ORDER,f.TITLE'),array(),array('CATEGORY_ID'));
 		explodeCustom($address_categories_RET, $address_custom, 'a');
 		explodeCustom($people_categories_RET, $people_custom, 'p');
 
@@ -108,7 +108,7 @@ echo '<tr><td colspan=3><IMG SRC="assets/noimage.jpg?id='.rand(6,100000).'" widt
 $sql = $sql[1];
 */
 
-$sql_student = DBGet(DBQuery("SELECT gender AS GENDER, ethnicity AS ETHNICITY, common_name AS COM_NAME, social_security AS SOCIAL_SEC, language AS LANG, birthdate AS BDATE  FROM students WHERE STUDENT_ID='".$_SESSION['student_id']."'"),array('BDATE'=>'ProperDate'));
+$sql_student = DBGet(DBQuery('SELECT gender AS GENDER, ethnicity AS ETHNICITY, common_name AS COM_NAME, social_security AS SOCIAL_SEC, language AS LANG, birthdate AS BDATE  FROM students WHERE STUDENT_ID=\''.$_SESSION['student_id'].'\''),array('BDATE'=>'ProperDate'));
 
 $sql_student = $sql_student[1];
 
@@ -117,19 +117,19 @@ unset($_openSIS['DrawHeader']);
 
 if(!isset($st_dt) && !isset($end_dt))
 {
-	$sql_goal = "SELECT GOAL_ID,GOAL_TITLE,START_DATE,END_DATE,GOAL_DESCRIPTION FROM goal WHERE STUDENT_ID='".$_SESSION['student_id']."' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY GOAL_TITLE";
+	$sql_goal = 'SELECT GOAL_ID,GOAL_TITLE,START_DATE,END_DATE,GOAL_DESCRIPTION FROM goal WHERE STUDENT_ID=\''.$_SESSION['student_id'].'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY GOAL_TITLE';
 }
 if(isset($st_dt) && !isset($end_dt))
 {
-	$sql_goal = "SELECT GOAL_ID,GOAL_TITLE,START_DATE,END_DATE,GOAL_DESCRIPTION FROM goal WHERE STUDENT_ID='".$_SESSION['student_id']."' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND START_DATE>='".$st_dt."' ORDER BY GOAL_TITLE";
+	$sql_goal = 'SELECT GOAL_ID,GOAL_TITLE,START_DATE,END_DATE,GOAL_DESCRIPTION FROM goal WHERE STUDENT_ID=\''.$_SESSION['student_id'].'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND START_DATE>=\''.$st_dt.'\' ORDER BY GOAL_TITLE';
 }
 if(!isset($st_dt) && isset($end_dt))
 {
-	$sql_goal = "SELECT GOAL_ID,GOAL_TITLE,START_DATE,END_DATE,GOAL_DESCRIPTION FROM goal WHERE STUDENT_ID='".$_SESSION['student_id']."' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND START_DATE<='".$end_dt."' ORDER BY GOAL_TITLE";
+	$sql_goal = 'SELECT GOAL_ID,GOAL_TITLE,START_DATE,END_DATE,GOAL_DESCRIPTION FROM goal WHERE STUDENT_ID=\''.$_SESSION['student_id'].'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND START_DATE<=\''.$end_dt.'\' ORDER BY GOAL_TITLE';
 }
 if(isset($st_dt) && isset($end_dt))
 {
-	$sql_goal = "SELECT GOAL_ID,GOAL_TITLE,START_DATE,END_DATE,GOAL_DESCRIPTION FROM goal WHERE STUDENT_ID='".$_SESSION['student_id']."' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND START_DATE>='".$st_dt."' AND START_DATE<='".$end_dt."' ORDER BY GOAL_TITLE";
+	$sql_goal = 'SELECT GOAL_ID,GOAL_TITLE,START_DATE,END_DATE,GOAL_DESCRIPTION FROM goal WHERE STUDENT_ID=\''.$_SESSION['student_id'].'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND START_DATE>=\''.$st_dt.'\' AND START_DATE<=\''.$end_dt.'\' ORDER BY GOAL_TITLE';
 }
 
 $res_goal = DBGet(DBQuery($sql_goal),array('START_DATE'=>'ProperDate','END_DATE'=>'ProperDate'));
@@ -315,7 +315,7 @@ if(!$_REQUEST['modfunc'])
 	}
 
 	$extra['link'] = array('FULL_NAME'=>false);
-	$extra['SELECT'] = ",s.STUDENT_ID AS CHECKBOX";
+	$extra['SELECT'] = ',s.STUDENT_ID AS CHECKBOX';
 	$extra['functions'] = array('CHECKBOX'=>'_makeChooseCheckbox');
 	$extra['columns_before'] = array('CHECKBOX'=>'</A><INPUT type=checkbox value=Y name=controller checked onclick="checkAll(this.form,this.form.controller.checked,\'st_arr\');"><A>');
 	$extra['options']['search'] = false;

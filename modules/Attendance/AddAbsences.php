@@ -55,7 +55,7 @@ if(optional_param('modfunc','',PARAM_NOTAGS)=='save')
 		$students_list = '('.substr($students_list,1).')';
 		
 
-		$current_RET = DBGet(DBQuery("SELECT STUDENT_ID,PERIOD_ID,SCHOOL_DATE,ATTENDANCE_CODE FROM attendance_period WHERE EXTRACT(MONTH FROM SCHOOL_DATE)='".($_REQUEST['month']*1)."' AND EXTRACT(YEAR FROM SCHOOL_DATE)='$_REQUEST[year]' AND PERIOD_ID IN $periods_list AND STUDENT_ID IN $students_list"),array(),array('STUDENT_ID','SCHOOL_DATE','PERIOD_ID'));
+		$current_RET = DBGet(DBQuery('SELECT STUDENT_ID,PERIOD_ID,SCHOOL_DATE,ATTENDANCE_CODE FROM attendance_period WHERE EXTRACT(MONTH FROM SCHOOL_DATE)=\''.($_REQUEST['month']*1).'\' AND EXTRACT(YEAR FROM SCHOOL_DATE)=\''.$_REQUEST[year].'\' AND PERIOD_ID IN '.$periods_list.' AND STUDENT_ID IN '.$students_list.''),array(),array('STUDENT_ID','SCHOOL_DATE','PERIOD_ID'));
 		foreach($_REQUEST['student'] as $student_id=>$yes)
 		{
 			foreach($_REQUEST['dates'] as $date=>$yes)
@@ -68,7 +68,7 @@ if(optional_param('modfunc','',PARAM_NOTAGS)=='save')
                                 
 				$all_mp = GetAllMP(GetMPTable(GetMP($current_mp,'TABLE')),$current_mp);
 				/*$course_periods_RET = DBGet(DBQuery("SELECT s.COURSE_PERIOD_ID,cp.PERIOD_ID FROM schedule s,course_periods cp,attendance_calendar ac,school_periods sp WHERE sp.PERIOD_ID=cp.PERIOD_ID AND ac.SCHOOL_DATE='".date('Y-m-d',strtotime($date))."' AND ac.CALENDAR_ID=cp.CALENDAR_ID AND (ac.BLOCK=sp.BLOCK OR sp.BLOCK IS NULL) AND s.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND s.STUDENT_ID='$student_id' AND cp.PERIOD_ID IN $periods_list AND cp.DOES_ATTENDANCE='Y' AND (ac.SCHOOL_DATE BETWEEN s.START_DATE AND s.END_DATE OR (s.END_DATE IS NULL AND ac.SCHOOL_DATE>=s.START_DATE)) AND position(substring('UMTWHFS' FROM DAYOFWEEK(ac.SCHOOL_DATE)  FOR 1) IN cp.DAYS)>0 AND cp.MARKING_PERIOD_ID IN ($all_mp) AND s.MARKING_PERIOD_ID IN ($all_mp) AND NOT (cp.HALF_DAY='Y' AND (SELECT STATE_CODE FROM attendance_codes WHERE ID='$_REQUEST[absence_code]')='H')"),array(),array('PERIOD_ID'));*/
-				$course_periods_RET = DBGet(DBQuery("SELECT s.COURSE_PERIOD_ID,cp.PERIOD_ID FROM schedule s,course_periods cp,attendance_calendar ac,school_periods sp WHERE sp.PERIOD_ID=cp.PERIOD_ID AND ac.SCHOOL_DATE='".date('Y-m-d',strtotime($date))."' AND ac.CALENDAR_ID=cp.CALENDAR_ID AND (ac.BLOCK=sp.BLOCK OR sp.BLOCK IS NULL) AND s.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND s.STUDENT_ID='$student_id' AND cp.PERIOD_ID IN $periods_list AND cp.DOES_ATTENDANCE='Y' AND (ac.SCHOOL_DATE BETWEEN s.START_DATE AND s.END_DATE OR (s.END_DATE IS NULL AND ac.SCHOOL_DATE>=s.START_DATE)) AND position(substring('UMTWHFS' FROM DAYOFWEEK(ac.SCHOOL_DATE)  FOR 1) IN cp.DAYS)>0 AND cp.MARKING_PERIOD_ID IN ($all_mp) AND s.MARKING_PERIOD_ID IN ($all_mp) AND NOT (cp.HALF_DAY='Y' AND (SELECT STATE_CODE FROM attendance_codes WHERE ID='".optional_param('absence_code','',PARAM_NUMBER)."')='H')"),array(),array('PERIOD_ID'));
+				$course_periods_RET = DBGet(DBQuery('SELECT s.COURSE_PERIOD_ID,cp.PERIOD_ID FROM schedule s,course_periods cp,attendance_calendar ac,school_periods sp WHERE sp.PERIOD_ID=cp.PERIOD_ID AND ac.SCHOOL_DATE=\''.date('Y-m-d',strtotime($date)).'\' AND ac.CALENDAR_ID=cp.CALENDAR_ID AND (ac.BLOCK=sp.BLOCK OR sp.BLOCK IS NULL) AND s.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND s.STUDENT_ID='.$student_id.' AND cp.PERIOD_ID IN '.$periods_list.' AND cp.DOES_ATTENDANCE=\'Y\' AND (ac.SCHOOL_DATE BETWEEN s.START_DATE AND s.END_DATE OR (s.END_DATE IS NULL AND ac.SCHOOL_DATE>=s.START_DATE)) AND position(substring(\'UMTWHFS\' FROM DAYOFWEEK(ac.SCHOOL_DATE)  FOR 1) IN cp.DAYS)>0 AND cp.MARKING_PERIOD_ID IN ('.$all_mp.') AND s.MARKING_PERIOD_ID IN ('.$all_mp.') AND NOT (cp.HALF_DAY=\'Y\' AND (SELECT STATE_CODE FROM attendance_codes WHERE ID=\''.optional_param('absence_code','',PARAM_NUMBER).'\')=\'H\')'),array(),array('PERIOD_ID'));
 				
 				foreach($_REQUEST['period'] as $period_id=>$yes)
 				{ if(!$current_RET[$student_id][$date][$period_id])
@@ -79,7 +79,7 @@ if(optional_param('modfunc','',PARAM_NOTAGS)=='save')
 							/*$sql = "INSERT INTO attendance_period (STUDENT_ID,SCHOOL_DATE,PERIOD_ID,MARKING_PERIOD_ID,COURSE_PERIOD_ID,ATTENDANCE_CODE,ATTENDANCE_TEACHER_CODE,ATTENDANCE_REASON,ADMIN)
 										values('$student_id','$date','$period_id','$current_mp','$course_period_id','$_REQUEST[absence_code]','$_REQUEST[absence_code]','$_REQUEST[absence_reason]','Y')";*/
 												
-							$sql = "INSERT INTO attendance_period (STUDENT_ID,SCHOOL_DATE,PERIOD_ID,MARKING_PERIOD_ID,COURSE_PERIOD_ID,ATTENDANCE_CODE,ATTENDANCE_TEACHER_CODE,ATTENDANCE_REASON,ADMIN)values('$student_id','$date','$period_id','$current_mp','$course_period_id','".optional_param('absence_code','',PARAM_NUMBER)."','".optional_param('absence_code','',PARAM_NUMBER)."','".optional_param('absence_reason','',PARAM_SPCL)."','Y')";
+							$sql = 'INSERT INTO attendance_period (STUDENT_ID,SCHOOL_DATE,PERIOD_ID,MARKING_PERIOD_ID,COURSE_PERIOD_ID,ATTENDANCE_CODE,ATTENDANCE_TEACHER_CODE,ATTENDANCE_REASON,ADMIN)values(\''.$student_id.'\',\''.$date.'\',\''.$period_id.'\',\''.$current_mp.'\',\''.$course_period_id.'\',\''.optional_param('absence_code','',PARAM_NUMBER).'\',\''.optional_param('absence_code','',PARAM_NUMBER).'\',\''.optional_param('absence_reason','',PARAM_SPCL).'\',\'Y\')';
 							DBQuery($sql);
 						}
 					}
@@ -88,8 +88,8 @@ if(optional_param('modfunc','',PARAM_NOTAGS)=='save')
 						/*$sql = "UPDATE attendance_period SET ATTENDANCE_CODE='$_REQUEST[absence_code]',ATTENDANCE_TEACHER_CODE='$_REQUEST[absence_code]',ATTENDANCE_REASON='$_REQUEST[absence_reason]',ADMIN='Y'
 								WHERE STUDENT_ID='$student_id' AND SCHOOL_DATE='$date' AND PERIOD_ID='$period_id'";
 							*/	
-						$sql = "UPDATE attendance_period SET ATTENDANCE_CODE='".optional_param('absence_code','',PARAM_NUMBER)."',ATTENDANCE_TEACHER_CODE='".optional_param('absence_code','',PARAM_NUMBER)."',ATTENDANCE_REASON='".optional_param('absence_reason','',PARAM_SPCL)."',ADMIN='Y'
-								WHERE STUDENT_ID='$student_id' AND SCHOOL_DATE='$date' AND PERIOD_ID='$period_id'";
+						$sql = 'UPDATE attendance_period SET ATTENDANCE_CODE=\''.optional_param('absence_code','',PARAM_NUMBER).'\',ATTENDANCE_TEACHER_CODE=\''.optional_param('absence_code','',PARAM_NUMBER).'\',ATTENDANCE_REASON=\''.optional_param('absence_reason','',PARAM_SPCL).'\',ADMIN=\'Y\'
+								WHERE STUDENT_ID=\''.$student_id.'\' AND SCHOOL_DATE=\''.$date.'\' AND PERIOD_ID=\''.$period_id.'\'';
 						DBQuery($sql);
 					}
 				}
@@ -100,20 +100,25 @@ if(optional_param('modfunc','',PARAM_NOTAGS)=='save')
 			}
 		}
                 //-----------------------For update attendance_completed----------------------------------------
-                $current_RET = DBGet(DBQuery("SELECT STUDENT_ID,PERIOD_ID,SCHOOL_DATE,ATTENDANCE_CODE FROM attendance_period WHERE EXTRACT(MONTH FROM SCHOOL_DATE)='".($_REQUEST['month']*1)."' AND EXTRACT(YEAR FROM SCHOOL_DATE)='$_REQUEST[year]'"),array(),array('SCHOOL_DATE','PERIOD_ID'));
+                $current_RET = DBGet(DBQuery('SELECT STUDENT_ID,PERIOD_ID,SCHOOL_DATE,ATTENDANCE_CODE FROM attendance_period WHERE EXTRACT(MONTH FROM SCHOOL_DATE)=\''.($_REQUEST['month']*1).'\' AND EXTRACT(YEAR FROM SCHOOL_DATE)=\''.$_REQUEST[year].'\''),array(),array('SCHOOL_DATE','PERIOD_ID'));
                 foreach($_REQUEST['dates'] as $date=>$yes)
                 {
-                    $course_periods_RET = DBGet(DBQuery("SELECT s.COURSE_PERIOD_ID,cp.PERIOD_ID,cp.TEACHER_ID FROM schedule s,course_periods cp,attendance_calendar ac,school_periods sp WHERE sp.PERIOD_ID=cp.PERIOD_ID AND ac.SCHOOL_DATE='".date('Y-m-d',strtotime($date))."' AND ac.CALENDAR_ID=cp.CALENDAR_ID AND (ac.BLOCK=sp.BLOCK OR sp.BLOCK IS NULL) AND s.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND cp.DOES_ATTENDANCE='Y' AND (ac.SCHOOL_DATE BETWEEN s.START_DATE AND s.END_DATE OR (s.END_DATE IS NULL AND ac.SCHOOL_DATE>=s.START_DATE)) AND position(substring('UMTWHFS' FROM DAYOFWEEK(ac.SCHOOL_DATE)  FOR 1) IN cp.DAYS)>0 AND cp.MARKING_PERIOD_ID IN ($all_mp) AND s.MARKING_PERIOD_ID IN ($all_mp) AND NOT (cp.HALF_DAY='Y' AND (SELECT STATE_CODE FROM attendance_codes WHERE ID='".optional_param('absence_code','',PARAM_NUMBER)."')='H')"),array(),array('PERIOD_ID'));
+                    $course_periods_RET = DBGet(DBQuery('SELECT s.COURSE_PERIOD_ID,cp.PERIOD_ID,cp.TEACHER_ID FROM schedule s,course_periods cp,attendance_calendar ac,school_periods sp WHERE sp.PERIOD_ID=cp.PERIOD_ID AND ac.SCHOOL_DATE=\''.date('Y-m-d',strtotime($date)).'\' AND ac.CALENDAR_ID=cp.CALENDAR_ID AND (ac.BLOCK=sp.BLOCK OR sp.BLOCK IS NULL) AND s.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND cp.DOES_ATTENDANCE=\'Y\' AND (ac.SCHOOL_DATE BETWEEN s.START_DATE AND s.END_DATE OR (s.END_DATE IS NULL AND ac.SCHOOL_DATE>=s.START_DATE)) AND position(substring(\'UMTWHFS\' FROM DAYOFWEEK(ac.SCHOOL_DATE)  FOR 1) IN cp.DAYS)>0 AND cp.MARKING_PERIOD_ID IN ('.$all_mp.') AND s.MARKING_PERIOD_ID IN ('.$all_mp.') AND NOT (cp.HALF_DAY=\'Y\' AND (SELECT STATE_CODE FROM attendance_codes WHERE ID=\''.optional_param('absence_code','',PARAM_NUMBER).'\')=\'H\')'),array(),array('PERIOD_ID'));
                     foreach($_REQUEST['period'] as $period_id=>$yes)
                     {
                         $attn_taken=count($current_RET[$date][$period_id]);
                         $attn_possible=count($course_periods_RET[$period_id]);
-                        if($attn_possible==$attn_taken && count($attn_possible)>0)
+                        if($attn_possible==$attn_taken )
                         {
-                            $RET = DBGet(DBQuery("SELECT 'completed' AS COMPLETED FROM attendance_completed WHERE STAFF_ID='".$course_periods_RET[$period_id][1]['TEACHER_ID']."' AND SCHOOL_DATE='".$date."' AND PERIOD_ID='".$period_id."'"));
-                            if(!count($RET))
-                                DBQuery("INSERT INTO attendance_completed (STAFF_ID,SCHOOL_DATE,PERIOD_ID) values('".$course_periods_RET[$period_id][1]['TEACHER_ID']."','$date','".$period_id."')");
+                            if($attn_possible>0)
+                            {
+                                $RET = DBGet(DBQuery('SELECT \''.'completed'.'\' AS COMPLETED FROM attendance_completed WHERE STAFF_ID=\''.$course_periods_RET[$period_id][1]['TEACHER_ID'].'\' AND SCHOOL_DATE=\''.$date.'\' AND PERIOD_ID=\''.$period_id.'\''));
+                                if(!count($RET))
+                                    DBQuery('INSERT INTO attendance_completed (STAFF_ID,SCHOOL_DATE,PERIOD_ID) values(\''.$course_periods_RET[$period_id][1]['TEACHER_ID'].'\',\''.$date.'\',\''.$period_id.'\')');
+                        
+                            }
                         }
+                        
                     }
                 }
                 //---------------------------------------------------------------
@@ -145,12 +150,12 @@ if(!$_REQUEST['modfunc'])
 		echo '<CENTER><TABLE><TR><TD align=right>Add absence to periods</TD>';
 		echo '<TD><TABLE><TR>';
 	
-		$periods_RET = DBGet(DBQuery("SELECT SHORT_NAME,PERIOD_ID FROM school_periods WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND EXISTS (SELECT * FROM course_periods WHERE PERIOD_ID=school_periods.PERIOD_ID AND DOES_ATTENDANCE='Y') ORDER BY SORT_ORDER"));
+		$periods_RET = DBGet(DBQuery('SELECT SHORT_NAME,PERIOD_ID FROM school_periods WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND EXISTS (SELECT * FROM course_periods WHERE PERIOD_ID=school_periods.PERIOD_ID AND DOES_ATTENDANCE=\''.'Y'.'\') ORDER BY SORT_ORDER'));
 		foreach($periods_RET as $period)
 			echo '<TD><INPUT type=CHECKBOX value=Y name=period['.$period['PERIOD_ID'].']>'.$period['SHORT_NAME'].'</TD>';
 		echo '</TR></TABLE></TD>';
 		echo '<TR><TD align=right>Absence code</TD><TD><SELECT name=absence_code>';
-		$codes_RET = DBGet(DBQuery("SELECT TITLE,ID FROM attendance_codes WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND TABLE_NAME='0'"));
+		$codes_RET = DBGet(DBQuery('SELECT TITLE,ID FROM attendance_codes WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND TABLE_NAME=0'));
 		foreach($codes_RET as $code)
 			echo '<OPTION value='.$code['ID'].'>'.$code['TITLE'].'</OPTION>';
 		echo '</SELECT></TD></TR>';
@@ -167,7 +172,7 @@ if(!$_REQUEST['modfunc'])
 
 		echo '<TABLE><TR>';
 		echo '<TH>S</TH><TH>M</TH><TH>T</TH><TH>W</TH><TH>Th</TH><TH>F</TH><TH>S</TH></TR><TR>';
-		$calendar_RET = DBGet(DBQuery("SELECT SCHOOL_DATE FROM attendance_calendar WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND MINUTES!='0' AND EXTRACT(MONTH FROM SCHOOL_DATE)='".($_REQUEST['month']*1)."'"),array(),array('SCHOOL_DATE'));
+		$calendar_RET = DBGet(DBQuery('SELECT SCHOOL_DATE FROM attendance_calendar WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND MINUTES!=0 AND EXTRACT(MONTH FROM SCHOOL_DATE)=\''.($_REQUEST['month']*1).'\''),array(),array('SCHOOL_DATE'));
 		for($i=1;$i<=$skip;$i++)
 			echo '<TD></TD>';
 

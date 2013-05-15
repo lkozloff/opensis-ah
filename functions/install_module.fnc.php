@@ -27,7 +27,7 @@
 #***************************************************************************************
 function install_module($dir, $filename)
 {
- 	$app_ver =DBGet(DBQuery("select * from app"));
+ 	$app_ver =DBGet(DBQuery('select * from app'));
 	$ver = $app_ver[1]['VALUE'];
 	$bld = $app_ver[4]['VALUE'];
 
@@ -98,7 +98,7 @@ if (file_exists($dir."/".$filename)) {
 				}
 			}
 			
-			$sql = "update app set value='".date('l F d, Y')."' where name='last_updated'";
+			$sql = 'update app set value=\''.date('l F d, Y').'\' where name=\'last_updated\'';
 			DBQuery($sql);
 			unlink($dir."/".$filename);
 			

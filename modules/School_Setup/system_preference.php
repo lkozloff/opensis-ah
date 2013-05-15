@@ -13,31 +13,31 @@ if(clean_param($_REQUEST['page_display'],PARAM_ALPHAMOD)=='system_preference'){
 if((clean_param($_REQUEST['action'],PARAM_ALPHAMOD) == 'update') && (clean_param($_REQUEST['button'],PARAM_ALPHAMOD)=='Save') && clean_param($_REQUEST['values'],PARAM_NOTAGS) && $_POST['values'] && User('PROFILE')=='admin')
 {
 
-	$sql = "UPDATE system_preference SET ";
+	$sql = 'UPDATE system_preference SET ';
 	foreach($_REQUEST['values'] as $column=>$value)
 	{
         $value=paramlib_validation($column,$value);
-		$sql .= $column."='".str_replace("\'","''",$value)."',";
+		$sql .= $column.'=\''.str_replace("\'","''",$value).'\',';
 	}
-	$sql = substr($sql,0,-1) . " WHERE SCHOOL_ID='".UserSchool()."'";
+	$sql = substr($sql,0,-1) . ' WHERE SCHOOL_ID=\''.UserSchool().'\'';
 	DBQuery($sql);
 	
 }
 elseif((clean_param($_REQUEST['action'],PARAM_ALPHAMOD) == 'insert') && (clean_param($_REQUEST['button'],PARAM_ALPHAMOD)=='Save') && clean_param($_REQUEST['values'],PARAM_NOTAGS) && $_POST['values'] && User('PROFILE')=='admin')
 {
 
-	$sql = "INSERT INTO system_preference SET ";
+	$sql = 'INSERT INTO system_preference SET ';
 	foreach($_REQUEST['values'] as $column=>$value)
 	{
         $value=paramlib_validation($column,$value);
-		$sql .= $column."='".str_replace("\'","''",$value)."',";
+		$sql .= $column.'=\''.str_replace("\'","''",$value).'\',';
 	}
-	$sql = substr($sql,0,-1) . ",school_id='".UserSchool()."'";
+	$sql = substr($sql,0,-1) . ',school_id=\''.UserSchool().'\'';
 	DBQuery($sql);
 	
 }
 
-$sys_pref = DBGet(DBQuery("SELECT * FROM system_preference WHERE SCHOOL_ID=".UserSchool()));
+$sys_pref = DBGet(DBQuery('SELECT * FROM system_preference WHERE SCHOOL_ID='.UserSchool()));
 $sys_pref = $sys_pref[1];
 
 PopTable('header','Half-day and full-day minutes');
@@ -56,35 +56,35 @@ PopTable('footer');
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update'){
 
 if(clean_param($_REQUEST['maintain'],PARAM_NOTAGS)){
-$sql="UPDATE system_preference_misc SET ";
+$sql='UPDATE system_preference_misc SET ';
 foreach($_REQUEST['maintain'] as $column_name=>$value)
 					{ 
-					$sql .= "$column_name='".str_replace("\'","''",str_replace("`","''",$value))."',";
+					$sql .= ''.$column_name.'=\''.str_replace("\'","''",str_replace("`","''",$value)).'\',';
 
 }
-$sql= substr($sql,0,-1) ." WHERE 1=1";
+$sql= substr($sql,0,-1) .' WHERE 1=1';
 DBQuery($sql);
 }
 foreach($_REQUEST['values'] as $id=>$columns)
 	{
 		if($id!='new')
 		{
-			$sql = "UPDATE login_message SET ";
+			$sql = 'UPDATE login_message SET ';
 			foreach($columns as $column=>$value)
 		{
 
                    
 		if($value=='DISPLAY')
-			$sql .= $column."='Y',";
+			$sql .= $column.'=\'Y\',';
 			else
-			$sql .= $column."='".str_replace("\'","''",$value)."',";
+			$sql .= $column.'=\''.str_replace("\'","''",$value).'\',';
 		}
-			$sql = substr($sql,0,-1) . " WHERE ID='$id'";
+			$sql = substr($sql,0,-1) . ' WHERE ID=\''.$id.'\'';
 			DBQuery($sql);
 		}
 		else
 		{
-			$sql = "INSERT INTO login_message ";
+			$sql = 'INSERT INTO login_message ';
 			$go = 0;
 			foreach($columns as $column=>$value)
 			{
@@ -93,12 +93,12 @@ foreach($_REQUEST['values'] as $id=>$columns)
 					if($value=='DISPLAY')
 					 {
  					$fields .= $column.',';
-					$values .= "'".str_replace("\'","''",'Y')."',";
+					$values .= '\''.str_replace("\'","''",'Y').'\',';
 					 }
 					else
 					 {
 					$fields .= $column.',';
-					$values .= "'".str_replace("\'","''",$value)."',";
+					$values .= '\''.str_replace("\'","''",$value).'\',';
 					 }
 					$go = true;
 				}
@@ -116,35 +116,35 @@ foreach($_REQUEST['val'] as $col=>$val)
 		$value=trim(substr($val,strpos($val,',')+1));
 		if($id!='new')
 		{
-		$ID=DBGet(DBQuery("SELECT ID FROM login_message"));
+		$ID=DBGet(DBQuery('SELECT ID FROM login_message'));
 		foreach($ID as $get_ID)
 		 {
 		    if($get_ID['ID']==$id)
-			$sql = "UPDATE login_message SET ".$col."='Y' WHERE ID=".$get_ID['ID'];
+			$sql = 'UPDATE login_message SET '.$col.'=\'Y\' WHERE ID='.$get_ID['ID'];
 			else
-			$sql = "UPDATE login_message SET ".$col."='N' WHERE ID=".$get_ID['ID'];
+			$sql = 'UPDATE login_message SET '.$col.'=\'N\' WHERE ID='.$get_ID['ID'];
 			DBQuery($sql);
 		 }
 			
 		}
 		else
 		{
-		    $ID=DBGet(DBQuery("SELECT ID FROM login_message"));
+		    $ID=DBGet(DBQuery('SELECT ID FROM login_message'));
 			foreach($ID as $get_ID)
 			 {
 				if($get_ID['ID']==$id)
-				$sql = "UPDATE login_message SET ".$col."='Y' WHERE ID=".$get_ID['ID'];
+				$sql = 'UPDATE login_message SET '.$col.'=\'Y\' WHERE ID='.$get_ID['ID'];
 				else
-				$sql = "UPDATE login_message SET ".$col."='N' WHERE ID=".$get_ID['ID'];
+				$sql = 'UPDATE login_message SET '.$col.'=\'N\' WHERE ID='.$get_ID['ID'];
 				DBQuery($sql);
 			 }
-			$max_ID=DBGet(DBQuery("SELECT MAX(ID) AS ID FROM login_message"));
-			$login_VAL=DBGet(DBQuery("SELECT ID,MESSAGE FROM login_message WHERE ID=".$max_ID[1]['ID']." "));
-			$sql="UPDATE login_message SET ";
+			$max_ID=DBGet(DBQuery('SELECT MAX(ID) AS ID FROM login_message'));
+			$login_VAL=DBGet(DBQuery('SELECT ID,MESSAGE FROM login_message WHERE ID='.$max_ID[1]['ID'].' '));
+			$sql='UPDATE login_message SET ';
 			if($login_VAL[1]['MESSAGE'] !='')
 			{
-				$sql .= $col."='Y' ";
-				$sql .=  " WHERE ID=".$max_ID[1]['ID']."";
+				$sql .= $col.'=\'Y\' ';
+				$sql .=  ' WHERE ID='.$max_ID[1]['ID'].'';
 			}
 				DBQuery($sql);
 		}
@@ -167,7 +167,7 @@ if($_REQUEST['modfunc']!='remove')
 	echo "<FORM name=maintenance id=maintenance action=Modules.php?modname=$_REQUEST[modname]&modfunc=update&page_display=MAINTENANCE method=POST>";
 	echo '<table>';
 	echo '<tr><td align=left><span style="font-size:12px; font-weight:bold;">Under Maintenance :</td><td><span style="font-weight:bold;">'.CheckboxInput($maintain['SYSTEM_MAINTENANCE_SWITCH'],'maintain[SYSTEM_MAINTENANCE_SWITCH]').'</span></td></tr>';
-	$sql = "SELECT ID,MESSAGE,DISPLAY FROM login_message ORDER BY ID";
+	$sql = 'SELECT ID,MESSAGE,DISPLAY FROM login_message ORDER BY ID';
 	$QI = DBQuery($sql);
 	$login_MESSAGE=DBGet($QI,array('MESSAGE'=>'_makeContentInput','DISPLAY'=>'_makeRadio'));
 	$link['add']['html'] = array('MESSAGE'=>_makeContentInput('','MESSAGE'),'DISPLAY'=>_makeRadio('','DISPLAY'));
@@ -197,17 +197,17 @@ PopTable('header','Class Rank');
 
 if($_REQUEST['modfunc']=='update'){
 if(isset($_REQUEST['display_rank'])){
-$rank_RET=DBGet(DBQuery("SELECT VALUE FROM program_config WHERE school_id='".  UserSchool()."' AND program='class_rank' AND title='display' LIMIT 0, 1"));
+$rank_RET=DBGet(DBQuery('SELECT VALUE FROM program_config WHERE school_id=\''.  UserSchool().'\' AND program=\'class_rank\' AND title=\'display\' LIMIT 0, 1'));
 if(count($rank_RET)==0){
-DBQuery("INSERT INTO program_config (school_id,program,title,value) VALUES('".  UserSchool()."','class_rank','display','Y')");
+DBQuery('INSERT INTO program_config (school_id,program,title,value) VALUES(\''.  UserSchool().'\',\'class_rank\',\'display\',\'Y\')');
 }else{
-DBQuery("UPDATE program_config SET value='".$_REQUEST['display_rank']."' WHERE school_id='".  UserSchool()."' AND program='class_rank' AND title='display'");
+DBQuery('UPDATE program_config SET value=\''.$_REQUEST['display_rank'].'\' WHERE school_id=\''.  UserSchool().'\' AND program=\'class_rank\' AND title=\'display\'');
 }
 unset($_REQUEST['display_rank']);
 unset($_SESSION['_REQUEST_vars']['display_rank']);
 }
 }
-$rank_RET=DBGet(DBQuery("SELECT VALUE FROM program_config WHERE school_id='".  UserSchool()."' AND program='class_rank' AND title='display' LIMIT 0, 1"));
+$rank_RET=DBGet(DBQuery('SELECT VALUE FROM program_config WHERE school_id=\''.  UserSchool().'\' AND program=\'class_rank\' AND title=\'display\' LIMIT 0, 1'));
 $rank=$rank_RET[1];
 echo "<FORM name=failure id=failure action=Modules.php?modname=$_REQUEST[modname]&modfunc=update&page_display=CLASSRANK method=POST>";
 echo '<table width="330px;" cellpadding="4">';

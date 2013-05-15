@@ -40,9 +40,9 @@ function AllowEdit($modname=false)
 		if(!$_openSIS['AllowEdit'])
 		{
 			if(User('PROFILE_ID'))
-				$_openSIS['AllowEdit'] = DBGet(DBQuery("SELECT MODNAME FROM profile_exceptions WHERE PROFILE_ID='".User('PROFILE_ID')."' AND CAN_EDIT='Y'"),array(),array('MODNAME'));
+				$_openSIS['AllowEdit'] = DBGet(DBQuery('SELECT MODNAME FROM profile_exceptions WHERE PROFILE_ID=\''.User('PROFILE_ID').'\' AND CAN_EDIT=\'Y\''),array(),array('MODNAME'));
 			else
-				$_openSIS['AllowEdit'] = DBGet(DBQuery("SELECT MODNAME FROM staff_exceptions WHERE USER_ID='".User('STAFF_ID')."' AND CAN_EDIT='Y'"),array(),array('MODNAME'));
+				$_openSIS['AllowEdit'] = DBGet(DBQuery('SELECT MODNAME FROM staff_exceptions WHERE USER_ID=\''.User('STAFF_ID').'\' AND CAN_EDIT=\'Y\''),array(),array('MODNAME'));
 		}
 
 		if(!$_openSIS['AllowEdit'])
@@ -69,9 +69,9 @@ function AllowUse($modname=false)
 	if(!$_openSIS['AllowUse'])
 	{
 		if(User('PROFILE_ID')!='')
-			$_openSIS['AllowUse'] = DBGet(DBQuery("SELECT MODNAME FROM profile_exceptions WHERE PROFILE_ID='".User('PROFILE_ID')."' AND CAN_USE='Y'"),array(),array('MODNAME'));
+			$_openSIS['AllowUse'] = DBGet(DBQuery('SELECT MODNAME FROM profile_exceptions WHERE PROFILE_ID=\''.User('PROFILE_ID').'\' AND CAN_USE=\'Y\''),array(),array('MODNAME'));
 		else
-			$_openSIS['AllowUse'] = DBGet(DBQuery("SELECT MODNAME FROM staff_exceptions WHERE USER_ID='".User('STAFF_ID')."' AND CAN_USE='Y'"),array(),array('MODNAME'));
+			$_openSIS['AllowUse'] = DBGet(DBQuery('SELECT MODNAME FROM staff_exceptions WHERE USER_ID=\''.User('STAFF_ID').'\' AND CAN_USE=\'Y\''),array(),array('MODNAME'));
 	}
 
 	if(!$_openSIS['AllowUse'])

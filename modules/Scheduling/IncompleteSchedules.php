@@ -59,7 +59,7 @@ if($_REQUEST['search_modfunc']=='list')
 	$extra['FROM'] .= ',school_periods sp,schedule ss,course_periods cp';
 	$extra['WHERE'] .= ' AND (\''.DBDate().'\' BETWEEN ss.START_DATE AND ss.END_DATE OR ss.END_DATE IS NULL) AND ss.SCHOOL_ID=ssm.SCHOOL_ID AND ss.MARKING_PERIOD_ID IN ('.$mp.') AND ss.STUDENT_ID=ssm.STUDENT_ID AND ss.SYEAR=ssm.SYEAR AND ss.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND cp.PERIOD_ID=sp.PERIOD_ID ';
 	if(UserStudentID())
-		$extra['WHERE'] .= " AND s.STUDENT_ID='".UserStudentID()."' ";
+		$extra['WHERE'] .= ' AND s.STUDENT_ID=\''.UserStudentID().'\' ';
 	$extra['group'] = array('STUDENT_ID','PERIOD_ID');
 	
 	$schedule_RET = GetStuList($extra);

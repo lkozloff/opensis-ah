@@ -33,7 +33,7 @@ function DeCodeds($value,$column)
 
 	if(!$_openSIS['DeCodeds'][$field])
 	{
-		$select_options = DBGet(DBQuery("SELECT SELECT_OPTIONS FROM custom_fields WHERE ID='$field'"));
+		$select_options = DBGet(DBQuery('SELECT SELECT_OPTIONS FROM custom_fields WHERE ID=\''.$field.'\''));
 		$select_options = str_replace("\n","\r",str_replace("\r\n","\r",$select_options[1]['SELECT_OPTIONS']));
 		$select_options = explode("\r",$select_options);
 		foreach($select_options as $option)

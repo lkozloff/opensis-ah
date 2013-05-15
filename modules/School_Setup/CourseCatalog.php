@@ -54,14 +54,14 @@ if(clean_param($_REQUEST['create_excel'],PARAM_ALPHAMOD)=='true')
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='choose_course')
 {
     DrawBC("Courses -> ".$_REQUEST['draw_header']);
-    $sql = "SELECT PARENT_ID,TITLE,SHORT_NAME,PERIOD_ID,DAYS,
+    $sql = 'SELECT PARENT_ID,TITLE,SHORT_NAME,PERIOD_ID,DAYS,
                                 MP,MARKING_PERIOD_ID,TEACHER_ID,CALENDAR_ID,
                                 ROOM,TOTAL_SEATS,DOES_ATTENDANCE,
                                 GRADE_SCALE_ID,DOES_HONOR_ROLL,DOES_CLASS_RANK,
                                 GENDER_RESTRICTION,HOUSE_RESTRICTION,CREDITS,
                                 HALF_DAY,DOES_BREAKOFF
                         FROM course_periods
-                        WHERE COURSE_PERIOD_ID='$_REQUEST[course_period_id]'";
+                        WHERE COURSE_PERIOD_ID=\''.$_REQUEST[course_period_id].'\'';
     $QI = DBQuery($sql);
     $RET = DBGet($QI);
     $RET = $RET[1];
@@ -121,7 +121,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='choose_course')
 
         if($RET['PARENT_ID']!='')
         {
-            $sql = "SELECT TITLE,COURSE_PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID='".$RET['PARENT_ID']."'";
+            $sql = 'SELECT TITLE,COURSE_PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID=\''.$RET['PARENT_ID'].'\'';
             //echo $sql;
             $children = DBGet(DBQuery($sql));
             if(count($children))
@@ -159,7 +159,7 @@ else
         echo '<TD valign=top align=left>';
     }
 
-    $mp_RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'2'  FROM school_quarters WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'1' FROM school_semesters WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'0' FROM school_years WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY 3,4"));
+    $mp_RET = DBGet(DBQuery('SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'2\'  FROM school_quarters WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'1\' FROM school_semesters WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'0\' FROM school_years WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY 3,4'));
     unset($options);
     if(count($mp_RET))
     {
@@ -180,7 +180,7 @@ else
 
         if($_REQUEST['marking_period_id'] && $_REQUEST['marking_period_id']!='')
         {
-            $sql = "SELECT subject_id,TITLE FROM course_subjects WHERE SCHOOL_ID=".UserSchool()." ORDER BY TITLE";
+            $sql = 'SELECT subject_id,TITLE FROM course_subjects WHERE SCHOOL_ID=\''.UserSchool().'\' ORDER BY TITLE';
             $QI = DBQuery($sql);
             $subjects_RET = DBGet($QI);
 
@@ -210,7 +210,7 @@ else
                 if($_REQUEST['subject_id'] && $_REQUEST['subject_id']!='' )
                 {
                     #$sql = "SELECT COURSE_ID,TITLE FROM courses WHERE SUBJECT_ID='$_REQUEST[subject_id]' ORDER BY TITLE";
-                    $sql = "SELECT COURSE_ID,TITLE FROM courses WHERE SUBJECT_ID='$_REQUEST[subject_id]' AND SCHOOL_ID=".UserSchool()." ORDER BY TITLE";
+                    $sql = 'SELECT COURSE_ID,TITLE FROM courses WHERE SUBJECT_ID=\''.$_REQUEST[subject_id].'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY TITLE';
                     $QI = DBQuery($sql);
                     $courses_RET = DBGet($QI);
 
@@ -271,7 +271,7 @@ function CreateList($dli='', $pli='', $sli='', $cli='', $mp='', $mp_name='')
 
    if($mp!='')
     {
-        $sql = "SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'2'  FROM school_quarters WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' and marking_period_id='".$mp."' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'1' FROM school_semesters WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' and marking_period_id='".$mp."' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'0'  FROM school_years WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' and marking_period_id='".$mp."' ORDER BY 3,4";
+        $sql = 'SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'2\'  FROM school_quarters WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' and marking_period_id=\''.$mp.'\' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'1\' FROM school_semesters WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' and marking_period_id=\''.$mp.'\' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'0\'  FROM school_years WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' and marking_period_id=\''.$mp.'\' ORDER BY 3,4';
         $mp_ret1 = DBGet(DBQuery($sql));
         $mp_name = $mp_ret1[1]['TITLE'];
     }
@@ -284,19 +284,19 @@ function CreateList($dli='', $pli='', $sli='', $cli='', $mp='', $mp_name='')
     else
     {
         if($sli==''){
-            $where = "and marking_period_id='".$mp."' and course_id in (select course_id from  courses where subject_id in (select subject_id from course_subjects))";
+            $where = 'and marking_period_id=\''.$mp.'\' and course_id in (select course_id from  courses where subject_id in (select subject_id from course_subjects))';
             $heading ="All available classes for <font color='black'>".$mp_name." -> ".$d_ret[1]['TITLE']." -> ".$p_ret[1]['TITLE']."</font>";
         }
         else{
             if($cli=='')
             {
-                $where = "and marking_period_id='".$mp."' and course_id in (select Course_Id from courses where subject_id = '".$_REQUEST['subject_id']."' and School_Id='".UserSchool()."')";
+                $where = 'and marking_period_id=\''.$mp.'\' and course_id in (select Course_Id from courses where subject_id = \''.$_REQUEST['subject_id'].'\' and School_Id=\''.UserSchool().'\')';
                 #$where = "and marking_period_id='".$mp."' and course_id in (select Course_Id from courses where subject_id = '".$_REQUEST['subject_id']."' and School_Id='".UserSchool()."')";
                 $heading ="All available classes for <font color='black'>".$mp_name." -> ".$d_ret[1]['TITLE']." -> ".$p_ret[1]['TITLE']." -> ".$s_ret[1]['TITLE']."</font>";
             }
             else
             {
-                $where = "and marking_period_id='".$mp."' and course_id='".$cli."'";
+                $where = 'and marking_period_id=\''.$mp.'\' and course_id=\''.$cli.'\'';
                 $heading ="All available classes for <font color='black'>".$mp_name." -> ".$d_ret[1]['TITLE']." -> ".$p_ret[1]['TITLE']." -> ".$s_ret[1]['TITLE']." -> ".$c_ret[1]['TITLE']."</font>";
             }
         }
@@ -317,11 +317,11 @@ function CreateList($dli='', $pli='', $sli='', $cli='', $mp='', $mp_name='')
 				
 				*/
 				
-	$sql = "select
+	$sql = 'select
                 (select title from courses where course_id=course_periods.course_id) as course,
-                (select title from course_subjects where subject_id=(select subject_id from courses where 						course_id=course_periods.course_id)) as subject,
-                short_name,(select CONCAT(START_TIME,' - ',END_TIME,' ') from school_periods where period_id=course_periods.period_id) as period_time, (select title from school_periods where period_id=course_periods.period_id) as period, marking_period_id, (select title from marking_periods where marking_period_id=course_periods.marking_period_id) as mp,
-                (select CONCAT(LAST_NAME,' ',FIRST_NAME,' ') from staff where staff_id=course_periods.teacher_id) as teacher, room as location,days,course_period_id from course_periods where school_id='".UserSchool()."' and syear='".UserSyear()."' ".$where."";
+                (select title from course_subjects where subject_id=(select subject_id from courses where course_id=course_periods.course_id)) as subject,
+                short_name,(select CONCAT(START_TIME,\' - \',END_TIME,\' \') from school_periods where period_id=course_periods.period_id) as period_time, (select title from school_periods where period_id=course_periods.period_id) as period, marking_period_id, (select title from marking_periods where marking_period_id=course_periods.marking_period_id) as mp,
+                (select CONCAT(LAST_NAME,\' \',FIRST_NAME,\' \') from staff where staff_id=course_periods.teacher_id) as teacher, room as location,days,course_period_id from course_periods where school_id=\''.UserSchool().'\' and syear=\''.UserSyear().'\' '.$where.'';
 
 
 	
@@ -368,20 +368,20 @@ function CreateExcel($dli='', $pli='', $sli='', $cli='', $mp='', $mp_name='')
 {
 
     if($dli!='')
-    $d_ret = DBGet(DBQuery("select title from COURSE_DEGREE_LEVEL where degree_level_id='".$dli."'"));
+    $d_ret = DBGet(DBQuery('select title from COURSE_DEGREE_LEVEL where degree_level_id=\''.$dli.'\''));
 
     if($pli!='')
-    $p_ret = DBGet(DBQuery("select title from COURSE_PROG_LEVEL where prog_level_id='".$pli."'"));
+    $p_ret = DBGet(DBQuery('select title from COURSE_PROG_LEVEL where prog_level_id=\''.$pli.'\''));
 
     if($sli!='')
-    $s_ret = DBGet(DBQuery("select title from course_subjects where subject_id='".$sli."'"));
+    $s_ret = DBGet(DBQuery('select title from course_subjects where subject_id=\''.$sli.'\''));
 
     if($cli!='')
-    $c_ret = DBGet(DBQuery("select title from courses where course_id='".$cli."'"));
+    $c_ret = DBGet(DBQuery('select title from courses where course_id=\''.$cli.'\''));
 
     if($mp!='')
     {
-        $sql = "SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'2' AS TABLE,SORT_ORDER FROM school_quarters WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' and marking_period_id='".$mp."' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'1' AS TABLE,SORT_ORDER FROM school_semesters WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' and marking_period_id='".$mp."' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'0' AS TABLE,SORT_ORDER FROM school_years WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' and marking_period_id='".$mp."' ORDER BY 3,4";
+        $sql = 'SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'2\' AS TABLE,SORT_ORDER FROM school_quarters WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' and marking_period_id=\''.$mp.'\' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'1\' AS TABLE,SORT_ORDER FROM school_semesters WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' and marking_period_id=\''.$mp.'\' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'0\' AS TABLE,SORT_ORDER FROM school_years WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' and marking_period_id=\''.$mp.'\' ORDER BY 3,4';
         //echo $sql;
         $mp_ret1 = DBGet(DBQuery($sql));
         $mp_name = $mp_ret1[1]['TITLE'];
@@ -395,31 +395,31 @@ function CreateExcel($dli='', $pli='', $sli='', $cli='', $mp='', $mp_name='')
     else
     {
         if($dli==''){
-            $where = " and marking_period_id='".$mp."'";
+            $where = ' and marking_period_id=\''.$mp.'\'';
             $heading= "All available classes for <font color='black'>".$mp_name."</font>";
         }
         else
         {
             if($pli==''){
-                $where = "and marking_period_id='".$mp."' and course_id in (select course_id from  courses where subject_id in (select subject_id from course_subjects where degree_level_id='".$dli."'))";
+                $where = 'and marking_period_id=\''.$mp.'\' and course_id in (select course_id from  courses where subject_id in (select subject_id from course_subjects where degree_level_id=\''.$dli.'\'))';
                 $heading ="All available classes for <font color='black'>".$mp_name." -> ".$d_ret[1]['TITLE']."</font>";
             }
             else
             {
                 if($sli==''){
-                    $where = "and marking_period_id='".$mp."' and course_id in (select course_id from  courses where subject_id in (select subject_id from course_subjects where prog_level_id='".$pli."'))";
+                    $where = 'and marking_period_id=\''.$mp.'\' and course_id in (select course_id from  courses where subject_id in (select subject_id from course_subjects where prog_level_id=\''.$pli.'\'))';
                     $heading ="All available classes for <font color='black'>".$mp_name." -> ".$d_ret[1]['TITLE']." -> ".$p_ret[1]['TITLE']."</font>";
                 }
                 else{
                     if($cli=='')
                     {
-                        $where = "and marking_period_id='".$mp."' and course_id in (select Course_Id from courses where subject_id = '".$_REQUEST['subject_id']."' and School_Id='".UserSchool()."')";
+                        $where = 'and marking_period_id=\''.$mp.'\' and course_id in (select Course_Id from courses where subject_id = \''.$_REQUEST['subject_id'].'\' and School_Id=\''.UserSchool().'\')';
                         #$where = "and marking_period_id='".$mp."' and course_id in (select course_id from  courses where subject_id = (select subject_id from course_subjects where subject_id='".$sli."'))";
                         $heading ="All available classes for <font color='black'>".$mp_name." -> ".$d_ret[1]['TITLE']." -> ".$p_ret[1]['TITLE']." -> ".$s_ret[1]['TITLE']."</font>";
                     }
                     else
                     {
-                        $where = "and marking_period_id='".$mp."' and course_id='".$cli."'";
+                        $where = 'and marking_period_id=\''.$mp.'\' and course_id=\''.$cli.'\'';
                         $heading ="All available classes for <font color='black'>".$mp_name." -> ".$d_ret[1]['TITLE']." -> ".$p_ret[1]['TITLE']." -> ".$s_ret[1]['TITLE']." -> ".$c_ret[1]['TITLE']."</font>";
 
                     }
@@ -429,15 +429,15 @@ function CreateExcel($dli='', $pli='', $sli='', $cli='', $mp='', $mp_name='')
 
     }
 
-    $sql = "select
+    $sql = 'select
                 (select title from courses where course_id=course_periods.course_id) as course,
                 (select title from course_subjects where subject_id=(select subject_id from courses where 						course_id=course_periods.course_id)) as subject,
                 short_name,
                 (select title from school_periods where period_id=course_periods.period_id) as period,
                 marking_period_id,
-                (select CONCAT(LAST_NAME,' ',FIRST_NAME,' ',MIDDLE_NAME,' ') from staff where staff_id=course_periods.teacher_id) as teacher,
+                (select CONCAT(LAST_NAME,\' \',FIRST_NAME,\' \',MIDDLE_NAME,\' \') from staff where staff_id=course_periods.teacher_id) as teacher,
                 room as location,days,course_period_id
-                from course_periods where school_id='".UserSchool()."' and syear='".UserSyear()."' ".$where."";
+                from course_periods where school_id=\''.UserSchool().'\' and syear=\''.UserSyear().'\' '.$where.'';
 
 
     $result = DBGet(DBQuery($sql));

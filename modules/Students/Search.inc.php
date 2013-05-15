@@ -182,19 +182,32 @@ else
 
 	if($_REQUEST['address_group'])
 	{
-                                $extra['SELECT']=",ssm.student_id AS CHILD";
+                                $extra['SELECT']=',ssm.student_id AS CHILD';
                                 $extra['functions']=array('CHILD'=>'_make_Parents');
 		//$extra['SELECT'] .= ",pt.STAFF_ID AS STAFF_ID,CONCAT(pt.LAST_NAME,' ',pt.FIRST_NAME) AS PARENT";
 		if(!($_REQUEST['expanded_view']=='true' || $_REQUEST['addr'] || $extra['addr'])){
                                                       //$extra['WHERE'] = " AND ssm.STUDENT_ID IN (SELECT student_id FROM students_join_users sju,staff st WHERE sju.staff_id=st.staff_id AND st.syear='".UserSyear()."')";
-                    $extra['FROM'] = " INNER JOIN students_join_users sam ON (sam.STUDENT_ID=ssm.STUDENT_ID) INNER JOIN staff pt ON (pt.staff_id=sam.staff_id) AND pt.syear='".  UserSyear()."'".$extra['FROM'];
-		$extra['ORDER_BY'] = "pt.LAST_NAME,pt.FIRST_NAME,FULL_NAME";
+                    $extra['FROM'] = ' INNER JOIN students_join_users sam ON (sam.STUDENT_ID=ssm.STUDENT_ID) INNER JOIN staff pt ON (pt.staff_id=sam.staff_id) INNER JOIN staff_school_relationship ssr ON (pt.staff_id=ssr.staff_id) AND ssr.syear=\''.  UserSyear().'\''.$extra['FROM'];
+		$extra['ORDER_BY'] = 'pt.LAST_NAME,pt.FIRST_NAME,FULL_NAME';
                                     $extra['DISTINCT']='DISTINCT';
 	}
 	
                     }
 	
 $students_RET = GetStuList($extra);
+if($_REQUEST['modname']=='Grades/HonorRoll.php')
+{
+    $i=1;
+    foreach($students_RET as $key=>$stuRET)
+    {
+        if($stuRET['HONOR_ROLL']!='')
+        {
+            $stu[$i]=$stuRET;
+            $i++;
+        }
+    }
+    $students_RET=$stu;
+}
 	if($_REQUEST['address_group'])
 	{
 //		// if address_group specified but only one address returned then convert to ungrouped

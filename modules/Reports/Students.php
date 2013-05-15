@@ -63,16 +63,16 @@ if($modfunc=='list')
 		{
 			// PRODUCE FROM AND WHERE LISTS
 			if($table_name!='students')
-				$from .= ",$table_name a$i";
+				$from .= ','.$table_name.' a'.$i.'';
 			else
 				$i=1;
 			$tables[$i] = 'a'.$i;
 			for($j=1;$j<$i;$j++)
-				$where .= "and a$j.STUDENT_ID=a$i.STUDENT_ID ";
+				$where .= 'and a'.$j.'.STUDENT_ID=a'.$i.'.STUDENT_ID ';
 			if(count($limit[$table_name]))
 			{
 				foreach($limit[$table_name] as $column_name=>$value)
-					$where .= "and a$i.$column_name='$value' ";
+					$where .= 'and a'.$i.'.'.$column_name.'=\''.$value.'\' ';
 			}
 			
 			// PRODUCE SELECT LIST
@@ -80,7 +80,7 @@ if($modfunc=='list')
 			{
 				foreach($column_list as $column_name=>$on)
 				{
-					$select .= ",a$i.$column_name";
+					$select .= ',a'.$i.'.'.$column_name.'';
 					$LO_columns[$column_name] = $fields[$table_name][$column_name];
 					$LO_functions[$column_name] = $functions[$column_name];
 				}
@@ -96,15 +96,15 @@ if($modfunc=='list')
 	if(trim($where)=='')
 		$where .= ' 1=1 ';
 	if($_REQUEST[last])
-		$where .= "and a1.LAST_NAME LIKE '".strtoupper($_REQUEST[last])."%'";
+		$where .= 'and a1.LAST_NAME LIKE \''.strtoupper($_REQUEST[last]).'%\'';
 	if($_REQUEST[first])
-		$where .= "and a1.FIRST_NAME LIKE '".strtoupper($_REQUEST[first])."%'";
+		$where .= 'and a1.FIRST_NAME LIKE \''.strtoupper($_REQUEST[first]).'%\'';
 	if($_REQUEST[stuid])
-		$where .= "and a1.STUDENT_ID = '".$_REQUEST[stuid]."'";
+		$where .= 'and a1.STUDENT_ID = \''.$_REQUEST[stuid].'\'';
 
 	
 	// CONSTRUCT SQL
-	$sql = "SELECT $select FROM $from WHERE $where ORDER BY a1.STUDENT_ID";
+	$sql = 'SELECT '.$select.' FROM '.$from.' WHERE '.$where.' ORDER BY a1.STUDENT_ID';
 	$QI = DBQuery($sql);
 	$RET = DBGet($QI,$LO_functions);
 	

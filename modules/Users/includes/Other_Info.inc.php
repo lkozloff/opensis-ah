@@ -27,11 +27,11 @@
 #***************************************************************************************
 include('../../../Redirect_includes.php');
 include_once('modules/Users/includes/functions.php');
-$fields_RET = DBGet(DBQuery("SELECT ID,TITLE,TYPE,SELECT_OPTIONS,DEFAULT_SELECTION,REQUIRED FROM staff_fields WHERE CATEGORY_ID='$_REQUEST[category_id]' ORDER BY SORT_ORDER,TITLE"));
+$fields_RET = DBGet(DBQuery('SELECT ID,TITLE,TYPE,SELECT_OPTIONS,DEFAULT_SELECTION,REQUIRED FROM staff_fields WHERE CATEGORY_ID=\''.$_REQUEST[category_id].'\' ORDER BY SORT_ORDER,TITLE'));
 
 if(UserStaffID())
 {
-	$custom_RET = DBGet(DBQuery("SELECT * FROM staff WHERE STAFF_ID='".UserStaffID()."'"));
+	$custom_RET = DBGet(DBQuery('SELECT * FROM staff WHERE STAFF_ID=\''.UserStaffID().'\''));
 	$value = $custom_RET[1];
 }
 

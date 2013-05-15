@@ -26,14 +26,14 @@
 #
 #***************************************************************************************
 include('../../Redirect_modules.php');
-$sql = "SELECT a.attnum,a.attname AS field,t.typname AS type,
+$sql = 'SELECT a.attnum,a.attname AS field,t.typname AS type,
 					a.attlen AS length,a.atttypmod AS lengthvar,
 					a.attnotnull AS notnull,c.relname
 				FROM pg_class c, pg_attribute a, pg_type t 
 				WHERE
 					a.attnum > 0 and a.attrelid = c.oid 
-					and c.relkind='r' and c.relname not like 'pg\_%' and a.attname not like '...%'
-					and a.atttypid = t.oid ORDER BY c.relname";
+					and c.relkind=\'r\' and c.relname not like \'pg\_%\' and a.attname not like \'...%\'
+					and a.atttypid = t.oid ORDER BY c.relname';
 $RET = DBGet(DBQuery($sql),array(),array('RELNAME'));
 
 $PDF = PDFStart();

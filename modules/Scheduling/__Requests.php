@@ -43,13 +43,13 @@ if(UserStudentID())
 if($_REQUEST['modfunc']=='verify')
 {
 	unset($courses);
-	$QI = DBQuery("SELECT TITLE,COURSE_ID,SUBJECT_ID FROM courses WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'");
+	$QI = DBQuery('SELECT TITLE,COURSE_ID,SUBJECT_ID FROM courses WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\'');
 	$courses_RET = DBGet($QI,array(),array('COURSE_ID'));
 
-	$QI = DBQuery("SELECT COURSE_WEIGHT,COURSE_ID FROM COURSE_WEIGHTS WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'");
+	$QI = DBQuery('SELECT COURSE_WEIGHT,COURSE_ID FROM COURSE_WEIGHTS WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\'');
 	$weights_RET = DBGet($QI,array(),array('COURSE_ID','COURSE_WEIGHT'));
 
-	DBQuery("DELETE FROM schedule_requests WHERE STUDENT_ID='".UserStudentID()."' AND SYEAR='".UserSyear()."'");
+	DBQuery('DELETE FROM schedule_requests WHERE STUDENT_ID=\''.UserStudentID().'\' AND SYEAR=\''.UserSyear().'\'');
 	
 	foreach($_REQUEST['courses'] as $subject=>$r_courses)
 	{
@@ -73,8 +73,8 @@ if($_REQUEST['modfunc']=='verify')
 				continue;
 			}
 			
-			$sql = "INSERT INTO schedule_requests (SYEAR,SCHOOL_ID,STUDENT_ID,SUBJECT_ID,COURSE_ID,COURSE_WEIGHT,MARKING_PERIOD_ID,WITH_TEACHER_ID,NOT_TEACHER_ID,WITH_PERIOD_ID,NOT_PERIOD_ID)
-						values('".UserSyear()."','".UserSchool()."','".UserStudentID()."','".$courses_RET[$course][1]['SUBJECT_ID']."','".$course."','".$weight."',NULL,'".$_REQUEST['with_teacher'][$subject][$i]."','".$_REQUEST['without_teacher'][$subject][$i]."','".$_REQUEST['with_period'][$subject][$i]."','".$_REQUEST['without_period'][$subject][$i]."')";
+			$sql = 'INSERT INTO schedule_requests (SYEAR,SCHOOL_ID,STUDENT_ID,SUBJECT_ID,COURSE_ID,COURSE_WEIGHT,MARKING_PERIOD_ID,WITH_TEACHER_ID,NOT_TEACHER_ID,WITH_PERIOD_ID,NOT_PERIOD_ID)
+						values(\''.UserSyear().'\',\''.UserSchool().'\',\''.UserStudentID().'\',\''.$courses_RET[$course][1]['SUBJECT_ID'].'\',\''.$course.'\',\''.$weight.'\',\''.'NULL'.'\',\''.$_REQUEST['with_teacher'][$subject][$i].'\',\''.$_REQUEST['without_teacher'][$subject][$i].'\',\''.$_REQUEST['with_period'][$subject][$i].'\',\''.$_REQUEST['without_period'][$subject][$i].'\')';
 			DBQuery($sql);
 		}
 	}
@@ -88,22 +88,22 @@ if($_REQUEST['modfunc']=='verify')
 
 if($_REQUEST['modfunc']=='choose')
 {
-	$QI = DBQuery("SELECT SUBJECT_ID,COURSE_ID,COURSE_WEIGHT,WITH_PERIOD_ID,NOT_PERIOD_ID,WITH_TEACHER_ID,NOT_TEACHER_ID FROM schedule_requests WHERE SYEAR='".UserSyear()."' AND STUDENT_ID='".UserStudentID()."'");
+	$QI = DBQuery('SELECT SUBJECT_ID,COURSE_ID,COURSE_WEIGHT,WITH_PERIOD_ID,NOT_PERIOD_ID,WITH_TEACHER_ID,NOT_TEACHER_ID FROM schedule_requests WHERE SYEAR=\''.UserSyear().'\' AND STUDENT_ID=\''.UserStudentID().'\'');
 	$requests_RET = DBGet($QI,array(),array('SUBJECT_ID'));
 	
-	$QI = DBQuery("SELECT SUBJECT_ID,TITLE FROM course_subjects WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY TITLE");
+	$QI = DBQuery('SELECT SUBJECT_ID,TITLE FROM course_subjects WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY TITLE');
 	$subjects_RET = DBGet($QI,array(),array('SUBJECT_ID'));
 	
-	$QI = DBQuery("SELECT DISTINCT COURSE_ID,TITLE,SUBJECT_ID FROM courses WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'");
+	$QI = DBQuery('SELECT DISTINCT COURSE_ID,TITLE,SUBJECT_ID FROM courses WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\'');
 	$courses_RET = DBGet($QI,array(),array('SUBJECT_ID','COURSE_ID'));
 
-	$QI = DBQuery("SELECT DISTINCT c.SUBJECT_ID,cw.COURSE_WEIGHT FROM COURSE_WEIGHTS cw,courses c WHERE c.COURSE_ID=cw.COURSE_ID AND c.SCHOOL_ID='".UserSchool()."' AND c.SYEAR='".UserSyear()."'");
+	$QI = DBQuery('SELECT DISTINCT c.SUBJECT_ID,cw.COURSE_WEIGHT FROM COURSE_WEIGHTS cw,courses c WHERE c.COURSE_ID=cw.COURSE_ID AND c.SCHOOL_ID=\''.UserSchool().'\' AND c.SYEAR=\''.UserSyear().'\'');
 	$weights_RET = DBGet($QI,array(),array('SUBJECT_ID'));
 
-	$QI = DBQuery("SELECT COURSE_WEIGHT,COURSE_ID FROM COURSE_WEIGHTS WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'");
+	$QI = DBQuery('SELECT COURSE_WEIGHT,COURSE_ID FROM COURSE_WEIGHTS WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\'');
 	$course_weights_RET = DBGet($QI,array(),array('COURSE_ID'));
 
-	$QI = DBQuery("SELECT COURSE_WEIGHT,COURSE_ID,TEACHER_ID,PERIOD_ID FROM course_periods WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'");
+	$QI = DBQuery('SELECT COURSE_WEIGHT,COURSE_ID,TEACHER_ID,PERIOD_ID FROM course_periods WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\'');
 	$periods_RET = DBGet($QI,array(),array('COURSE_ID','COURSE_WEIGHT'));
 
 	$__DBINC_NO_SQLSHOW = true;

@@ -138,7 +138,7 @@ function _makeAutoSelectInput($column,$name,$request='staff')
 	if($field['TYPE']=='autos')
 	{
 		// add values found in current and previous year
-		$options_RET = DBGet(DBQuery("SELECT DISTINCT s.CUSTOM_$field[ID],upper(s.CUSTOM_$field[ID]) AS KEEY FROM staff s WHERE (s.SYEAR='".UserSyear()."' OR s.SYEAR='".(UserSyear()-1)."') AND s.CUSTOM_$field[ID] IS NOT NULL ORDER BY KEEY"));
+		$options_RET = DBGet(DBQuery('SELECT DISTINCT s.CUSTOM_$field[ID],upper(s.CUSTOM_$field[ID]) AS KEEY FROM staff s WHERE (s.SYEAR=\''.UserSyear().'\' OR s.SYEAR=\''.(UserSyear()-1).'\') AND s.CUSTOM_$field[ID] IS NOT NULL ORDER BY KEEY'));
 		if(count($options_RET))
 		{
 			foreach($options_RET as $option)

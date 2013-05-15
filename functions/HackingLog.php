@@ -55,7 +55,7 @@
 				
 				$link = @mysql_connect('os4ed.com','openSIS_log','openSIS_log');
 				@mysql_select_db('openSIS_log');
-				@mysql_query("INSERT INTO hacking_log (HOST_NAME,IP_ADDRESS,LOGIN_DATE,VERSION,PHP_SELF,DOCUMENT_ROOT,SCRIPT_NAME,MODNAME,USERNAME) values('$_SERVER[SERVER_NAME]','$ip','".date('Y-m-d')."','$openSISVersion','$_SERVER[PHP_SELF]','$_SERVER[DOCUMENT_ROOT]','$_SERVER[SCRIPT_NAME]','$_REQUEST[modname]','".User('USERNAME')."')");
+				@mysql_query('INSERT INTO hacking_log (HOST_NAME,IP_ADDRESS,LOGIN_DATE,VERSION,PHP_SELF,DOCUMENT_ROOT,SCRIPT_NAME,MODNAME,USERNAME) values(\''.$_SERVER[SERVER_NAME].'\',\''.$ip.'\',\''.date('Y-m-d').'\',\''.$openSISVersion.'\',\''.$_SERVER[PHP_SELF].'\',\''.$_SERVER[DOCUMENT_ROOT].'\',\''.$_SERVER[SCRIPT_NAME].'\',\''.$_REQUEST[modname].'\',\''.User('USERNAME').'\')');
 				@mysql_close($link);
 				
 				/*$link = @mysql_connect('os4ed.com','openSIS_log','openSIS_log');

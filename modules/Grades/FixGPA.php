@@ -44,14 +44,14 @@ $go = Prompt_Home('Confirm','When do you want to recalculate the running GPA num
 if($go)
 {	
 	$students_RET = GetStuList($extra);
-                                    DBQuery("CREATE TEMPORARY table temp_cum_gpa AS
+                                    DBQuery('CREATE TEMPORARY table temp_cum_gpa AS
                                     SELECT  * FROM student_report_card_grades srcg WHERE credit_attempted=
                                     (SELECT MAX(credit_attempted) FROM student_report_card_grades srcg1 WHERE srcg.course_period_id=srcg1.course_period_id and srcg.student_id=srcg1.student_id AND srcg1.course_period_id IS NOT NULL) 
                                     GROUP BY course_period_id,student_id,marking_period_id
-                                    UNION SELECT * FROM student_report_card_grades WHERE course_period_id IS NULL AND report_card_grade_id IS NULL");
+                                    UNION SELECT * FROM student_report_card_grades WHERE course_period_id IS NULL AND report_card_grade_id IS NULL');
 
-		DBQuery("SELECT calc_cum_gpa_mp('".$_REQUEST['marking_period_id']."')");
-		DBQuery("SELECT set_class_rank_mp('".$_REQUEST['marking_period_id']."')");
+		DBQuery('SELECT calc_cum_gpa_mp(\''.$_REQUEST['marking_period_id'].'\')');
+		DBQuery('SELECT set_class_rank_mp(\''.$_REQUEST['marking_period_id'].'\')');
 
 	unset($_REQUEST['modfunc']);
 	DrawHeader('<IMG SRC=assets/check.gif> The grades for '.GetMP($_REQUEST['marking_period_id']).' has been recalculated.');

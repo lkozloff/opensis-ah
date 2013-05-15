@@ -85,6 +85,21 @@ function SaveData($iu_extra,$fields_done=false,$field_names=false)
 		{
 			foreach($columns as $column=>$value)
 			{
+                            if($table=='student_enrollment')
+                            {
+                            
+                                if($column=='START_DATE')
+                                {
+                                    $s_date='1-'.$_REQUEST['month_values'][$table][$id][$column].'-'.$_REQUEST['year_values'][$table][$id][$column];
+                                    $num_days=date('t',strtotime($s_date));
+
+                                    if($num_days<$_REQUEST['day_values'][$table][$id][$column])
+                                    {
+                                     $error[]='<font color=red>'.date('F',strtotime($s_date)).' has '.$num_days.' days</font>';  
+                                     continue;
+                                    }
+                                }
+                            }
 				if($field_names[$table][$column])
 					$name = 'The value for '.$field_names[$table][$column];
 				else
@@ -128,10 +143,10 @@ function SaveData($iu_extra,$fields_done=false,$field_names=false)
                                                 $value=paramlib_validation($column,$value);
 						$ins_fields[$table] .= $column.',';
                                                 if(stripos($_SERVER['SERVER_SOFTWARE'], 'linux')){
-                                               $ins_values[$table] .= "'".str_replace("'"," \'",$value)." ',";
+                                               $ins_values[$table] .= '\''.str_replace("'"," \'",$value).' \',';
                                                
                                                 }else
-						$ins_values[$table] .= "'".$value." ',";
+						$ins_values[$table] .= '\''.$value.' \',';
 						$go = true;
 					}
 				}
@@ -140,14 +155,14 @@ function SaveData($iu_extra,$fields_done=false,$field_names=false)
 					if(strlen($value)>0){
                                              $value=paramlib_validation($column,$value);
                                              if(stripos($_SERVER['SERVER_SOFTWARE'], 'linux')){
-                                             $values = "$column='".str_replace("'","\'",str_replace('&#39;',"''",$value))." ',";
+                                             $values = $column.'=\''.str_replace("'","\'",str_replace('&#39;',"''",$value)).' \',';
                                              }else
-					     $values = "$column='".$value." ',";
+					     $values = $column.'=\''.$value.' \',';
                                         
                                              $sql[$table] .= str_replace('%u201D', "\"", $values);
                                              if($column == 'END_DATE' && $table=='student_enrollment' )
                                              {
- DBQuery("UPDATE schedule SET END_DATE='".$value."' WHERE STUDENT_ID=".$_REQUEST['student_id']." AND SCHOOL_ID=".UserSchool()."  AND SYEAR=".UserSyear());
+ DBQuery('UPDATE schedule SET END_DATE=\''.$value.'\' WHERE STUDENT_ID=\''.$_REQUEST['student_id'].'\' AND SCHOOL_ID=\''.UserSchool().'\'  AND SYEAR=\''.UserSyear().'\'');
                                              }
                                         }else{
 						$sql[$table] .= "$column=NULL,";
@@ -165,30 +180,30 @@ function SaveData($iu_extra,$fields_done=false,$field_names=false)
                              
                                     if($enrollment_record['END_DATE'] && $enrollment_record['DROP_CODE'])
                                     {
-                                        $select_parent=DBGet(DBQuery("SELECT STAFF_ID FROM students_join_users WHERE STUDENT_ID='$_REQUEST[student_id]'"));
+                                        $select_parent=DBGet(DBQuery('SELECT STAFF_ID FROM students_join_users WHERE STUDENT_ID=\''.$_REQUEST[student_id].'\''));
                                      
                                         foreach($select_parent as $key)
                                         {
-                                            $parent=DBGet(DBQuery("SELECT * FROM staff WHERE STAFF_ID='$key[STAFF_ID]' AND SYEAR='".UserSyear()."' AND CURRENT_SCHOOL_ID='".UserSchool()."'"));
+                                            $parent=DBGet(DBQuery('SELECT * FROM staff WHERE STAFF_ID=\''.$key[STAFF_ID].'\' AND SYEAR=\''.UserSyear().'\' AND CURRENT_SCHOOL_ID=\''.UserSchool().'\''));
                                            
                                             if($parent)
                                             {
                                                 
-                                                $update_parent=DBQuery("UPDATE staff SET IS_DISABLE='Y' WHERE STAFF_ID='".$parent[1][STAFF_ID]."'");
+                                                $update_parent=DBQuery('UPDATE staff SET IS_DISABLE=\'Y\' WHERE STAFF_ID=\''.$parent[1][STAFF_ID].'\'');
                                             }
                                         }
                                     }
                                  else {
-                                        $select_parent=DBGet(DBQuery("SELECT STAFF_ID FROM students_join_users WHERE STUDENT_ID='$_REQUEST[student_id]'"));
+                                        $select_parent=DBGet(DBQuery('SELECT STAFF_ID FROM students_join_users WHERE STUDENT_ID=\''.$_REQUEST[student_id].'\''));
 
                                         foreach($select_parent as $key)
                                         {
-                                            $parent=DBGet(DBQuery("SELECT * FROM staff WHERE STAFF_ID='$key[STAFF_ID]' AND SYEAR='".UserSyear()."' AND CURRENT_SCHOOL_ID='".UserSchool()."'"));
+                                            $parent=DBGet(DBQuery('SELECT * FROM staff WHERE STAFF_ID=\''.$key[STAFF_ID].'\' AND SYEAR=\''.UserSyear().'\' AND CURRENT_SCHOOL_ID=\''.UserSchool().'\''));
 
                                             if($parent)
                                             {
                                                 
-                                                $update_parent=DBQuery("UPDATE staff SET IS_DISABLE=NULL WHERE STAFF_ID='".$parent[1][STAFF_ID]."'");
+                                                $update_parent=DBQuery('UPDATE staff SET IS_DISABLE=NULL WHERE STAFF_ID=\''.$parent[1][STAFF_ID].'\'');
                                             }
                                         }
                                 }

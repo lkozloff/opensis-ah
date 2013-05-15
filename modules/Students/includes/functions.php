@@ -136,11 +136,11 @@ function _makeAutoSelectInput($column,$name,$request='students')
 	{
 		// add values found in current and previous year
 		if($request=='values[address]')
-			$options_RET = DBGet(DBQuery("SELECT DISTINCT a.CUSTOM_$field[ID],upper(a.CUSTOM_$field[ID]) AS KEEY FROM address a,students_join_address sja,students s,student_enrollment sse WHERE a.ADDRESS_ID=sja.ADDRESS_ID AND s.STUDENT_ID=sja.STUDENT_ID AND sse.STUDENT_ID=s.STUDENT_ID AND (sse.SYEAR='".UserSyear()."' OR sse.SYEAR='".(UserSyear()-1)."') AND a.CUSTOM_$field[ID] IS NOT NULL ORDER BY KEEY"));
+			$options_RET = DBGet(DBQuery('SELECT DISTINCT a.CUSTOM_'.$field[ID].',upper(a.CUSTOM_$field[ID]) AS KEEY FROM address a,students_join_address sja,students s,student_enrollment sse WHERE a.ADDRESS_ID=sja.ADDRESS_ID AND s.STUDENT_ID=sja.STUDENT_ID AND sse.STUDENT_ID=s.STUDENT_ID AND (sse.SYEAR=\''.UserSyear().'\' OR sse.SYEAR=\''.(UserSyear()-1).'\') AND a.CUSTOM_$field[ID] IS NOT NULL ORDER BY KEEY'));
 		elseif($request=='values[people]')
-			$options_RET = DBGet(DBQuery("SELECT DISTINCT p.CUSTOM_$field[ID],upper(p.CUSTOM_$field[ID]) AS KEEY FROM people p,students_join_people sjp,students s,student_enrollment sse WHERE p.PERSON_ID=sjp.PERSON_ID AND s.STUDENT_ID=sjp.STUDENT_ID AND sse.STUDENT_ID=s.STUDENT_ID AND (sse.SYEAR='".UserSyear()."' OR sse.SYEAR='".(UserSyear()-1)."') AND p.CUSTOM_$field[ID] IS NOT NULL ORDER BY KEEY"));
+			$options_RET = DBGet(DBQuery('SELECT DISTINCT p.CUSTOM_'.$field[ID].',upper(p.CUSTOM_$field[ID]) AS KEEY FROM people p,students_join_people sjp,students s,student_enrollment sse WHERE p.PERSON_ID=sjp.PERSON_ID AND s.STUDENT_ID=sjp.STUDENT_ID AND sse.STUDENT_ID=s.STUDENT_ID AND (sse.SYEAR=\''.UserSyear().'\' OR sse.SYEAR=\''.(UserSyear()-1).'\') AND p.CUSTOM_$field[ID] IS NOT NULL ORDER BY KEEY'));
 		else // students
-			$options_RET = DBGet(DBQuery("SELECT DISTINCT s.CUSTOM_$field[ID],upper(s.CUSTOM_$field[ID]) AS KEEY FROM students s,student_enrollment sse WHERE sse.STUDENT_ID=s.STUDENT_ID AND (sse.SYEAR='".UserSyear()."' OR sse.SYEAR='".(UserSyear()-1)."') AND s.CUSTOM_$field[ID] IS NOT NULL ORDER BY KEEY"));
+			$options_RET = DBGet(DBQuery('SELECT DISTINCT s.CUSTOM_'.$field[ID].',upper(s.CUSTOM_$field[ID]) AS KEEY FROM students s,student_enrollment sse WHERE sse.STUDENT_ID=s.STUDENT_ID AND (sse.SYEAR=\''.UserSyear().'\' OR sse.SYEAR=\''.(UserSyear()-1).'\') AND s.CUSTOM_'.$field[ID].' IS NOT NULL ORDER BY KEEY'));
 		if(count($options_RET))
 		{
 			foreach($options_RET as $option)
@@ -395,7 +395,7 @@ function _makeStartInputDate($value,$column)
 	elseif($_REQUEST['student_id']=='new')
 	{
 		$id = 'new';
-		$default = DBGet(DBQuery("SELECT min(SCHOOL_DATE) AS START_DATE FROM attendance_calendar WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+		$default = DBGet(DBQuery('SELECT min(SCHOOL_DATE) AS START_DATE FROM attendance_calendar WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 		$default = $default[1]['START_DATE'];
 		if(!$default || DBDate()>$default)
 			$default = DBDate();
@@ -416,10 +416,52 @@ function _makeStartInputDate($value,$column)
 		$div = false;
 	else
 		$div = true;
-
-	return '<TABLE class=LO_field><TR>'.$add.'<TD>'.DateInput($value,'values[student_enrollment]['.$id.']['.$column.']','',$div,true).'</TD></TR></TABLE>';
+        
+        $maxyear = DBGet(DBQuery('SELECT max(syear) AS SYEAR FROM student_enrollment WHERE STUDENT_ID=\''.UserStudentID().'\'')); 
+        if($THIS_RET['SYEAR']==$maxyear[1]['SYEAR'])
+            return '<TABLE class=LO_field><TR>'.$add.'<TD>'.DateInput($value,'values[student_enrollment]['.$id.']['.$column.']','',$div,false).'</TD></TR></TABLE>';
+        else
+        {  
+            return '<TABLE class=LO_field><TR>'.$add.'<TD>'.($value=='' ? DateInput($value,'values[student_enrollment]['.$id.']['.$column.']','',$div,false) : date('M/d/Y',strtotime($value)) ).'</TD></TR></TABLE>';
+        }     
 }
+function _makeStartInputDateenrl($value,$column)
+{	global $THIS_RET;
 
+	if($THIS_RET['ID'])
+		$id = $THIS_RET['ID'];
+	elseif($_REQUEST['student_id']=='new')
+	{
+		$id = 'new';
+		$default = DBGet(DBQuery('SELECT min(SCHOOL_DATE) AS START_DATE FROM attendance_calendar WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
+		$default = $default[1]['START_DATE'];
+		if(!$default || DBDate()>$default)
+			$default = DBDate();
+		$value = $default;
+	}
+	else
+	{
+		$add = '<TD>'.button('add').'</TD>';
+		$id = 'new';
+	}
+
+//	if(!$add_codes)
+//	{
+//		
+//	}
+
+	if($_REQUEST['student_id']=='new')
+		$div = false;
+	else
+		$div = true;
+        //echo $THIS_RET['SYEAR']."asdasd";
+        if($THIS_RET['SYEAR']==UserSyear())
+                return '<TABLE class=LO_field><TR>'.$add.'<TD>'.DateInput($value,'values[student_enrollment]['.$id.']['.$column.']','',$div,false).'</TD></TR></TABLE>';
+        else 
+                return date('F/d/Y',strtotime($value));
+        //return "abcd";
+        //return $THIS_RET;
+}
 function _makeStartInputCode($value,$column)
 {
         global $THIS_RET;
@@ -429,14 +471,21 @@ function _makeStartInputCode($value,$column)
                 $id='new';
 
         $add_codes=array();
-        $options_RET = DBGet(DBQuery("SELECT ID,TITLE AS TITLE FROM student_enrollment_codes WHERE SYEAR='".($THIS_RET['SYEAR']!=''?$THIS_RET['SYEAR'] : UserSyear())."' AND (TYPE='Add' OR TYPE='Roll' OR TYPE='TrnE')"));
+        $options_RET = DBGet(DBQuery('SELECT ID,TITLE AS TITLE FROM student_enrollment_codes WHERE SYEAR=\''.($THIS_RET['SYEAR']!=''?$THIS_RET['SYEAR'] : UserSyear()).'\' AND (TYPE=\'Add\' OR TYPE=\'Roll\' OR TYPE=\'TrnE\')'));
 
 		if($options_RET)
 		{
 			foreach($options_RET as $option)
 				$add_codes[$option['ID']] = $option['TITLE'];
 		}
-        return '<TABLE class=LO_field><TR><TD>'.SelectInput($THIS_RET['ENROLLMENT_CODE'],'values[student_enrollment]['.$id.'][ENROLLMENT_CODE]','',$add_codes,'N/A','style="max-width:150;"').'</TD></TR></TABLE>';
+         $maxyear = DBGet(DBQuery('SELECT max(syear) AS SYEAR FROM student_enrollment WHERE STUDENT_ID=\''.UserStudentID().'\'')); 
+        if($THIS_RET['SYEAR']==$maxyear[1]['SYEAR'])
+            return '<TABLE class=LO_field><TR><TD>'.SelectInput($THIS_RET['ENROLLMENT_CODE'],'values[student_enrollment]['.$id.'][ENROLLMENT_CODE]','',$add_codes,'N/A','style="max-width:150;"').'</TD></TR></TABLE>';
+        else
+        {
+             $CODE_RET = DBGet(DBQuery("SELECT ID,TITLE AS TITLE FROM student_enrollment_codes WHERE ID='".$THIS_RET['ENROLLMENT_CODE']."' "));
+             return '<TABLE class=LO_field><TR><TD>'.$CODE_RET[1]['TITLE'].'</TD></TR></TABLE>';
+        }       
 }
 
 function _makeEndInputDate($value,$column)
@@ -449,7 +498,15 @@ function _makeEndInputDate($value,$column)
 		$id = 'new';
 
 // student_enrollment select create here
-	return '<TABLE class=LO_field><TR><TD>'.DateInput($value,'values[student_enrollment]['.$id.']['.$column.']').'</TD></TR></TABLE>';
+        $maxyear = DBGet(DBQuery('SELECT max(syear) AS SYEAR FROM student_enrollment WHERE STUDENT_ID=\''.UserStudentID().'\'')); 
+        if($THIS_RET['SYEAR']==$maxyear[1]['SYEAR'])
+	 return '<TABLE class=LO_field><TR><TD>'.DateInput($value,'values[student_enrollment]['.$id.']['.$column.']').'</TD></TR></TABLE>';
+        else
+        {  if($value) 
+                return '<TABLE class=LO_field><TR><TD>'.date('M/d/Y',strtotime($value)).'</TD></TR></TABLE>'; 
+            else
+                 return '<TABLE class=LO_field><TR><TD>Na/Na/Na</TD></TR></TABLE>'; 
+        }   
 }
 
 function _makeEndInputCode($value,$column)
@@ -464,7 +521,7 @@ function _makeEndInputCode($value,$column)
 
 //	if(!$drop_codes)
 //	{
-		$options_RET = DBGet(DBQuery("SELECT ID,TITLE AS TITLE,TYPE FROM student_enrollment_codes WHERE SYEAR='".($THIS_RET['SYEAR']!=''?$THIS_RET['SYEAR'] : UserSyear())."'  AND (TYPE='Drop' OR TYPE='Roll' OR TYPE='TrnD')"));
+		$options_RET = DBGet(DBQuery('SELECT ID,TITLE AS TITLE,TYPE FROM student_enrollment_codes WHERE SYEAR=\''.($THIS_RET['SYEAR']!=''?$THIS_RET['SYEAR'] : UserSyear()).'\'  AND (TYPE=\'Drop\' OR TYPE=\'Roll\' OR TYPE=\'TrnD\')'));
 
 		if($options_RET)
 		{
@@ -472,11 +529,19 @@ function _makeEndInputCode($value,$column)
 				$drop_codes[$option['ID']] = $option['TITLE'];
 		}
 //	}
-	$type_RET=DBGet(DBQuery("SELECT ID, TYPE FROM student_enrollment_codes WHERE SYEAR='".($THIS_RET['SYEAR']!=''?$THIS_RET['SYEAR'] : UserSyear())."' AND TYPE='TrnD'"));
+	$type_RET=DBGet(DBQuery('SELECT ID, TYPE FROM student_enrollment_codes WHERE SYEAR=\''.($THIS_RET['SYEAR']!=''?$THIS_RET['SYEAR'] : UserSyear()).'\' AND TYPE=\'TrnD\''));
                   if(count($type_RET)>0)
                       $type_id=$type_RET[1]['ID'];
 // student_enrollment select create here
-	return '<TABLE class=LO_field><TR><TD>'.SelectInput_for_EndInput($THIS_RET['DROP_CODE'],'values[student_enrollment]['.$id.'][DROP_CODE]','',$drop_codes,$type_id,'N/A','style="max-width:150;"').'</TD></TR></TABLE>';
+        $maxyear = DBGet(DBQuery('SELECT max(syear) AS SYEAR FROM student_enrollment WHERE STUDENT_ID=\''.UserStudentID().'\'')); 
+        if($THIS_RET['SYEAR']==$maxyear[1]['SYEAR'])
+            return '<TABLE class=LO_field><TR><TD>'.SelectInput_for_EndInput($THIS_RET['DROP_CODE'],'values[student_enrollment]['.$id.'][DROP_CODE]','',$drop_codes,$type_id,'N/A','style="max-width:150;"').'</TD></TR></TABLE>';
+        else
+          
+        {
+             $CODE_RET = DBGet(DBQuery('SELECT ID,TITLE AS TITLE FROM student_enrollment_codes WHERE ID=\''.$THIS_RET['DROP_CODE'].'\' '));
+             return '<TABLE class=LO_field><TR><TD>'.$CODE_RET[1]['TITLE'].'</TD></TR></TABLE>';
+        }   
 }
 
 function _makeSchoolInput($value,$column)
@@ -488,13 +553,13 @@ function _makeSchoolInput($value,$column)
 		$id = 'new';
 
 	if(!$schools)
-		$schools = DBGet(DBQuery("SELECT ID,TITLE FROM schools"),array(),array('ID'));
+		$schools = DBGet(DBQuery('SELECT ID,TITLE FROM schools'),array(),array('ID'));
 
 	foreach($schools as $sid=>$school)
 		$options[$sid] = $school[1]['TITLE'];
 		// mab - allow school to be editted if illegal value
 	if($THIS_RET['SCHOOL_ID']){
-				$name=DBGet(DBQuery("SELECT TITLE FROM schools WHERE ID=".$THIS_RET['SCHOOL_ID']));
+				$name=DBGet(DBQuery('SELECT TITLE FROM schools WHERE ID=\''.$THIS_RET['SCHOOL_ID'].'\''));
 				return $name[1]['TITLE'];
 	}elseif($_REQUEST['student_id']!='new')
 	  {
@@ -502,7 +567,7 @@ function _makeSchoolInput($value,$column)
 		  {
 			if($schools[$value])
 			{
-				$name=DBGet(DBQuery("SELECT TITLE FROM schools WHERE ID=".UserSchool()));
+				$name=DBGet(DBQuery('SELECT TITLE FROM schools WHERE ID=\''.UserSchool().'\''));
 				return $name[1]['TITLE'];
 			}
 			else
@@ -513,5 +578,106 @@ function _makeSchoolInput($value,$column)
 	 }		
 	else
 		return $schools[UserSchool()][1]['TITLE'];
+}
+
+function _makeStartInputCodeenrl($value,$column)
+{
+        global $THIS_RET;
+        if($THIS_RET['ID'])
+                $id = $THIS_RET['ID'];
+        else
+                $id='new';
+
+        $add_codes=array();
+        $options_RET = DBGet(DBQuery('SELECT ID,TITLE AS TITLE FROM student_enrollment_codes WHERE SYEAR=\''.($THIS_RET['SYEAR']!=''?$THIS_RET['SYEAR'] : UserSyear()).'\' AND (TYPE=\'Add\' OR TYPE=\'Roll\' OR TYPE=\'TrnE\')'));
+
+		if($options_RET)
+		{
+			foreach($options_RET as $option)
+				$add_codes[$option['ID']] = $option['TITLE'];
+		}
+         $option_output= DBGet(DBQuery('SELECT ID,TITLE AS TITLE FROM student_enrollment_codes WHERE SYEAR=\''.($THIS_RET['SYEAR']!=''?$THIS_RET['SYEAR'] : UserSyear()).'\' AND (TYPE=\'Add\' OR TYPE=\'Roll\' OR TYPE=\'TrnE\') AND ID=\''.$value.'\''));
+        if($THIS_RET['SYEAR']==  UserSyear())        
+            return '<TABLE class=LO_field><TR><TD>'.SelectInput($THIS_RET['ENROLLMENT_CODE'],'values[student_enrollment]['.$id.'][ENROLLMENT_CODE]','',$add_codes,'N/A','style="max-width:150;"').'</TD></TR></TABLE>';
+        else 
+        {
+            if($value=='')
+                return "N/A";
+            else
+                return $option_output[1]['TITLE']; 
+        }
+}
+function _makeEndInputDateenrl($value,$column)
+{	global $THIS_RET;
+                  $drop_codes=array();
+
+	if($THIS_RET['ID'])
+		$id = $THIS_RET['ID'];
+	if(!$THIS_RET['ID'])
+		$id = 'new';
+        if($value['DROP_CODE']=='')
+        {
+        $date_field='<TABLE class=LO_field><TR><TD>'.DateInput($value,'values[student_enrollment]['.$id.']['.$column.']','',true,true).'</TD></TR></TABLE>';
+        }
+        if($value['DROP_CODE']!='')
+        {
+        $date_field='<TABLE class=LO_field><TR><TD>'.DateInput($value,'values[student_enrollment]['.$id.']['.$column.']','',true,false).'</TD></TR></TABLE>';
+        }
+// student_enrollment select create here
+	#return '<TABLE class=LO_field><TR><TD>'.DateInput($value,'values[student_enrollment]['.$id.']['.$column.']').'</TD></TR></TABLE>';
+        if($THIS_RET['SYEAR']== UserSyear())
+            return $date_field;
+        else
+        {
+            if($value=='')
+            {
+                return "N/A";
+            }
+            else
+            {
+            return $value;
+            }
+        }
+
+}
+
+function _makeEndInputCodeenrl($value,$column)
+{
+        global $THIS_RET;
+                  $drop_codes=array();
+
+	if($THIS_RET['ID'])
+		$id = $THIS_RET['ID'];
+	else
+		$id = 'new';
+
+//	if(!$drop_codes)
+//	{
+		$options_RET = DBGet(DBQuery('SELECT ID,TITLE AS TITLE,TYPE FROM student_enrollment_codes WHERE SYEAR=\''.($THIS_RET['SYEAR']!=''?$THIS_RET['SYEAR'] : UserSyear()).'\'  AND (TYPE=\'Drop\' OR TYPE=\'Roll\' OR TYPE=\'TrnD\')'));
+
+		if($options_RET)
+		{
+			foreach($options_RET as $option)
+				$drop_codes[$option['ID']] = $option['TITLE'];
+		}
+//	}
+	$type_RET=DBGet(DBQuery('SELECT ID, TYPE FROM student_enrollment_codes WHERE SYEAR=\''.($THIS_RET['SYEAR']!=''?$THIS_RET['SYEAR'] : UserSyear()).'\' AND TYPE=\'TrnD\''));
+                  if(count($type_RET)>0)
+                      $type_id=$type_RET[1]['ID'];
+        $option_output= DBGet(DBQuery('SELECT ID,TITLE AS TITLE FROM student_enrollment_codes WHERE SYEAR=\''.($THIS_RET['SYEAR']!=''?$THIS_RET['SYEAR'] : UserSyear()).'\' AND (TYPE=\'Drop\' OR TYPE=\'Roll\' OR TYPE=\'TrnE\') AND ID=\''.$value.'\''));
+// student_enrollment select create here
+        if($THIS_RET['SYEAR']== UserSyear())
+            return '<TABLE class=LO_field><TR><TD>'.SelectInput_for_EndInput($THIS_RET['DROP_CODE'],'values[student_enrollment]['.$id.'][DROP_CODE]','',$drop_codes,$type_id,'N/A','style="max-width:150;"').'</TD></TR></TABLE>';
+        else
+        {
+            if($value=='')
+            {
+                return "N/A";
+            }
+            else
+            {
+                return $option_output[1]['TITLE'];
+            }
+        }
 }
 ?>

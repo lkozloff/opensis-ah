@@ -87,7 +87,7 @@ PopTable ('footer');
           }
           else
           {
-              $upload_sql=DBQuery("INSERT INTO program_config (SCHOOL_ID,PROGRAM ,TITLE,VALUE) VALUES('".UserSchool()."','SchoolLogo','PATH','$upload->target_path')");
+              $upload_sql=DBQuery('INSERT INTO program_config (SCHOOL_ID,PROGRAM ,TITLE,VALUE) VALUES(\''.UserSchool().'\',\'SchoolLogo\',\'PATH\',\''.$upload->target_path.'\')');
           }
 	  @fopen($upload->target_path,'r');
 	echo '<div align=center><IMG SRC="'.$upload->target_path.'" height=100 width=100 class=pic></div><div class=break></div>';

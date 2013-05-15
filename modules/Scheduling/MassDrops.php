@@ -42,17 +42,17 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
                {
                     $mp_table = GetMPTable(GetMP($_REQUEST['marking_period_id'],'TABLE'));
                     //$current_RET = DBGet(DBQuery("SELECT STUDENT_ID FROM schedule WHERE COURSE_PERIOD_ID='".$_SESSION['MassDrops.php']['course_period_id']."' AND SYEAR='".UserSyear()."' AND (('".$start_date."' BETWEEN START_DATE AND END_DATE OR END_DATE IS NULL) AND '".$start_date."'>=START_DATE)"),array(),array('STUDENT_ID'));
-                    $current_RET = DBGet(DBQuery("SELECT STUDENT_ID FROM schedule WHERE COURSE_PERIOD_ID='".$_SESSION['MassDrops.php']['course_period_id']."' "));
+                    $current_RET = DBGet(DBQuery('SELECT STUDENT_ID FROM schedule WHERE COURSE_PERIOD_ID=\''.$_SESSION['MassDrops.php']['course_period_id'].'\''));
                 if(count($_REQUEST['student'])>0)
                 {
                     foreach($_REQUEST['student'] as $student_id=>$yes)
                     {
-                                $start_end_RET = DBGet(DBQuery("SELECT START_DATE,END_DATE,SCHEDULER_LOCK FROM schedule WHERE STUDENT_ID='".$student_id."' AND COURSE_PERIOD_ID='".$_SESSION['MassDrops.php']['course_period_id']."'"));
+                                $start_end_RET = DBGet(DBQuery('SELECT START_DATE,END_DATE,SCHEDULER_LOCK FROM schedule WHERE STUDENT_ID=\''.$student_id.'\' AND COURSE_PERIOD_ID=\''.$_SESSION['MassDrops.php']['course_period_id'].'\''));
                                 if(count($start_end_RET))
                                 {
                                 if($start_end_RET[1]['SCHEDULER_LOCK']=='Y' || $start_end_RET[1]['START_DATE']>$end_date_mod)
                                     {
-                                         $select_stu = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME FROM students WHERE STUDENT_ID='".$student_id."'"));
+                                         $select_stu = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME FROM students WHERE STUDENT_ID=\''.$student_id.'\''));
                                          $select_stu = $select_stu[1]['FIRST_NAME']."&nbsp;".$select_stu[1]['LAST_NAME'];
                                          if($start_end_RET[1]['SCHEDULER_LOCK']=='Y')
                                         {
@@ -68,8 +68,8 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
                                 
                                     else
                                     {
-                                         DBQuery("UPDATE schedule SET END_DATE='".$END_DATE."',MODIFIED_DATE='".Date('Y-m-d')."',MODIFIED_BY='".  User('STAFF_ID')."'  WHERE STUDENT_ID='".clean_param($student_id,PARAM_INT)."' AND COURSE_PERIOD_ID='".clean_param($_SESSION['MassDrops.php']['course_period_id'],PARAM_INT)."'");
-                                         DBQuery("CALL SEAT_COUNT()"); 
+                                         DBQuery('UPDATE schedule SET END_DATE=\''.$END_DATE.'\',MODIFIED_DATE=\''.Date('Y-m-d').'\',MODIFIED_BY=\''.  User('STAFF_ID').'\'  WHERE STUDENT_ID=\''.clean_param($student_id,PARAM_INT).'\' AND COURSE_PERIOD_ID=\''.clean_param($_SESSION['MassDrops.php']['course_period_id'],PARAM_INT).'\'');
+                                         DBQuery('CALL SEAT_COUNT()'); 
                                          $note = "Selected students have been dropped from the course period.";
                                     }
                                     
@@ -112,10 +112,9 @@ if(!$_REQUEST['modfunc'])
 
         if($_SESSION['MassDrops.php']['course_period_id'])
         {
-                        $extra['FROM'] .= ",schedule w_ss";
-                        $extra['WHERE'] .= " AND w_ss.STUDENT_ID=s.STUDENT_ID AND w_ss.SYEAR=ssm.SYEAR AND w_ss.SCHOOL_ID=ssm.SCHOOL_ID AND w_ss.COURSE_PERIOD_ID='".$_SESSION['MassDrops.php']['course_period_id']."' AND (".(($_REQUEST['include_inactive'])?"": "w_ss.START_DATE <='".DBDate()."'AND")." (w_ss.END_DATE>='".DBDate()."' OR w_ss.END_DATE IS NULL))";
-
-                        $course = DBGet(DBQuery("SELECT c.TITLE AS COURSE_TITLE,cp.TITLE,cp.COURSE_ID FROM course_periods cp,courses c WHERE c.COURSE_ID=cp.COURSE_ID AND cp.COURSE_PERIOD_ID='".$_SESSION['MassDrops.php']['course_period_id']."'"));
+                        $extra['FROM'] .= ',schedule w_ss';
+                        $extra['WHERE'] .= ' AND w_ss.STUDENT_ID=s.STUDENT_ID AND w_ss.SYEAR=ssm.SYEAR AND w_ss.SCHOOL_ID=ssm.SCHOOL_ID AND w_ss.COURSE_PERIOD_ID=\''.$_SESSION['MassDrops.php']['course_period_id'].'\' AND ('.(($_REQUEST['include_inactive'])?'': 'w_ss.START_DATE <=\''.DBDate().'\' AND').' (w_ss.END_DATE>=\''.DBDate().'\' OR w_ss.END_DATE IS NULL))';
+                        $course = DBGet(DBQuery('SELECT c.TITLE AS COURSE_TITLE,cp.TITLE,cp.COURSE_ID FROM course_periods cp,courses c WHERE c.COURSE_ID=cp.COURSE_ID AND cp.COURSE_PERIOD_ID=\''.$_SESSION['MassDrops.php']['course_period_id'].'\''));
                         $_openSIS['SearchTerms'] .= '<font color=gray><b>Course Period: </b></font>'.$course[1]['COURSE_TITLE'].': '.$course[1]['TITLE'].'<BR>';
         }
         $extra['search'] .= "<TR><TD align='left' width='160' valign='top'>Course Period</TD><TD valign='top'><DIV id=course_div></DIV> <A HREF=# onclick='window.open(\"for_window.php?modname=$_REQUEST[modname]&modfunc=choose_course\",\"\",\"scrollbars=yes,resizable=yes,width=800,height=400\");'>Choose </A></TD></TR>";
@@ -213,9 +212,9 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAEXT)=='choose_course')
                 //$_SESSION['MassDrops.php']['course_weight'] = $_REQUEST['course_weight'];
                 $_SESSION['MassDrops.php']['course_period_id'] = clean_param($_REQUEST['course_period_id'],PARAM_INT);
 
-                $course_title = DBGet(DBQuery("SELECT TITLE FROM courses WHERE COURSE_ID='".$_SESSION['MassDrops.php']['course_id']."'"));
+                $course_title = DBGet(DBQuery('SELECT TITLE FROM courses WHERE COURSE_ID=\''.$_SESSION['MassDrops.php']['course_id'].'\''));
                 $course_title = $course_title[1]['TITLE'];
-                $cp_RET = DBGet(DBQuery("SELECT TITLE,(SELECT TITLE FROM school_periods sp WHERE sp.PERIOD_ID=cp.PERIOD_ID) AS PERIOD_TITLE,MARKING_PERIOD_ID,(SELECT CONCAT(FIRST_NAME,' ',LAST_NAME) FROM staff st WHERE st.STAFF_ID=cp.TEACHER_ID) AS TEACHER,ROOM,TOTAL_SEATS-FILLED_SEATS AS AVAILABLE_SEATS FROM course_periods cp WHERE cp.COURSE_PERIOD_ID='".$_SESSION['MassDrops.php']['course_period_id']."'"));
+                $cp_RET = DBGet(DBQuery('SELECT TITLE,(SELECT TITLE FROM school_periods sp WHERE sp.PERIOD_ID=cp.PERIOD_ID) AS PERIOD_TITLE,MARKING_PERIOD_ID,(SELECT CONCAT(FIRST_NAME,\''.' ' .'\',LAST_NAME) FROM staff st WHERE st.STAFF_ID=cp.TEACHER_ID) AS TEACHER,ROOM,TOTAL_SEATS-FILLED_SEATS AS AVAILABLE_SEATS FROM course_periods cp WHERE cp.COURSE_PERIOD_ID=\''.$_SESSION['MassDrops.php']['course_period_id'].'\''));
                 $cp_title = $cp_RET[1]['TITLE'];
                 $cp_teacher = $cp_RET[1]['TEACHER'];
                 $period_title=$cp_RET[1]['PERIOD_TITLE'];

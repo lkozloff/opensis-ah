@@ -94,14 +94,24 @@ if(!$_REQUEST['modfunc'])
         if($_REQUEST['ethnic'])
         $extra .= " AND s.ETHNICITY = '$_REQUEST[ethnic]' ";*/
 
-        $student_days_absent = DBGet(DBQuery("SELECT ad.SCHOOL_DATE,ssm.GRADE_ID,COALESCE(sum(ad.STATE_VALUE-1)*-1,0) AS STATE_VALUE FROM attendance_day ad,student_enrollment ssm,students s WHERE s.STUDENT_ID=ssm.STUDENT_ID AND ad.STUDENT_ID=ssm.STUDENT_ID AND ssm.SYEAR='".UserSyear()."' AND ad.SYEAR=ssm.SYEAR AND ad.SCHOOL_DATE BETWEEN '$start_date' AND '$end_date' AND (ad.SCHOOL_DATE BETWEEN ssm.START_DATE AND ssm.END_DATE OR (ssm.END_DATE IS NULL AND ssm.START_DATE <= ad.SCHOOL_DATE)) ".$extra['WHERE']." GROUP BY ad.SCHOOL_DATE,ssm.GRADE_ID"),array(''),array('SCHOOL_DATE','GRADE_ID'));
+        $student_days_absent = DBGet(DBQuery('SELECT ad.SCHOOL_DATE,ssm.GRADE_ID,COALESCE(sum(ad.STATE_VALUE-1)*-1,0) AS STATE_VALUE FROM attendance_day ad,student_enrollment ssm,students s WHERE s.STUDENT_ID=ssm.STUDENT_ID AND ad.STUDENT_ID=ssm.STUDENT_ID AND ssm.SYEAR=\''.UserSyear().'\' AND ad.SYEAR=ssm.SYEAR AND ad.SCHOOL_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\' AND (ad.SCHOOL_DATE BETWEEN ssm.START_DATE AND ssm.END_DATE OR (ssm.END_DATE IS NULL AND ssm.START_DATE <= ad.SCHOOL_DATE)) '.$extra['WHERE'].' GROUP BY ad.SCHOOL_DATE,ssm.GRADE_ID'),array(''),array('SCHOOL_DATE','GRADE_ID'));
        
 	   
 	   
 	  #echo User('STAFF_ID');
-	  $sql_school = DBGet(DBQuery("SELECT SCHOOLS FROM staff WHERE STAFF_ID=".User('STAFF_ID')));
-	  $in_schools_raw = $sql_school[1]['SCHOOLS'];
-	  $in_schools = substr($in_schools_raw, 1, -1);
+	 // $sql_school = DBGet(DBQuery('SELECT SCHOOLS FROM staff WHERE STAFF_ID='.User('STAFF_ID')));
+         $sql_school = DBGet(DBQuery('SELECT DISTINCT SCHOOL_ID FROM staff_school_relationship WHERE STAFF_ID='.User('STAFF_ID')));
+	//  $in_schools_raw = $sql_school[1]['SCHOOLS'];
+        
+        foreach ($sql_school as $school_key => $school_value) {
+          $in_schools_raw .=  ','.$school_value['SCHOOL_ID'];
+        }
+          $in_schools_raw = $in_schools_raw;
+       
+          #$sql_school = DBGet(DBQuery('SELECT CURRENT_SCHOOL_ID FROM staff WHERE STAFF_ID='.User('STAFF_ID')));
+	  #$in_schools_raw = $sql_school[1]['CURRENT_SCHOOL_ID'];
+       //   $in_schools = substr($in_schools_raw, 1, -1);
+          $in_schools = substr($in_schools_raw, 1);
 	  
 	  $permited_schools = explode(",", $in_schools);
 	  $sch_count = count($permited_schools);
@@ -118,7 +128,7 @@ if(!$_REQUEST['modfunc'])
 
 		if($sch_count == 1)
 		{
-			$student_days_possible = DBGet(DBQuery("SELECT ap.SCHOOL_DATE, CONCAT(s.FIRST_NAME, ' ', s.LAST_NAME,' ') as STUDENTS, sg.TITLE as GRADE, sp.TITLE as PERIOD, ac.TITLE as STATUS from attendance_period ap, students s, school_gradelevels sg, attendance_codes ac, student_enrollment ssm, school_periods sp where ssm.syear=".UserSyear()." and ap.attendance_code=ac.id and ssm.grade_id=sg.id and ap.period_id=sp.period_id and ap.student_id=s.student_id and ssm.student_id=ap.student_id AND ssm.school_id in (".$in_schools.") AND ap.SCHOOL_DATE BETWEEN '$start_date' AND '$end_date' ".$extra['WHERE']." "),array('SCHOOL_DATE'=>'ProperDate','GRADE'=>'GRADE','STUDENTS'=>'STUDENTS','PRESENT'=>'_makeByDay','ABSENT'=>'_makeByDay','ADA'=>'_makeByDay'));
+			$student_days_possible = DBGet(DBQuery('SELECT ap.SCHOOL_DATE, CONCAT(s.FIRST_NAME, \' \', s.LAST_NAME,\' \') as STUDENTS, sg.TITLE as GRADE, sp.TITLE as PERIOD, ac.TITLE as STATUS from attendance_period ap, students s, school_gradelevels sg, attendance_codes ac, student_enrollment ssm, school_periods sp where ssm.syear=\''.UserSyear().'\' and ap.attendance_code=ac.id and ssm.grade_id=sg.id and ap.period_id=sp.period_id and ap.student_id=s.student_id and ssm.student_id=ap.student_id AND ssm.school_id in ('.$in_schools.') AND ap.SCHOOL_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\' '.$extra['WHERE'].'' ),array('SCHOOL_DATE'=>'ProperDate','GRADE'=>'GRADE','STUDENTS'=>'STUDENTS','PRESENT'=>'_makeByDay','ABSENT'=>'_makeByDay','ADA'=>'_makeByDay'));
 			
 			$columns = array('SCHOOL_DATE'=>'Date','STUDENTS'=>'Student Name','GRADE'=>'Grade','PERIOD'=>'Period Name','STATUS'=>'Attendance Status');
 		}
@@ -127,11 +137,11 @@ if(!$_REQUEST['modfunc'])
 			
 			if($_REQUEST['all_school'] == 'Y')
 			{
-				$student_days_possible = DBGet(DBQuery("SELECT ap.SCHOOL_DATE, CONCAT(s.FIRST_NAME, ' ', s.LAST_NAME,' ') as STUDENTS, sg.TITLE as GRADE, sp.TITLE as PERIOD, ac.TITLE as STATUS, sc.TITLE AS SCHOOL from attendance_period ap, students s, school_gradelevels sg, attendance_codes ac, student_enrollment ssm, school_periods sp, schools sc where ssm.syear=".UserSyear()." and ap.attendance_code=ac.id and ssm.grade_id=sg.id and ap.period_id=sp.period_id and ap.student_id=s.student_id and ssm.student_id=ap.student_id AND sc.id=ssm.school_id AND ssm.school_id in (".$in_schools.") AND ap.SCHOOL_DATE BETWEEN '$start_date' AND '$end_date' ".$extra['WHERE']." "),array('SCHOOL_DATE'=>'ProperDate','GRADE'=>'GRADE','STUDENTS'=>'STUDENTS','PRESENT'=>'_makeByDay','ABSENT'=>'_makeByDay','ADA'=>'_makeByDay'));
+				$student_days_possible = DBGet(DBQuery('SELECT ap.SCHOOL_DATE, CONCAT(s.FIRST_NAME, \' \', s.LAST_NAME,\' \') as STUDENTS, sg.TITLE as GRADE, sp.TITLE as PERIOD, ac.TITLE as STATUS, sc.TITLE AS SCHOOL from attendance_period ap, students s, school_gradelevels sg, attendance_codes ac, student_enrollment ssm, school_periods sp, schools sc where ssm.syear=\''.UserSyear().'\' and ap.attendance_code=ac.id and ssm.grade_id=sg.id and ap.period_id=sp.period_id and ap.student_id=s.student_id and ssm.student_id=ap.student_id AND sc.id=ssm.school_id AND ssm.school_id in ('.$in_schools.') AND ap.SCHOOL_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\' '.$extra['WHERE'].' '),array('SCHOOL_DATE'=>'ProperDate','GRADE'=>'GRADE','STUDENTS'=>'STUDENTS','PRESENT'=>'_makeByDay','ABSENT'=>'_makeByDay','ADA'=>'_makeByDay'));
 			}
 			else
 			{
-				$student_days_possible = DBGet(DBQuery("SELECT ap.SCHOOL_DATE, CONCAT(s.FIRST_NAME, ' ', s.LAST_NAME,' ') as STUDENTS, sg.TITLE as GRADE, sp.TITLE as PERIOD, ac.TITLE as STATUS, sc.TITLE AS SCHOOL from attendance_period ap, students s, school_gradelevels sg, attendance_codes ac, student_enrollment ssm, school_periods sp, schools sc where ssm.syear=".UserSyear()." and sc.id=".UserSchool()." and ap.attendance_code=ac.id and ssm.grade_id=sg.id and ap.period_id=sp.period_id and ap.student_id=s.student_id and ssm.student_id=ap.student_id AND sc.id=ssm.school_id AND ssm.school_id in (".$in_schools.") AND ap.SCHOOL_DATE BETWEEN '$start_date' AND '$end_date' ".$extra['WHERE']." "),array('SCHOOL_DATE'=>'ProperDate','GRADE'=>'GRADE','STUDENTS'=>'STUDENTS','PRESENT'=>'_makeByDay','ABSENT'=>'_makeByDay','ADA'=>'_makeByDay'));
+				$student_days_possible = DBGet(DBQuery('SELECT ap.SCHOOL_DATE, CONCAT(s.FIRST_NAME, \' \', s.LAST_NAME,\' \') as STUDENTS, sg.TITLE as GRADE, sp.TITLE as PERIOD, ac.TITLE as STATUS, sc.TITLE AS SCHOOL from attendance_period ap, students s, school_gradelevels sg, attendance_codes ac, student_enrollment ssm, school_periods sp, schools sc where ssm.syear=\''.UserSyear().'\' and sc.id=\''.UserSchool().'\' and ap.attendance_code=ac.id and ssm.grade_id=sg.id and ap.period_id=sp.period_id and ap.student_id=s.student_id and ssm.student_id=ap.student_id AND sc.id=ssm.school_id AND ssm.school_id in ('.$in_schools.') AND ap.SCHOOL_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\' '.$extra['WHERE'].' '),array('SCHOOL_DATE'=>'ProperDate','GRADE'=>'GRADE','STUDENTS'=>'STUDENTS','PRESENT'=>'_makeByDay','ABSENT'=>'_makeByDay','ADA'=>'_makeByDay'));
 			}
 			
 			$columns = array('SCHOOL_DATE'=>'Date','STUDENTS'=>'Student Name','GRADE'=>'Grade','PERIOD'=>'Period Name','STATUS'=>'Attendance Status','SCHOOL'=>'School');
@@ -141,8 +151,8 @@ if(!$_REQUEST['modfunc'])
     }
     else
     {
-        $cal_days = DBGet(DBQuery("SELECT count(*) AS COUNT,CALENDAR_ID FROM attendance_calendar WHERE ".($_REQUEST['_search_all_schools']!='Y'?"SCHOOL_ID='".UserSchool()."' AND ":'')." SYEAR='".UserSyear()."' AND SCHOOL_DATE BETWEEN '$start_date' AND '$end_date' GROUP BY CALENDAR_ID"),array(),array('CALENDAR_ID'));
-        $calendars_RET = DBGet(DBQuery("SELECT CALENDAR_ID,TITLE FROM attendance_calendars WHERE SYEAR='".UserSyear()."' ".($_REQUEST['_search_all_schools']!='Y'?" AND SCHOOL_ID='".UserSchool()."'":'')),array(),array('CALENDAR_ID'));
+        $cal_days = DBGet(DBQuery('SELECT count(*) AS COUNT,CALENDAR_ID FROM attendance_calendar WHERE '.($_REQUEST['_search_all_schools']!='Y'?'SCHOOL_ID=\''.UserSchool().'\' AND ':'').' SYEAR=\''.UserSyear().'\' AND SCHOOL_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\' GROUP BY CALENDAR_ID'),array(),array('CALENDAR_ID'));
+        $calendars_RET = DBGet(DBQuery('SELECT CALENDAR_ID,TITLE FROM attendance_calendars WHERE SYEAR=\''.UserSyear().'\' '.($_REQUEST['_search_all_schools']!='Y'?' AND SCHOOL_ID=\''.UserSchool().'\'':'')),array(),array('CALENDAR_ID'));
 
         /*$extra = '';
         if($_REQUEST['GENDER'])
@@ -156,10 +166,10 @@ if(!$_REQUEST['modfunc'])
         if($_REQUEST['ethnic'])
         $extra .= " AND s.ETHNICITY = '$_REQUEST[ethnic]' ";*/
 
-       $extra['WHERE'] .= " GROUP BY ssm.GRADE_ID,ssm.CALENDAR_ID";
+       $extra['WHERE'] .= ' GROUP BY ssm.GRADE_ID,ssm.CALENDAR_ID';
 
-        $student_days_absent = DBGet(DBQuery("SELECT ssm.GRADE_ID,ssm.CALENDAR_ID,COALESCE(sum(ad.STATE_VALUE-1)*-1,0) AS STATE_VALUE FROM attendance_day ad,student_enrollment ssm,students s WHERE s.STUDENT_ID=ssm.STUDENT_ID AND ad.STUDENT_ID=ssm.STUDENT_ID AND ssm.SYEAR='".UserSyear()."' AND ad.SYEAR=ssm.SYEAR AND ad.SCHOOL_DATE BETWEEN '$start_date' AND '$end_date' AND (ad.SCHOOL_DATE BETWEEN ssm.START_DATE AND ssm.END_DATE OR (ssm.END_DATE IS NULL AND ssm.START_DATE <= ad.SCHOOL_DATE)) ".$extra['WHERE']),array(''),array('GRADE_ID','CALENDAR_ID'));
-        $student_days_possible = DBGet(DBQuery("SELECT ssm.GRADE_ID,ssm.CALENDAR_ID,'' AS DAYS_POSSIBLE,count(*) AS ATTENDANCE_POSSIBLE,count(*) AS STUDENTS,'' AS PRESENT,'' AS ABSENT,'' AS ADA,'' AS AVERAGE_ATTENDANCE,'' AS AVERAGE_ABSENT FROM student_enrollment ssm,attendance_calendar ac,students s WHERE s.STUDENT_ID=ssm.STUDENT_ID AND ssm.SYEAR='".UserSyear()."' AND ac.SYEAR=ssm.SYEAR AND ac.CALENDAR_ID=ssm.CALENDAR_ID AND ".($_REQUEST['_search_all_schools']!='Y'?"ssm.SCHOOL_ID='".UserSchool()."' AND ":'')." ssm.SCHOOL_ID=ac.SCHOOL_ID AND (ac.SCHOOL_DATE BETWEEN ssm.START_DATE AND ssm.END_DATE OR (ssm.END_DATE IS NULL AND ssm.START_DATE <= ac.SCHOOL_DATE)) AND ac.SCHOOL_DATE BETWEEN '$start_date' AND '$end_date' ".$extra['WHERE']),array('GRADE_ID'=>'_make','STUDENTS'=>'_make','PRESENT'=>'_make','ABSENT'=>'_make','ADA'=>'_make','AVERAGE_ATTENDANCE'=>'_make','AVERAGE_ABSENT'=>'_make','DAYS_POSSIBLE'=>'_make'));
+        $student_days_absent = DBGet(DBQuery('SELECT ssm.GRADE_ID,ssm.CALENDAR_ID,COALESCE(sum(ad.STATE_VALUE-1)*-1,0) AS STATE_VALUE FROM attendance_day ad,student_enrollment ssm,students s WHERE s.STUDENT_ID=ssm.STUDENT_ID AND ad.STUDENT_ID=ssm.STUDENT_ID AND ssm.SYEAR=\''.UserSyear().'\' AND ad.SYEAR=ssm.SYEAR AND ad.SCHOOL_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\' AND (ad.SCHOOL_DATE BETWEEN ssm.START_DATE AND ssm.END_DATE OR (ssm.END_DATE IS NULL AND ssm.START_DATE <= ad.SCHOOL_DATE)) '.$extra['WHERE']),array(''),array('GRADE_ID','CALENDAR_ID'));
+        $student_days_possible = DBGet(DBQuery('SELECT ssm.GRADE_ID,ssm.CALENDAR_ID,\'\' AS DAYS_POSSIBLE,count(*) AS ATTENDANCE_POSSIBLE,count(*) AS STUDENTS,\'\' AS PRESENT,\'\' AS ABSENT,\'\' AS ADA,\'\' AS AVERAGE_ATTENDANCE,\'\' AS AVERAGE_ABSENT FROM student_enrollment ssm,attendance_calendar ac,students s WHERE s.STUDENT_ID=ssm.STUDENT_ID AND ssm.SYEAR=\''.UserSyear().'\' AND ac.SYEAR=ssm.SYEAR AND ac.CALENDAR_ID=ssm.CALENDAR_ID AND '.($_REQUEST['_search_all_schools']!='Y'?'ssm.SCHOOL_ID=\''.UserSchool().'\' AND ':'').' ssm.SCHOOL_ID=ac.SCHOOL_ID AND (ac.SCHOOL_DATE BETWEEN ssm.START_DATE AND ssm.END_DATE OR (ssm.END_DATE IS NULL AND ssm.START_DATE <= ac.SCHOOL_DATE)) AND ac.SCHOOL_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\' '.$extra['WHERE']),array('GRADE_ID'=>'_make','STUDENTS'=>'_make','PRESENT'=>'_make','ABSENT'=>'_make','ADA'=>'_make','AVERAGE_ATTENDANCE'=>'_make','AVERAGE_ABSENT'=>'_make','DAYS_POSSIBLE'=>'_make'));
 
         $columns = array('GRADE_ID'=>'Grade','STUDENTS'=>'Total Attendance','DAYS_POSSIBLE'=>'Days Possible','PRESENT'=>'Present','ABSENT'=>'Absent','ADA'=>'ADA','AVERAGE_ATTENDANCE'=>'Average Attendance','AVERAGE_ABSENT'=>'Average Absent');
         $link['add']['html'] = array('GRADE_ID'=>'<b>Total</b>','STUDENTS'=>round($sum['STUDENTS'],1),'DAYS_POSSIBLE'=>$cal_days[key($cal_days)][1]['COUNT'],'PRESENT'=>$sum['PRESENT'],'ADA'=>Percent(($sum['PRESENT'])/($sum['PRESENT']+$sum['ABSENT'])),'ABSENT'=>$sum['ABSENT'],'AVERAGE_ATTENDANCE'=>round($sum['AVERAGE_ATTENDANCE'],1),'AVERAGE_ABSENT'=>round($sum['AVERAGE_ABSENT'],1));

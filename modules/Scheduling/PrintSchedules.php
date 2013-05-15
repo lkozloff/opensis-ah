@@ -45,12 +45,12 @@ if($_REQUEST['modfunc']=='save')
 	}
 	$columns = array('PERIOD_TITLE'=>'Period - Teacher','MARKING_PERIOD_ID'=>'Term','DAYS'=>'Days','DURATION'=>'Time','ROOM'=>'Room','COURSE_TITLE'=>'Course');
 
-	$extra['SELECT'] .= ',c.TITLE AS COURSE_TITLE,p_cp.TITLE AS PERIOD_TITLE,sr.MARKING_PERIOD_ID,p_cp.DAYS, CONCAT(sp.START_TIME, " to ", sp.END_TIME) AS DURATION,p_cp.ROOM';
+	$extra['SELECT'] .= ',c.TITLE AS COURSE_TITLE,p_cp.TITLE AS PERIOD_TITLE,sr.MARKING_PERIOD_ID,p_cp.DAYS, CONCAT(sp.START_TIME,\''. ' to '.'\', sp.END_TIME) AS DURATION,p_cp.ROOM';
 	$extra['FROM'] .= ' LEFT OUTER JOIN schedule sr ON (sr.STUDENT_ID=ssm.STUDENT_ID),courses c,course_periods p_cp,school_periods sp ';
 //	$extra['WHERE'] .= " AND p_cp.PERIOD_ID=sp.PERIOD_ID AND ssm.SYEAR=sr.SYEAR AND sr.COURSE_ID=c.COURSE_ID AND sr.COURSE_PERIOD_ID=p_cp.COURSE_PERIOD_ID AND p_cp.PERIOD_ID=sp.PERIOD_ID  AND ('$date' BETWEEN sr.START_DATE AND sr.END_DATE $date_extra)";
-	$extra['WHERE'] .= " AND p_cp.PERIOD_ID=sp.PERIOD_ID AND ssm.SYEAR=sr.SYEAR AND sr.COURSE_ID=c.COURSE_ID AND sr.COURSE_PERIOD_ID=p_cp.COURSE_PERIOD_ID AND p_cp.PERIOD_ID=sp.PERIOD_ID";
+	$extra['WHERE'] .= ' AND p_cp.PERIOD_ID=sp.PERIOD_ID AND ssm.SYEAR=sr.SYEAR AND sr.COURSE_ID=c.COURSE_ID AND sr.COURSE_PERIOD_ID=p_cp.COURSE_PERIOD_ID AND p_cp.PERIOD_ID=sp.PERIOD_ID';
                   if($_REQUEST['include_inactive']!='Y'){
-                        $extra['WHERE'] .= " AND ('".date('Y-m-d',strtotime($date))."' BETWEEN sr.START_DATE AND sr.END_DATE OR (sr.END_DATE IS NULL AND sr.START_DATE<='".date('Y-m-d',strtotime($date))."')) ";
+                        $extra['WHERE'] .= ' AND (\''.date('Y-m-d',strtotime($date)).'\' BETWEEN sr.START_DATE AND sr.END_DATE OR (sr.END_DATE IS NULL AND sr.START_DATE<=\''.date('Y-m-d',strtotime($date)).'\')) ';
                   }
                   if($_REQUEST['mp_id']){
                         $extra['WHERE'] .= ' AND sr.MARKING_PERIOD_ID IN ('.GetAllMP(GetMPTable(GetMP($_REQUEST['mp_id'],'TABLE')),$_REQUEST['mp_id']).')';
@@ -61,7 +61,6 @@ if($_REQUEST['modfunc']=='save')
 	if($_REQUEST['mailing_labels']=='Y')
 		$extra['group'][] = 'ADDRESS_ID';
 	Widgets('mailing_labels');
-
 	$RET = GetStuList($extra);
 
 	if(count($RET))
@@ -148,7 +147,7 @@ if(!$_REQUEST['modfunc'])
 
 	if($_REQUEST['search_modfunc']=='list')
 	{
-		$mp_RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,TITLE,SORT_ORDER,1 AS TBL FROM school_years WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' UNION SELECT MARKING_PERIOD_ID,TITLE,SORT_ORDER,2 AS TBL FROM school_semesters WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' UNION SELECT MARKING_PERIOD_ID,TITLE,SORT_ORDER,3 AS TBL FROM school_quarters WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY TBL,SORT_ORDER"));
+		$mp_RET = DBGet(DBQuery('SELECT MARKING_PERIOD_ID,TITLE,SORT_ORDER,1 AS TBL FROM school_years WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' UNION SELECT MARKING_PERIOD_ID,TITLE,SORT_ORDER,2 AS TBL FROM school_semesters WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' UNION SELECT MARKING_PERIOD_ID,TITLE,SORT_ORDER,3 AS TBL FROM school_quarters WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY TBL,SORT_ORDER'));
 		$mp_select = '<SELECT name=mp_id><OPTION value="">N/A';
 		foreach($mp_RET as $mp)
 			$mp_select .= '<OPTION value='.$mp['MARKING_PERIOD_ID'].'>'.$mp['TITLE'];
@@ -167,7 +166,7 @@ if(!$_REQUEST['modfunc'])
 	}
 
 	$extra['link'] = array('FULL_NAME'=>false);
-	$extra['SELECT'] = ",s.STUDENT_ID AS CHECKBOX";
+	$extra['SELECT'] = ',s.STUDENT_ID AS CHECKBOX';
 	$extra['functions'] = array('CHECKBOX'=>'_makeChooseCheckbox');
 	$extra['columns_before'] = array('CHECKBOX'=>'</A><INPUT type=checkbox value=Y name=controller checked onclick="checkAll(this.form,this.form.controller.checked,\'st_arr\');"><A>');
 	$extra['options']['search'] = false;

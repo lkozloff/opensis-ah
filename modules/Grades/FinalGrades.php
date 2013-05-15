@@ -32,8 +32,8 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete')
 {
 	if(($dp=DeletePromptX('final grade')))
 	{
-		DBQuery("DELETE FROM student_report_card_grades WHERE SYEAR='".UserSyear()."' AND STUDENT_ID='".$_REQUEST['student_id']."' AND COURSE_PERIOD_ID='".$_REQUEST['course_period_id']."' AND MARKING_PERIOD_ID='".$_REQUEST['marking_period_id']."'");
-		DBQuery("DELETE FROM student_report_card_comments WHERE SYEAR='".UserSyear()."' AND STUDENT_ID='".$_REQUEST['student_id']."' AND COURSE_PERIOD_ID='".$_REQUEST['course_period_id']."' AND MARKING_PERIOD_ID='".$_REQUEST['marking_period_id']."'");
+		DBQuery('DELETE FROM student_report_card_grades WHERE SYEAR=\''.UserSyear().'\' AND STUDENT_ID=\''.$_REQUEST['student_id'].'\' AND COURSE_PERIOD_ID=\''.$_REQUEST['course_period_id'].'\' AND MARKING_PERIOD_ID=\''.$_REQUEST['marking_period_id'].'\'');
+		DBQuery('DELETE FROM student_report_card_comments WHERE SYEAR=\''.UserSyear().'\' AND STUDENT_ID=\''.$_REQUEST['student_id'].'\' AND COURSE_PERIOD_ID=\''.$_REQUEST['course_period_id'].'\' AND MARKING_PERIOD_ID=\''.$_REQUEST['marking_period_id'].'\'');
 		$_REQUEST['modfunc'] = 'save';
 	}
 	elseif($dp===false)
@@ -47,22 +47,22 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save')
 	$mp_list = '\''.implode('\',\'',$_REQUEST['mp_arr']).'\'';
 	$last_mp = end($_REQUEST['mp_arr']);
 	$st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
-	$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
+	$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
 
-	$extra['SELECT'] .= ",rpg.TITLE as GRADE_TITLE,sg1.GRADE_PERCENT,sg1.COMMENT as COMMENT_TITLE,sg1.STUDENT_ID,sg1.COURSE_PERIOD_ID,sg1.MARKING_PERIOD_ID,c.TITLE as COURSE_TITLE,rc_cp.TITLE AS TEACHER,sp.SORT_ORDER";
+	$extra['SELECT'] .= ',rpg.TITLE as GRADE_TITLE,sg1.GRADE_PERCENT,sg1.COMMENT as COMMENT_TITLE,sg1.STUDENT_ID,sg1.COURSE_PERIOD_ID,sg1.MARKING_PERIOD_ID,c.TITLE as COURSE_TITLE,rc_cp.TITLE AS TEACHER,sp.SORT_ORDER';
 	if($_REQUEST['elements']['period_absences']=='Y')
-		$extra['SELECT'] .= ",rc_cp.DOES_ATTENDANCE,
+		$extra['SELECT'] .= ',rc_cp.DOES_ATTENDANCE,
 				(SELECT count(*) FROM attendance_period ap,attendance_codes ac
-					WHERE ac.ID=ap.ATTENDANCE_CODE AND ac.STATE_CODE='A' AND ap.COURSE_PERIOD_ID=sg1.COURSE_PERIOD_ID AND ap.STUDENT_ID=ssm.STUDENT_ID) AS YTD_ABSENCES,
+					WHERE ac.ID=ap.ATTENDANCE_CODE AND ac.STATE_CODE=\'A\' AND ap.COURSE_PERIOD_ID=sg1.COURSE_PERIOD_ID AND ap.STUDENT_ID=ssm.STUDENT_ID) AS YTD_ABSENCES,
 				(SELECT count(*) FROM attendance_period ap,attendance_codes ac
-					WHERE ac.ID=ap.ATTENDANCE_CODE AND ac.STATE_CODE='A' AND ap.COURSE_PERIOD_ID=sg1.COURSE_PERIOD_ID AND sg1.MARKING_PERIOD_ID=ap.MARKING_PERIOD_ID AND ap.STUDENT_ID=ssm.STUDENT_ID) AS MP_ABSENCES";
+					WHERE ac.ID=ap.ATTENDANCE_CODE AND ac.STATE_CODE=\'A\' AND ap.COURSE_PERIOD_ID=sg1.COURSE_PERIOD_ID AND sg1.MARKING_PERIOD_ID=ap.MARKING_PERIOD_ID AND ap.STUDENT_ID=ssm.STUDENT_ID) AS MP_ABSENCES';
 	if($_REQUEST['elements']['comments']=='Y')
 		$extra['SELECT'] .= ',sg1.MARKING_PERIOD_ID AS COMMENTS_RET';
-	$extra['FROM'] .= ",student_report_card_grades sg1 LEFT OUTER JOIN report_card_grades rpg ON (rpg.ID=sg1.REPORT_CARD_GRADE_ID),
-					course_periods rc_cp,courses c,school_periods sp";
-	$extra['WHERE'] .= " AND sg1.MARKING_PERIOD_ID IN (".$mp_list.")
-					AND rc_cp.COURSE_PERIOD_ID=sg1.COURSE_PERIOD_ID AND c.COURSE_ID = rc_cp.COURSE_ID AND sg1.STUDENT_ID=ssm.STUDENT_ID AND sp.PERIOD_ID=rc_cp.PERIOD_ID";
-	$extra['ORDER'] .= ",sp.SORT_ORDER,c.TITLE";
+	$extra['FROM'] .= ',student_report_card_grades sg1 LEFT OUTER JOIN report_card_grades rpg ON (rpg.ID=sg1.REPORT_CARD_GRADE_ID),
+					course_periods rc_cp,courses c,school_periods sp';
+	$extra['WHERE'] .= ' AND sg1.MARKING_PERIOD_ID IN ('.$mp_list.')
+					AND rc_cp.COURSE_PERIOD_ID=sg1.COURSE_PERIOD_ID AND c.COURSE_ID = rc_cp.COURSE_ID AND sg1.STUDENT_ID=ssm.STUDENT_ID AND sp.PERIOD_ID=rc_cp.PERIOD_ID';
+	$extra['ORDER'] .= ',sp.SORT_ORDER,c.TITLE';
 	$extra['functions']['TEACHER'] = '_makeTeacher';
 	if($_REQUEST['elements']['comments']=='Y')
 		$extra['functions']['COMMENTS_RET'] = '_makeComments';
@@ -76,16 +76,16 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save')
 
 	// GET THE COMMENTS
 	if($_REQUEST['elements']['comments']=='Y')
-		$comments_RET = DBGet(DBQuery("SELECT ID,TITLE,SORT_ORDER FROM report_card_comments WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"),array(),array('ID'));
+		$comments_RET = DBGet(DBQuery('SELECT ID,TITLE,SORT_ORDER FROM report_card_comments WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\''),array(),array('ID'));
 
 	if($_REQUEST['elements']['mp_tardies']=='Y' || $_REQUEST['elements']['ytd_tardies']=='Y')
 	{
 		// GET THE ATTENDANCE
 		unset($extra);
-		$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
-		$extra['SELECT_ONLY'] .= "ap.SCHOOL_DATE,ap.COURSE_PERIOD_ID,ac.ID AS ATTENDANCE_CODE,ap.MARKING_PERIOD_ID,ssm.STUDENT_ID";
-		$extra['FROM'] .= ",attendance_codes ac,attendance_period ap";
-		$extra['WHERE'] .= " AND ac.ID=ap.ATTENDANCE_CODE AND (ac.DEFAULT_CODE!='Y' OR ac.DEFAULT_CODE IS NULL) AND ac.SYEAR=ssm.SYEAR AND ap.STUDENT_ID=ssm.STUDENT_ID";
+		$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
+		$extra['SELECT_ONLY'] .= 'ap.SCHOOL_DATE,ap.COURSE_PERIOD_ID,ac.ID AS ATTENDANCE_CODE,ap.MARKING_PERIOD_ID,ssm.STUDENT_ID';
+		$extra['FROM'] .= ',attendance_codes ac,attendance_period ap';
+		$extra['WHERE'] .= ' AND ac.ID=ap.ATTENDANCE_CODE AND (ac.DEFAULT_CODE!=\'Y\' OR ac.DEFAULT_CODE IS NULL) AND ac.SYEAR=ssm.SYEAR AND ap.STUDENT_ID=ssm.STUDENT_ID';
 		$extra['group'][] = 'STUDENT_ID';
 		$extra['group'][] = 'ATTENDANCE_CODE';
 		$extra['group'][] = 'MARKING_PERIOD_ID';
@@ -100,10 +100,10 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save')
 	{
 		// GET THE DAILY ATTENDANCE
 		unset($extra);
-		$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
-		$extra['SELECT_ONLY'] .= "ad.SCHOOL_DATE,ad.MARKING_PERIOD_ID,ad.STATE_VALUE,ssm.STUDENT_ID";
-		$extra['FROM'] .= ",attendance_day ad";
-		$extra['WHERE'] .= " AND ad.STUDENT_ID=ssm.STUDENT_ID AND ad.SYEAR=ssm.SYEAR AND (ad.STATE_VALUE='0.0' OR ad.STATE_VALUE='.5') AND ad.SCHOOL_DATE<='".GetMP($last_mp,'END_DATE')."'";
+		$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
+		$extra['SELECT_ONLY'] .= 'ad.SCHOOL_DATE,ad.MARKING_PERIOD_ID,ad.STATE_VALUE,ssm.STUDENT_ID';
+		$extra['FROM'] .= ',attendance_day ad';
+		$extra['WHERE'] .= ' AND ad.STUDENT_ID=ssm.STUDENT_ID AND ad.SYEAR=ssm.SYEAR AND (ad.STATE_VALUE=\'0.0\' OR ad.STATE_VALUE=\'.5\') AND ad.SCHOOL_DATE<=\''.GetMP($last_mp,'END_DATE').'\'';
 		$extra['group'][] = 'STUDENT_ID';
 		$extra['group'][] = 'MARKING_PERIOD_ID';
 		Widgets('course');
@@ -215,7 +215,7 @@ if(!$_REQUEST['modfunc'])
 		echo "<FORM action=Modules.php?modname=$_REQUEST[modname]&modfunc=save&include_inactive=$_REQUEST[include_inactive] method=POST>";
 		#$extra['header_right'] = SubmitButton('Create Grade Lists for Selected Students');
 
-		$attendance_codes = DBGet(DBQuery("SELECT SHORT_NAME,ID FROM attendance_codes WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND (DEFAULT_CODE!='Y' OR DEFAULT_CODE IS NULL) AND TABLE_NAME='0'"));
+		$attendance_codes = DBGet(DBQuery('SELECT SHORT_NAME,ID FROM attendance_codes WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND (DEFAULT_CODE!=\'Y\' OR DEFAULT_CODE IS NULL) AND TABLE_NAME=\'0\''));
 		PopTable_wo_header ('header');
 		$extra['extra_header_left'] = '<TABLE>';
 		$extra['extra_header_left'] .= '<TR><TD colspan=2><b>Include on Grade List:</b></TD></TR>';
@@ -247,18 +247,18 @@ if(!$_REQUEST['modfunc'])
 
 //		$mps_RET = DBGet(DBQuery("SELECT SEMESTER_ID,MARKING_PERIOD_ID,SHORT_NAME FROM school_quarters WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER"),array(),array('SEMESTER_ID'));
 		
-                $mps_RET = DBGet(DBQuery("SELECT SEMESTER_ID,MARKING_PERIOD_ID,SHORT_NAME FROM school_quarters WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER"),array(),array('SEMESTER_ID'));
+                $mps_RET = DBGet(DBQuery('SELECT SEMESTER_ID,MARKING_PERIOD_ID,SHORT_NAME FROM school_quarters WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER'),array(),array('SEMESTER_ID'));
                 $MP_TYPE='QTR';
                 if(!$mps_RET)
                 {
                     $MP_TYPE='SEM';
-                    $mps_RET = DBGet(DBQuery("SELECT YEAR_ID,MARKING_PERIOD_ID,SHORT_NAME FROM school_semesters WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER"),array(),array('YEAR_ID'));
+                    $mps_RET = DBGet(DBQuery('SELECT YEAR_ID,MARKING_PERIOD_ID,SHORT_NAME FROM school_semesters WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER'),array(),array('YEAR_ID'));
                 }
 
                 if(!$mps_RET)
                 {
                     $MP_TYPE='FY';
-                    $mps_RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,SHORT_NAME FROM school_years WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER"),array(),array('MARKING_PERIOD_ID'));
+                    $mps_RET = DBGet(DBQuery('SELECT MARKING_PERIOD_ID,SHORT_NAME FROM school_years WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER'),array(),array('MARKING_PERIOD_ID'));
                 }
                 
                 $extra['extra_header_left'] .= '<TR><TD align=right>Marking Periods</TD><TD><TABLE><TR><TD><TABLE>';

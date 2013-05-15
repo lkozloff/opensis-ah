@@ -32,11 +32,10 @@ $mysql_database=$_SESSION['db'];
 $dbUser=$_SESSION['username'];
 $dbPass=$_SESSION['password'];
 $dbconn = mysql_connect($_SESSION['server'],$_SESSION['username'],$_SESSION['password']) or die() ;
-
 mysql_select_db($mysql_database);
 $proceed=mysql_query("SELECT name,value
 FROM app
-WHERE value='4.6' OR value='4.7' OR value LIKE '4.8%' OR value='4.9' OR value='5.0'");
+WHERE value='4.6' OR value='4.7' OR value LIKE '4.8%' OR value='4.9' OR value='5.0' OR value='5.1'");
 $proceed=mysql_fetch_assoc($proceed);
 if(!$proceed)
 {
@@ -46,6 +45,91 @@ if(!$proceed)
     $proceed=mysql_fetch_assoc($proceed);
 }
 $version=$proceed['value'];
+
+mysql_query('Create table staff_new as SELECT * FROM '.table_to_upper('staff',$version).'');
+mysql_query('TRUNCATE TABLE staff_new');
+mysql_query('ALTER TABLE `staff_new` DROP `syear`, DROP `schools`, DROP `rollover_id`');
+
+mysql_query('DROP TABLE '.table_to_upper('staff_school_relationship',$version).'');
+   mysql_query('CREATE TABLE '.table_to_upper('staff_school_relationship',$version).' (
+ `staff_id` int(11) NOT NULL,
+ `school_id` int(11) NOT NULL,
+ `syear` int(4) NOT NULL,
+ `start_date` date NOT NULL,
+ `end_date` date NOT NULL,
+ PRIMARY KEY (`staff_id`,`school_id`,`syear`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8');
+
+$sql=  mysql_query('SELECT * FROM '.table_to_upper('staff',$version).' order by staff_id asc');
+while($row= mysql_fetch_array($sql))
+{
+    if($row['username']!='')
+        $staff_sql=mysql_query("SELECT staff_id FROM staff_new WHERE username='".$row['username']."' AND username IS NOT NULL");
+    else 
+        $staff_sql=mysql_query("SELECT staff_id FROM staff_new WHERE first_name='".$row['first_name']."' AND last_name='".$row['last_name']."' AND profile='".$row['profile']."'");
+    if(mysql_num_rows($staff_sql)==0)
+    {
+        $staff_id=$row['staff_id'];
+        mysql_query("insert into staff_new (staff_id,current_school_id,title,first_name,last_name,middle_name,username,password,phone,email,profile,homeroom,last_login,failed_login,profile_id,is_disable) values('".$row['staff_id']."','".$row['current_school_id']."'
+            ,'".$row['title']."','".$row['first_name']."','".$row['last_name']."','".$row['middle_name']."','".$row['username']."','".$row['password']."'
+                ,'".$row['phone']."','".$row['email']."','".$row['profile']."','".$row['homeroom']."','".$row['last_login']."','".$row['failed_login']."','".$row['profile_id']."','".$row['is_disable']."')");
+    if($row['username']!='')
+        $st_info_sql=mysql_query("SELECT syear,staff_id,schools FROM ".table_to_upper('staff',$version)." WHERE username='".$row['username']."' AND username IS NOT NULL");
+    else
+        $st_info_sql=mysql_query("SELECT syear,staff_id,schools FROM ".table_to_upper('staff',$version)." WHERE first_name='".$row['first_name']."' AND last_name='".$row['last_name']."' AND profile='".$row['profile']."' AND username IS NULL");
+
+    while ($row1 = mysql_fetch_array($st_info_sql))
+        {
+//            if($row1['syear']==2011)
+//            {
+//                $start_date='2011-01-02';
+//                $end_date='2011-12-31';
+//            }
+//            if($row1['syear']==2012)
+//            {
+//                $start_date='2012-01-02';
+//                $end_date='2012-12-31';
+//            }
+//            if($row1['syear']==2013)
+//            {
+//                $start_date='2013-01-02';
+//                $end_date='2013-12-31';
+//            }
+            $school=  substr(substr($row1['schools'],0, -1),1);
+            $all_school=  explode(',',$school);
+            foreach($all_school as $key=>$value)
+            {
+//                $start_dates=mysql_fetch_assoc(mysql_query("SELECT start_date from  SCHOOL_YEARS WHERE school_id=$value AND syear='".$row1['syear']."'"));
+                mysql_query('insert into '.table_to_upper('staff_school_relationship',$version).' values(\''.$staff_id.'\',\''.$value.'\',\''.$row1['syear'].'\',\'0000-00-00\',\'0000-00-00\')')or die(mysql_error());
+            }
+            
+            
+              
+            mysql_query("update attendance_completed set staff_id='".$row['staff_id']."' WHERE staff_id='".$row1['staff_id']."'");
+            mysql_query("update  course_periods set teacher_id='".$row['staff_id']."' WHERE teacher_id='".$row1['staff_id']."'");
+            mysql_query("update  course_periods set secondary_teacher_id='".$row['staff_id']."' WHERE secondary_teacher_id='".$row1['staff_id']."'");
+            mysql_query("update  login_records set staff_id='".$row['staff_id']."' WHERE staff_id='".$row1['staff_id']."'");
+            mysql_query("update missing_attendance set staff_id='".$row['staff_id']."' WHERE teacher_id='".$row1['staff_id']."'");
+            mysql_query("update portal_notes set published_user='".$row['staff_id']."'WHERE published_user='".$row1['staff_id']."'");
+            mysql_query("update program_user_config set user_id='".$row['staff_id']."'WHERE user_id='".$row1['staff_id']."'");
+            mysql_query("update schedule_requests set with_teacher_id='".$row['staff_id']."'WHERE with_teacher_id='".$row1['staff_id']."'");
+            mysql_query("update staff_exceptions set user_id='".$row['staff_id']."'WHERE user_id='".$row1['staff_id']."'");
+            mysql_query("update teacher_reassignment set teacher_id='".$row['staff_id']."'WHERE teacher_id='".$row1['staff_id']."'");
+            mysql_query("update teacher_reassignment set pre_teacher_id='".$row['staff_id']."'WHERE pre_teacher_id='".$row1['staff_id']."'");
+            mysql_query("update teacher_reassignment set modified_by='".$row['staff_id']."'WHERE modified_by='".$row1['staff_id']."'");
+            mysql_query("update gradebook_assignments set staff_id='".$row['staff_id']."' WHERE staff_id='".$row1['staff_id']."'");
+            mysql_query("update gradebook_assignment_types set staff_id='".$row['staff_id']."' WHERE staff_id='".$row1['staff_id']."'");
+            mysql_query("update grades_completed set staff_id='".$row['staff_id']."' WHERE staff_id='".$row1['staff_id']."'");
+            mysql_query("update schedule set modified_by='".$row['staff_id']."' WHERE modified_by='".$row1['staff_id']."'");
+        
+    }
+    }
+        
+    
+}
+mysql_query('DROP TABLE '.table_to_upper('staff',$version).'');
+mysql_query('RENAME TABLE `staff_new` TO '.table_to_upper('staff',$version).'');
+
 if($proceed['name']){
         
                     $dummyFile = "dummy.txt";
@@ -66,7 +150,7 @@ if($proceed['name']){
 	$myFile = "upgrade.sql";
     executeSQL($myFile);
 	//backup_db($mysql_database,$Export_FileName);
-	        exec("mysqldump -n -t -c --skip-add-locks --skip-disable-keys --skip-triggers --user $dbUser --password=$dbPass $mysql_database > $Export_FileName");
+	        exec("mysqldump -n -t -c --skip-add-locks --skip-disable-keys --skip-triggers --user $dbUser --password='$dbPass' $mysql_database > $Export_FileName");
 
                     $res_student_field='SHOW COLUMNS FROM '.table_to_upper('students',$version).' WHERE FIELD LIKE "CUSTOM_%"';
 
@@ -99,12 +183,12 @@ if($proceed['name']){
                     executeSQL($myFile);
 //	mysql_query("ALTER TABLE user_profiles CHANGE `id` `id` INT( 8 ) NOT NULL");
                     //=====================For version prior than 4.9 only====================================
-                    if($version!='5.0')
+                    if($version!='5.0' || $version!='5.1')
                     {
                         $Export_FileName=to_upper_tables_to_import($Export_FileName);
                     }
                     //=========================================================
-                    exec("mysql --user $dbUser --password=$dbPass $mysql_database < $Export_FileName",$result,$status);
+                    exec("mysql --user $dbUser --password='$dbPass' $mysql_database < $Export_FileName",$result,$status);
                     if($status!=0)
                     {
                         die(show_error1('db'));
@@ -118,11 +202,11 @@ if($proceed['name']){
                     
 	mysql_query("delete from app");
 	$appTable="INSERT INTO `app` (`name`, `value`) VALUES
-('version', '5.1'),
-('date', 'October 16, 2012'),
-('build', '02012011001'),
+('version', '5.2'),
+('date', 'April 22, 2013'),
+('build', '22042013001'),
 ('update', '0'),
-('last_updated', 'October 16, 2012')";
+('last_updated', 'April 22, 2013')";
 	mysql_query($appTable);
 	$custom_insert=mysql_query("select count(*) from custom_fields where title in('Ethnicity','Common Name','Physician','Physician Phone','Preferred Hospital','Gender','Email','Phone','Language')");
 	$custom_insert=mysql_fetch_array($custom_insert);
@@ -154,7 +238,7 @@ mysql_query($login_msg);
                   $max_syear=$syear['year'];
                   $start_date=$syear['start'];
 //=============================4.8.1 To 4.9===================================
-if($version!='5.0' && $version!='4.9')
+if($version!='5.0' && $version!='4.9' && $version!='5.1')
 {
         $up_sql="INSERT INTO student_enrollment_codes(syear,title,short_name,type)VALUES
         (".$max_syear.",'Transferred out','TRAN','TrnD'),
@@ -287,7 +371,7 @@ echo $err;
 
 function table_to_upper($table,$ver)
 {
-    if($ver!='5.0')
+    if($ver=='4.6' || $ver=='4.7' || $ver=='4.8' || $ver=='4.8.1' || $ver=='4.9')
         $return=  strtoupper ($table);
     else
         $return=$table;
@@ -320,7 +404,6 @@ function to_upper_tables_to_import($input_file)
         $f = fopen($output_file, "w"); 
     fwrite($f, $str); 
     }
-    
     return $output_file;
 }
 ?>

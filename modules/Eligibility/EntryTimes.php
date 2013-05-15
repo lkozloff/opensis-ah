@@ -27,7 +27,7 @@
 #***************************************************************************************
 // GET ALL THE config ITEMS FOR eligibility
 include('../../Redirect_modules.php');
-$start_end_RET = DBGet(DBQuery("SELECT TITLE,VALUE FROM program_config WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND PROGRAM='eligibility'"));
+$start_end_RET = DBGet(DBQuery('SELECT TITLE,VALUE FROM program_config WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND PROGRAM=\'eligibility\''));
 if(count($start_end_RET))
 {
 	foreach($start_end_RET as $value)
@@ -50,15 +50,15 @@ if($_REQUEST['values'])
 		{
 			if(isset($$key))
 			{
-				DBQuery("UPDATE program_config SET VALUE='$value' WHERE PROGRAM='eligibility' AND TITLE='$key' AND SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'");
+				DBQuery('UPDATE program_config SET VALUE=\''.$value.'\' WHERE PROGRAM=\'eligibility\' AND TITLE=\''.$key.'\' AND SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\'');
 			}
 			else
 			{
-				DBQuery("INSERT INTO program_config (SYEAR,SCHOOL_ID,PROGRAM,TITLE,VALUE) values('".UserSyear()."','".UserSchool()."','eligibility','$key','$value')");
+				DBQuery('INSERT INTO program_config (SYEAR,SCHOOL_ID,PROGRAM,TITLE,VALUE) values(\''.UserSyear().'\',\''.UserSchool().'\',\'eligibility\',\''.$key.'\',\''.$value.'\')');
 			}
 		}
 
-	$start_end_RET = DBGet(DBQuery("SELECT TITLE,VALUE FROM program_config WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND PROGRAM='eligibility'"));
+	$start_end_RET = DBGet(DBQuery('SELECT TITLE,VALUE FROM program_config WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND PROGRAM=\'eligibility\''));
 	if(count($start_end_RET))
 	{
 		foreach($start_end_RET as $value)

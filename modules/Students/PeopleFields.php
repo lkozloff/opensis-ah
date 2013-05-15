@@ -39,16 +39,16 @@ if($_REQUEST['tables'] && ($_POST['tables'] || $_REQUEST['ajax']))
 			if($columns['CATEGORY_ID'] && $columns['CATEGORY_ID']!=$_REQUEST['category_id'])
 				$_REQUEST['category_id'] = $columns['CATEGORY_ID'];
 
-			$sql = "UPDATE $table SET ";
+			$sql = 'UPDATE '. $table .' SET ';
 
 			foreach($columns as $column=>$value)
-				$sql .= $column."='".str_replace("\'","''",$value)."',";
-			$sql = substr($sql,0,-1) . " WHERE ID='$id'";
+				$sql .= $column.'=\''.str_replace("\'","''",$value).'\',';
+			$sql = substr($sql,0,-1) . ' WHERE ID=\''.$id.'\'';
 			$go = true;
 		}
 		else
 		{
-			$sql = "INSERT INTO $table ";
+			$sql = 'INSERT INTO '. $table.' ';
 
 			if($table=='people_fields')
 			{
@@ -61,49 +61,49 @@ if($_REQUEST['tables'] && ($_POST['tables'] || $_REQUEST['ajax']))
                                 $id = DBGet(DBQuery("SHOW TABLE STATUS LIKE 'people_fields'"));
                                 $id[1]['ID']= $id[1]['AUTO_INCREMENT'];
 				$id = $id[1]['ID'];
-				$fields = "CATEGORY_ID,";
-				$values ="'".$_REQUEST['category_id']."',";
+				$fields = 'CATEGORY_ID,';
+				$values ='\''.$_REQUEST['category_id'].'\'';
 				$_REQUEST['id'] = $id;
 
 				switch($columns['TYPE'])
 				{
 					case 'radio':
-						DBQuery("ALTER TABLE people ADD CUSTOM_$id VARCHAR(1)");
+						DBQuery('ALTER TABLE people ADD CUSTOM_\''.$id.'\' VARCHAR(1)');
 					break;
 
 					case 'text':
 					case 'select':
 					case 'autos':
 					case 'edits':
-						DBQuery("ALTER TABLE people ADD CUSTOM_$id VARCHAR(255)");
+						DBQuery('ALTER TABLE people ADD CUSTOM_\''.$id.'\' VARCHAR(255)');
 					break;
 
 					case 'codeds':
-						DBQuery("ALTER TABLE people ADD CUSTOM_$id VARCHAR(15)");
+						DBQuery('ALTER TABLE people ADD CUSTOM_\''.$id.'\' VARCHAR(15)');
 					break;
 
 					case 'multiple':
-						DBQuery("ALTER TABLE people ADD CUSTOM_$id VARCHAR(1000)");
+						DBQuery('ALTER TABLE people ADD CUSTOM_\''.$id.'\' VARCHAR(1000)');
 					break;
 
 					case 'numeric':
-						DBQuery("ALTER TABLE people ADD CUSTOM_$id NUMERIC(10,2)");
+						DBQuery('ALTER TABLE people ADD CUSTOM_\''.$id.'\' NUMERIC(10,2)');
 					break;
 
 					case 'date':
-						DBQuery("ALTER TABLE people ADD CUSTOM_$id DATE");
+						DBQuery('ALTER TABLE people ADD CUSTOM_\''.$id.'\' DATE');
 					break;
 
 					case 'textarea':
-						DBQuery("ALTER TABLE people ADD CUSTOM_$id VARCHAR(5000)");
+						DBQuery('ALTER TABLE people ADD CUSTOM_\''.$id.'\' VARCHAR(5000)');
 					break;
 				}
-				DBQuery("CREATE INDEX PEOPLE_IND$id ON people (CUSTOM_$id)");
+				DBQuery('CREATE INDEX PEOPLE_IND\''.$id.'\' ON people (CUSTOM_\''.$id.'\')');
 			}
 			elseif($table=='people_field_categories')
 			{
 				//$id = DBGet(DBQuery("SELECT ".db_seq_nextval('PEOPLE_FIELD_CATEGORIES_SEQ').' AS ID '.FROM_DUAL));
-				$id = DBGet(DBQuery("SHOW TABLE STATUS LIKE 'people_field_categories'"));
+				$id = DBGet(DBQuery('SHOW TABLE STATUS LIKE '.people_field_categories.''));
                                 $id[1]['ID']= $id[1]['AUTO_INCREMENT'];
                                 $id = $id[1]['ID'];
 				$fields = "";
@@ -118,7 +118,7 @@ if($_REQUEST['tables'] && ($_POST['tables'] || $_REQUEST['ajax']))
 				if($value)
 				{
 					$fields .= $column.',';
-					$values .= "'".str_replace("\'","''",$value)."',";
+					$values .= '\''.str_replace("\'","''",$value).'\',';
 					$go = true;
 				}
 			}
@@ -138,8 +138,8 @@ if($_REQUEST['modfunc']=='delete')
 		if(DeletePrompt('contact field'))
 		{
 			$id = $_REQUEST['id'];
-			DBQuery("DELETE FROM people_fields WHERE ID='$id'");
-			DBQuery("ALTER TABLE people DROP COLUMN CUSTOM_$id");
+			DBQuery('DELETE FROM people_fields WHERE ID=\''.$id.'\'');
+			DBQuery('ALTER TABLE people DROP COLUMN CUSTOM_\''.$id.'\'');
 			$_REQUEST['modfunc'] = '';
 			unset($_REQUEST['id']);
 		}
@@ -148,13 +148,13 @@ if($_REQUEST['modfunc']=='delete')
 	{
 		if(DeletePrompt('contact field category and all fields in the category'))
 		{
-			$fields = DBGet(DBQuery("SELECT ID FROM people_fields WHERE CATEGORY_ID='$_REQUEST[category_id]'"));
+			$fields = DBGet(DBQuery('SELECT ID FROM people_fields WHERE CATEGORY_ID=\''.$_REQUEST[category_id].'\''));
 			foreach($fields as $field)
 			{
-				DBQuery("DELETE FROM people_fields WHERE ID='$field[ID]'");
-				DBQuery("ALTER TABLE people DROP COLUMN CUSTOM_$field[ID]");
+				DBQuery('DELETE FROM people_fields WHERE ID=\''.$field[ID].'\'');
+				DBQuery('ALTER TABLE people DROP COLUMN CUSTOM_\''.$field[ID].'\'');
 			}
-			DBQuery("DELETE FROM people_field_categories WHERE ID='$_REQUEST[category_id]'");
+			DBQuery('DELETE FROM people_field_categories WHERE ID=\''.$_REQUEST[category_id].'\"');
 			$_REQUEST['modfunc'] = '';
 			unset($_REQUEST['category_id']);
 		}
@@ -164,7 +164,7 @@ if($_REQUEST['modfunc']=='delete')
 if(!$_REQUEST['modfunc'])
 {
 	// CATEGORIES
-	$sql = "SELECT ID,TITLE,SORT_ORDER FROM people_field_categories ORDER BY SORT_ORDER,TITLE";
+	$sql = 'SELECT ID,TITLE,SORT_ORDER FROM people_field_categories ORDER BY SORT_ORDER,TITLE';
 	$QI = DBQuery($sql);
 	$categories_RET = DBGet($QI);
 
@@ -174,16 +174,16 @@ if(!$_REQUEST['modfunc'])
 	// ADDING & EDITING FORM
 	if($_REQUEST['id'] && $_REQUEST['id']!='new')
 	{
-		$sql = "SELECT CATEGORY_ID,TITLE,TYPE,SELECT_OPTIONS,DEFAULT_SELECTION,SORT_ORDER,REQUIRED,(SELECT TITLE FROM people_field_categories WHERE ID=CATEGORY_ID) AS CATEGORY_TITLE FROM people_fields WHERE ID='$_REQUEST[id]'";
+		$sql = 'SELECT CATEGORY_ID,TITLE,TYPE,SELECT_OPTIONS,DEFAULT_SELECTION,SORT_ORDER,REQUIRED,(SELECT TITLE FROM people_field_categories WHERE ID=CATEGORY_ID) AS CATEGORY_TITLE FROM people_fields WHERE ID=\''.$_REQUEST[id].'\'';
 		$RET = DBGet(DBQuery($sql));
 		$RET = $RET[1];
 		$title = $RET['CATEGORY_TITLE'].' - '.$RET['TITLE'];
 	}
 	elseif($_REQUEST['category_id'] && $_REQUEST['category_id']!='new' && $_REQUEST['id']!='new')
 	{
-		$sql = "SELECT TITLE,CUSTODY,EMERGENCY,SORT_ORDER
+		$sql = 'SELECT TITLE,CUSTODY,EMERGENCY,SORT_ORDER
 				FROM people_field_categories
-				WHERE ID='$_REQUEST[category_id]'";
+				WHERE ID=\''.$_REQUEST[category_id].'\'';
 		$RET = DBGet(DBQuery($sql));
 		$RET = $RET[1];
 		$title = $RET['TITLE'];
@@ -321,7 +321,7 @@ if(!$_REQUEST['modfunc'])
 	// FIELDS
 	if($_REQUEST['category_id'] && $_REQUEST['category_id']!='new' && count($categories_RET))
 	{
-		$sql = "SELECT ID,TITLE,TYPE,SORT_ORDER FROM people_fields WHERE CATEGORY_ID='".$_REQUEST['category_id']."' ORDER BY SORT_ORDER,TITLE";
+		$sql = 'SELECT ID,TITLE,TYPE,SORT_ORDER FROM people_fields WHERE CATEGORY_ID=\''.$_REQUEST['category_id'].'\' ORDER BY SORT_ORDER,TITLE';
 		$fields_RET = DBGet(DBQuery($sql),array('TYPE'=>'_makeType'));
 
 		if(count($fields_RET))

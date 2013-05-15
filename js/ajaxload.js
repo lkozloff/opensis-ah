@@ -640,3 +640,22 @@ function pass_val_error(err)
 {
     alert ("Error: " + err);
 }
+
+
+
+//-------------------------------------------------- historical grade school name pickup --------------------------------------//
+function pick_schoolname (data) {
+ 	
+        document.getElementById('SCHOOL_NAME').value = data;
+ }
+
+// ------------------------------------------------------ Student ------------------------------------------------------------------------------ //
+
+// ------------------------------------------------------ Student ID------------------------------------------------------------------------------ //
+
+ function GetSchool(i) {
+	var obj = document.getElementById('SCHOOL_NAME');
+	obj.innerHTML = ''; 
+	
+ 	ajax_call ('GetSchool.php?u='+i, pick_schoolname); 
+ }

@@ -36,7 +36,7 @@ function _makeLetterGrade($percent,$course_period_id=0,$staff_id=0,$ret='')
 
 	if(!$programconfig[$staff_id])
 	{
-		$config_RET = DBGet(DBQuery("SELECT TITLE,VALUE FROM program_user_config WHERE USER_ID='$staff_id' AND PROGRAM='Gradebook'"),array(),array('TITLE'));
+		$config_RET = DBGet(DBQuery('SELECT TITLE,VALUE FROM program_user_config WHERE USER_ID=\''.$staff_id.'\' AND PROGRAM=\'Gradebook\''),array(),array('TITLE'));
 		if(count($config_RET))
 			foreach($config_RET as $title=>$value)
 				$programconfig[$staff_id][$title] = $value[1]['VALUE'];
@@ -44,28 +44,29 @@ function _makeLetterGrade($percent,$course_period_id=0,$staff_id=0,$ret='')
 			$programconfig[$staff_id] = true;
 	}
 	if(!$_openSIS['_makeLetterGrade']['courses'][$course_period_id])
-		$_openSIS['_makeLetterGrade']['courses'][$course_period_id] = DBGet(DBQuery("SELECT DOES_BREAKOFF,GRADE_SCALE_ID FROM course_periods WHERE COURSE_PERIOD_ID='".$course_period_id."'"));
+		$_openSIS['_makeLetterGrade']['courses'][$course_period_id] = DBGet(DBQuery('SELECT DOES_BREAKOFF,GRADE_SCALE_ID FROM course_periods WHERE COURSE_PERIOD_ID=\''.$course_period_id.'\''));
 	$does_breakoff = $_openSIS['_makeLetterGrade']['courses'][$course_period_id][1]['DOES_BREAKOFF'];
 	$grade_scale_id = $_openSIS['_makeLetterGrade']['courses'][$course_period_id][1]['GRADE_SCALE_ID'];
 
 	$percent *= 100;
-	if ($does_breakoff=='Y')
-	{
+//	if ($does_breakoff=='Y')
+//	{
 		if($programconfig[$staff_id]['ROUNDING']=='UP')
 			$percent = ceil($percent);
 		elseif($programconfig[$staff_id]['ROUNDING']=='DOWN')
 			$percent = floor($percent);
 		elseif($programconfig[$staff_id]['ROUNDING']=='NORMAL')
-			$percent = round($percent);
-	}
+			$percent = round($percent,2);
+                
+	//}
 	else
-		$percent = round($percent); // school default
+		$percent = round($percent,2); // school default
 
 	if($ret=='%')
 		return $percent;
 
 	if(!$_openSIS['_makeLetterGrade']['grades'][$grade_scale_id])
-		$_openSIS['_makeLetterGrade']['grades'][$grade_scale_id] = DBGet(DBQuery("SELECT TITLE,ID,BREAK_OFF FROM report_card_grades WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND GRADE_SCALE_ID='$grade_scale_id' ORDER BY BREAK_OFF IS NOT NULL DESC,BREAK_OFF DESC,SORT_ORDER"));
+		$_openSIS['_makeLetterGrade']['grades'][$grade_scale_id] = DBGet(DBQuery('SELECT TITLE,ID,BREAK_OFF FROM report_card_grades WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND GRADE_SCALE_ID=\''.$grade_scale_id.'\' ORDER BY BREAK_OFF IS NOT NULL DESC,BREAK_OFF DESC,SORT_ORDER'));
 	//$grades = array('A+','A','A-','B+','B','B-','C+','C','C-','D+','D','D-','F');
 
 	foreach($_openSIS['_makeLetterGrade']['grades'][$grade_scale_id] as $grade)

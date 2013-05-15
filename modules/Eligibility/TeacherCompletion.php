@@ -26,7 +26,7 @@
 #
 #***************************************************************************************
 include('../../Redirect_modules.php');
-$start_end_RET = DBGet(DBQuery("SELECT TITLE,VALUE FROM program_config WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND PROGRAM='eligibility' AND TITLE IN ('START_DAY','END_DAY')"));
+$start_end_RET = DBGet(DBQuery('SELECT TITLE,VALUE FROM program_config WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND PROGRAM=\'eligibility\' AND TITLE IN (\''.'START_DAY'.'\',\''.'END_DAY'.'\')'));
 if(count($start_end_RET))
 {
 	foreach($start_end_RET as $value)
@@ -76,7 +76,7 @@ else
 	$end_date = strtoupper(date('d-M-y',$start_time+60*60*24*7));
 }
 
-$QI = DBQuery("SELECT PERIOD_ID,TITLE FROM school_periods WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY SORT_ORDER ");
+$QI = DBQuery('SELECT PERIOD_ID,TITLE FROM school_periods WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY SORT_ORDER ');
 $periods_RET = DBGet($QI);
 
 $period_select =  "&nbsp;<SELECT name=period><OPTION value=''>All</OPTION>";
@@ -87,7 +87,7 @@ $period_select .= "</SELECT>";
 DrawBC("Eligibility > ".ProgramTitle());
 echo "<FORM name=teach_comp id=teach_comp action=Modules.php?modname=$_REQUEST[modname] method=POST>";
 
-$begin_year = DBGet(DBQuery("SELECT min(unix_timestamp(SCHOOL_DATE)) as SCHOOL_DATE FROM attendance_calendar WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
+$begin_year = DBGet(DBQuery('SELECT min(unix_timestamp(SCHOOL_DATE)) as SCHOOL_DATE FROM attendance_calendar WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\''));
 $begin_year = $begin_year[1]['SCHOOL_DATE'];
 
 if($start && $begin_year)
@@ -119,14 +119,14 @@ $sql = "SELECT CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME,sp.TITLE,cp.PE
 			AND NOT EXISTS (SELECT '' FROM eligibility_completed ac WHERE ac.STAFF_ID=cp.TEACHER_ID AND ac.PERIOD_ID = sp.PERIOD_ID AND ac.SCHOOL_DATE BETWEEN '".date('Y-m-d',$start_time)."' AND '".date('Y-m-d',$start_time+60*60*24*7)."')";
 */
 
-$sql = "SELECT CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME,sp.TITLE,cp.PERIOD_ID,s.STAFF_ID 
+$sql = 'SELECT CONCAT(s.LAST_NAME,\', \',s.FIRST_NAME) AS FULL_NAME,sp.TITLE,cp.PERIOD_ID,s.STAFF_ID 
 		FROM staff s,course_periods cp,school_periods sp 
 		WHERE 
 			sp.PERIOD_ID = cp.PERIOD_ID
-			AND cp.TEACHER_ID=s.STAFF_ID AND cp.MARKING_PERIOD_ID IN (".$mp.")
-			AND cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND s.PROFILE='teacher'
-			".((optional_param('period','',PARAM_SPCL))?" AND cp.PERIOD_ID='".optional_param('period','',PARAM_SPCL)."'":'')."
-			AND NOT EXISTS (SELECT '' FROM eligibility_completed ac WHERE ac.STAFF_ID=cp.TEACHER_ID AND ac.PERIOD_ID = sp.PERIOD_ID AND ac.SCHOOL_DATE BETWEEN '".date('Y-m-d',$start_time)."' AND '".date('Y-m-d',$start_time+60*60*24*7)."')";
+			AND cp.TEACHER_ID=s.STAFF_ID AND cp.MARKING_PERIOD_ID IN ('.$mp.')
+			AND cp.SYEAR=\''.UserSyear().'\' AND cp.SCHOOL_ID=\''.UserSchool().'\' AND s.PROFILE=\'teacher\'
+			'.((optional_param('period','',PARAM_SPCL))?' AND cp.PERIOD_ID=\''.optional_param('period','',PARAM_SPCL)."'":'').
+			'AND NOT EXISTS (SELECT \'\' FROM eligibility_completed ac WHERE ac.STAFF_ID=cp.TEACHER_ID AND ac.PERIOD_ID = sp.PERIOD_ID AND ac.SCHOOL_DATE BETWEEN \''.date('Y-m-d',$start_time).'\' AND \''.date('Y-m-d',$start_time+60*60*24*7).'\')';
 
 $RET = DBGet(DBQuery($sql),array(),array('STAFF_ID','PERIOD_ID'));
 

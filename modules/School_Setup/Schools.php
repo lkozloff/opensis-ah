@@ -45,24 +45,23 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update' && (clean_param($_
 	{
 		if($_REQUEST['new_school']!='true')
 		{
-			$sql = "UPDATE schools SET ";
+			$sql = 'UPDATE schools SET ';
 
 			foreach($_REQUEST['values'] as $column=>$value)
 			{
-                                $value=paramlib_validation($column,$value);
+                                $value=paramlib_validation($column,trim($value));
                                 if(stripos($_SERVER['SERVER_SOFTWARE'], 'linux'))
                                 {
-
-                                $sql .= $column."=\"".str_replace("\'","''",$value)."\",";
+                                $sql .= $column.'=\''.str_replace("\'","''",trim($value)).'\',';
                              
                                 }
                                 else
                                 {
-				$sql .= $column."='".str_replace("\'","''",$value)."',";
+				$sql .= $column.'=\''.str_replace("\'","''",trim($value)).'\',';
                                 }
 
                         }
-			$sql = substr($sql,0,-1) . " WHERE ID='".UserSchool()."'";
+			$sql = substr($sql,0,-1) . ' WHERE ID=\''.UserSchool().'\'';
 
 			DBQuery($sql);
 			echo '<script language=JavaScript>parent.side.location="'.$_SESSION['Side_PHP_SELF'].'?modcat="+parent.side.document.forms[0].modcat.value;</script>'; 
@@ -76,9 +75,9 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update' && (clean_param($_
 			foreach($_REQUEST['values'] as $column=>$value)
 				if($column!='ID' && $value)
 				{
-                    $value=paramlib_validation($column,$value);
+                    $value=paramlib_validation($column,trim($value));
 					$fields .= ','.$column;
-					$values .= ",\" ".str_replace("\'","''",$value)." \" ";
+					$values .= ",\"".str_replace("\'","''",trim($value))." \"";
 				}
 
 			if($fields && $values)
@@ -92,21 +91,17 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update' && (clean_param($_
 				#$id = DBGet(DBQuery("SELECT ".db_seq_nextval('SCHOOLS_SEQ')." AS ID".FROM_DUAL));
 				#$id = $id[1]['ID'];
 				
-                        $id = DBGet(DBQuery("SHOW TABLE STATUS LIKE 'schools'"));
+                        $id = DBGet(DBQuery('SHOW TABLE STATUS LIKE \'schools\''));
                         $id = $id[1]['AUTO_INCREMENT'];
 				
-				$sql = "INSERT INTO schools (SYEAR$fields) values(".UserSyear()."$values)";
+				$sql = 'INSERT INTO schools (SYEAR'.$fields.') values('.UserSyear().''.$values.')';
 				
 				DBQuery($sql);
+                            DBQuery('INSERT INTO  staff_school_relationship(staff_id,school_id,syear) VALUES ('.  UserID().','.$id.','.  UserSyear().')');
+                                                                        DBQuery('INSERT INTO school_years (MARKING_PERIOD_ID,SYEAR,SCHOOL_ID,TITLE,SHORT_NAME,SORT_ORDER,START_DATE,END_DATE,POST_START_DATE,POST_END_DATE,DOES_GRADES,DOES_EXAM,DOES_COMMENTS,ROLLOVER_ID) SELECT fn_marking_period_seq(),SYEAR,\''.$id.'\' AS SCHOOL_ID,TITLE,SHORT_NAME,SORT_ORDER,START_DATE,END_DATE,POST_START_DATE,POST_END_DATE,DOES_GRADES,DOES_EXAM,DOES_COMMENTS,MARKING_PERIOD_ID FROM school_years WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY MARKING_PERIOD_ID');
+				DBQuery('INSERT INTO system_preference(school_id, full_day_minute, half_day_minute) VALUES ('.$id.', NULL, NULL)');
 				
-		#		echo "UPDATE staff SET SCHOOLS=CONCAT(CONCAT(SCHOOLS,','),'$id') WHERE STAFF_ID='".User('STAFF_ID')."' AND SCHOOLS IS NOT NULL";
-				
-				DBQuery("UPDATE staff SET SCHOOLS=CONCAT(SCHOOLS,'$id,') WHERE STAFF_ID='".User('STAFF_ID')."' AND SCHOOLS IS NOT NULL");
-				
-                                                                        DBQuery("INSERT INTO school_years (MARKING_PERIOD_ID,SYEAR,SCHOOL_ID,TITLE,SHORT_NAME,SORT_ORDER,START_DATE,END_DATE,POST_START_DATE,POST_END_DATE,DOES_GRADES,DOES_EXAM,DOES_COMMENTS,ROLLOVER_ID) SELECT fn_marking_period_seq(),SYEAR,'$id' AS SCHOOL_ID,TITLE,SHORT_NAME,SORT_ORDER,START_DATE,END_DATE,POST_START_DATE,POST_END_DATE,DOES_GRADES,DOES_EXAM,DOES_COMMENTS,MARKING_PERIOD_ID FROM school_years WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY MARKING_PERIOD_ID");
-				DBQuery("INSERT INTO system_preference(school_id, full_day_minute, half_day_minute) VALUES (".$id.", NULL, NULL)");
-				
-				
+				DBQuery('INSERT INTO program_config VALUES(\''.$id.'\',\''.UserSyear().'\',\'MissingAttendance\',\'LAST_UPDATE\',\''.date('Y-m-d').'\')');
 				$_SESSION['UserSchool'] = $id;
 				
 //                                                                        echo '<script language=JavaScript>parent.side.location="'.$_SESSION['Side_PHP_SELF'].'?modcat="+parent.side.document.forms[0].modcat.value;</script>'; 
@@ -137,16 +132,16 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update' && clean_param($_R
 	{
 			if(BlockDelete('school'))
 			{
-				DBQuery("DELETE FROM schools WHERE ID='".UserSchool()."'");
-				DBQuery("DELETE FROM school_gradelevels WHERE SCHOOL_ID='".UserSchool()."'");
-				DBQuery("DELETE FROM attendance_calendar WHERE SCHOOL_ID='".UserSchool()."'");
-				DBQuery("DELETE FROM school_periods WHERE SCHOOL_ID='".UserSchool()."'");
-				DBQuery("DELETE FROM school_years WHERE SCHOOL_ID='".UserSchool()."'");
-				DBQuery("DELETE FROM school_semesters WHERE SCHOOL_ID='".UserSchool()."'");
-				DBQuery("DELETE FROM school_quarters WHERE SCHOOL_ID='".UserSchool()."'");
-				DBQuery("DELETE FROM school_progress_periods WHERE SCHOOL_ID='".UserSchool()."'");
-				DBQuery("UPDATE staff SET CURRENT_SCHOOL_ID=NULL WHERE CURRENT_SCHOOL_ID='".UserSchool()."'");
-				DBQuery("UPDATE staff SET SCHOOLS=replace(SCHOOLS,',".UserSchool().",',',')");
+				DBQuery('DELETE FROM schools WHERE ID=\''.UserSchool().'\'');
+				DBQuery('DELETE FROM school_gradelevels WHERE SCHOOL_ID=\''.UserSchool().'\'');
+				DBQuery('DELETE FROM attendance_calendar WHERE SCHOOL_ID=\''.UserSchool().'\'');
+				DBQuery('DELETE FROM school_periods WHERE SCHOOL_ID=\''.UserSchool().'\'');
+				DBQuery('DELETE FROM school_years WHERE SCHOOL_ID=\''.UserSchool().'\'');
+				DBQuery('DELETE FROM school_semesters WHERE SCHOOL_ID=\''.UserSchool().'\'');
+				DBQuery('DELETE FROM school_quarters WHERE SCHOOL_ID=\''.UserSchool().'\'');
+				DBQuery('DELETE FROM school_progress_periods WHERE SCHOOL_ID=\''.UserSchool().'\'');
+				DBQuery('UPDATE staff SET CURRENT_SCHOOL_ID=NULL WHERE CURRENT_SCHOOL_ID=\''.UserSchool().'\'');
+				DBQuery('UPDATE staff SET SCHOOLS=replace(SCHOOLS,\','.UserSchool().',\',\',\')');
 		
 				unset($_SESSION['UserSchool']);
 				echo '<script language=JavaScript>parent.side.location="'.$_SESSION['Side_PHP_SELF'].'?modcat="+parent.side.document.forms[0].modcat.value;</script>';
@@ -169,7 +164,7 @@ if(!$_REQUEST['modfunc'])
 {
 	if(!$_REQUEST['new_school'])
 	{
-		$schooldata = DBGet(DBQuery("SELECT ID,TITLE,ADDRESS,CITY,STATE,ZIPCODE,PHONE,PRINCIPAL,WWW_ADDRESS,REPORTING_GP_SCALE,E_MAIL,CEEB FROM schools WHERE ID='".UserSchool()."'"));
+		$schooldata = DBGet(DBQuery('SELECT ID,TITLE,ADDRESS,CITY,STATE,ZIPCODE,PHONE,PRINCIPAL,WWW_ADDRESS,REPORTING_GP_SCALE,E_MAIL,CEEB FROM schools WHERE ID=\''.UserSchool().'\''));
 		$schooldata = $schooldata[1];
 		$school_name = GetSchool(UserSchool());
 	}

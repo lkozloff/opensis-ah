@@ -68,7 +68,7 @@ if($_REQUEST['modfunc']=='generate')
  if(isset($conv_st_date) && isset($conv_end_date))
 	{
 	#$alllogs_RET = DBGet(DBQuery("SELECT DISTINCT FIRST_NAME,LAST_NAME,LOGIN_TIME,PROFILE,FAILLOG_COUNT,FAILLOG_TIME,USER_NAME,IP_ADDRESS,STATUS FROM login_records WHERE LOGIN_TIME >='".$conv_st_date."' AND LOGIN_TIME <='".$conv_end_date."' AND SCHOOL_ID=".UserSchool()." OR STATUS='Failed'  ORDER BY LOGIN_TIME DESC"));
-         $alllogs_RET = DBGet(DBQuery("SELECT DISTINCT FIRST_NAME,LAST_NAME,LOGIN_TIME,PROFILE,FAILLOG_COUNT,FAILLOG_TIME,USER_NAME,IP_ADDRESS,STATUS FROM login_records WHERE LOGIN_TIME >='".$conv_st_date."' AND LOGIN_TIME <='".$conv_end_date."' AND SCHOOL_ID=".UserSchool()." OR STATUS='Failed' ORDER BY LOGIN_TIME DESC"));
+         $alllogs_RET = DBGet(DBQuery('SELECT DISTINCT FIRST_NAME,LAST_NAME,LOGIN_TIME,PROFILE,FAILLOG_COUNT,FAILLOG_TIME,USER_NAME,IP_ADDRESS,STATUS FROM login_records WHERE LOGIN_TIME >=\''.$conv_st_date.'\' AND LOGIN_TIME <=\''.$conv_end_date.'\' AND SCHOOL_ID='.UserSchool().' OR STATUS=\'Failed\' ORDER BY LOGIN_TIME DESC'));
 		
 
 		if(count($alllogs_RET))

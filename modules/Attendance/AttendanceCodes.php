@@ -35,27 +35,27 @@ if($_REQUEST['values'] && ($_POST['values'] || $_REQUEST['ajax'])) {
         if(!(isset($columns['TITLE']) && trim($columns['TITLE'])==''))
         {
                 if($columns['DEFAULT_CODE'] == 'Y')
-                    DBQuery("UPDATE attendance_codes SET DEFAULT_CODE=NULL WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND TABLE_NAME='".$_REQUEST['table']."'");
+                    DBQuery('UPDATE attendance_codes SET DEFAULT_CODE=NULL WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND TABLE_NAME=\''.$_REQUEST['table'].'\'');
 
                 if($id!='new')
                 {
-                        $sql = "UPDATE attendance_codes SET ";
+                        $sql = 'UPDATE attendance_codes SET ';
 
                         foreach($columns as $column=>$value) 
                         {
                             if($column=='TITLE'||$column=='SHORT_NAME')
                             { $value=clean_param($value,PARAM_SPCL);
                             }
-                            $sql .= $column."='".str_replace("\'","''",trim($value))."',";
+                            $sql .= $column.'=\''.str_replace("\'","''",trim($value)).'\',';
                         }
-                        $sql = substr($sql,0,-1) . " WHERE ID='$id'";
+                        $sql = substr($sql,0,-1) . ' WHERE ID=\''.$id.'\'';
                         DBQuery($sql);
             }
             else {
-                $sql = "INSERT INTO attendance_codes ";
+                $sql = 'INSERT INTO attendance_codes ';
 
                 $fields = 'SCHOOL_ID,SYEAR,TABLE_NAME,';
-                $values = "'".UserSchool()."','".UserSyear()."','".$_REQUEST['table']."',";
+                $values = '\''.UserSchool().'\',\''.UserSyear().'\',\''.$_REQUEST['table'].'\',';
 
 
                 $go = 0;
@@ -68,7 +68,7 @@ if($_REQUEST['values'] && ($_POST['values'] || $_REQUEST['ajax'])) {
                             {
                                 $value=clean_param($value,PARAM_SPCL);
                             }
-                            $values .= "'".str_replace("\'","''",trim($value))."',";
+                            $values .= '\''.str_replace("\'","''",trim($value)).'\',';
                             $go = true;
                         }
                 }
@@ -96,10 +96,10 @@ if($_REQUEST['new_category_title']) {
 	$new_cat=optional_param('new_category_title','',PARAM_SPCL);
     if($new_cat)
     {
-	 DBQuery("INSERT INTO attendance_code_categories (SYEAR,SCHOOL_ID,TITLE) values('".UserSyear()."','".UserSchool()."','".$new_cat."')");
+	 DBQuery('INSERT INTO attendance_code_categories (SYEAR,SCHOOL_ID,TITLE) values(\''.UserSyear().'\',\''.UserSchool().'\',\''.$new_cat.'\')');
     
     // possible modification start
-    $id = DBGet(DBQuery("SELECT max(ID) as ID from attendance_code_categories"));
+    $id = DBGet(DBQuery('SELECT max(ID) as ID from attendance_code_categories'));
     $id = $id[1]['ID'];
     $_REQUEST['table'] = $id;
     }
@@ -116,7 +116,7 @@ if($_REQUEST['id']){
 //$has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM attendance_period WHERE ATTENDANCE_CODE='$_REQUEST[id]'"));
 
 
-$has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM attendance_period WHERE ATTENDANCE_CODE='".optional_param('id','',PARAM_INT)."'"));
+$has_assigned_RET=DBGet(DBQuery('SELECT COUNT(*) AS TOTAL_ASSIGNED FROM attendance_period WHERE ATTENDANCE_CODE=\''.optional_param('id','',PARAM_INT).'\''));
 	$has_assigned=$has_assigned_RET[1]['TOTAL_ASSIGNED'];
 	}else{
 	$has_assigned=0;
@@ -128,13 +128,13 @@ $has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM attendan
         if(DeletePromptCommon('attendance code')) {
             //DBQuery("DELETE FROM attendance_codes WHERE ID='$_REQUEST[id]'");
 			
-			 DBQuery("DELETE FROM attendance_codes WHERE ID='".optional_param('id','',PARAM_INT)."'");
+			 DBQuery('DELETE FROM attendance_codes WHERE ID=\''.optional_param('id','',PARAM_INT).'\'');
             unset($_REQUEST['modfunc']);
         }
     }
     elseif($_REQUEST['table']) {
         if(DeletePromptCommon('category')) {
-            DBQuery("DELETE FROM attendance_code_categories WHERE ID='$_REQUEST[table]'");
+            DBQuery('DELETE FROM attendance_code_categories WHERE ID=\''.$_REQUEST[table].'\'');
 			
             unset($_REQUEST['modfunc']);
             $_REQUEST['table'] = '0';
@@ -149,7 +149,7 @@ if($_REQUEST['modfunc']!='remove')
        // $sql = "SELECT ID,TITLE,SHORT_NAME,TYPE,DEFAULT_CODE,STATE_CODE,SORT_ORDER FROM attendance_codes WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND TABLE_NAME='".$_REQUEST['table']."' ORDER BY SORT_ORDER,TITLE";
 		
 		//$tabl=optional_param('table','',PARAM_ALPHANUM);
-		  $sql = "SELECT ID,TITLE,SHORT_NAME,TYPE,DEFAULT_CODE,STATE_CODE,SORT_ORDER,TABLE_NAME FROM attendance_codes WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND TABLE_NAME='".$_REQUEST['table']."' ORDER BY SORT_ORDER,TITLE";
+		  $sql = 'SELECT ID,TITLE,SHORT_NAME,TYPE,DEFAULT_CODE,STATE_CODE,SORT_ORDER,TABLE_NAME FROM attendance_codes WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND TABLE_NAME=\''.$_REQUEST['table'].'\' ORDER BY SORT_ORDER,TITLE';
 		  
 		  
         $QI = DBQuery($sql);
@@ -170,7 +170,7 @@ if($_REQUEST['modfunc']!='remove')
 
 
     $tabs = array(array('title'=>'Attendance','link'=>"Modules.php?modname=$_REQUEST[modname]&table=0"));
-    $categories_RET = DBGet(DBQuery("SELECT ID,TITLE FROM attendance_code_categories WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+    $categories_RET = DBGet(DBQuery('SELECT ID,TITLE FROM attendance_code_categories WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
     foreach($categories_RET as $category)
         $tabs[] = array('title'=>$category['TITLE'],'link'=>"Modules.php?modname=$_REQUEST[modname]&table=".$category['ID']);
 

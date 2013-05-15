@@ -34,7 +34,8 @@ $extra['new'] = true;
 $_openSIS['CustomFields'] = true;
 if($_REQUEST['fields']['FIRST_NAME'] || $_REQUEST['fields']['LAST_NAME'] || $_REQUEST['fields']['MIDDLE_NAME'] || $_REQUEST['fields']['LAST_YEAR_ID'] || $_REQUEST['fields']['PHONE'] || $_REQUEST['fields']['USERNAME'] || $_REQUEST['fields']['IS_DISABLE'] || $_REQUEST['fields']['EMAIL'] || $_REQUEST['fields']['LAST_LOGIN'] || $_REQUEST['fields']['PROFILE'])
 {
-	$extra['SELECT'] .= ',s.FIRST_NAME,s.LAST_NAME,s.MIDDLE_NAME,s.ROLLOVER_ID,s.USERNAME,s.LAST_LOGIN,s.EMAIL,s.PHONE,s.IS_DISABLE,s.SCHOOLS ';
+	#$extra['SELECT'] .= ',s.FIRST_NAME,s.LAST_NAME,s.MIDDLE_NAME,s.ROLLOVER_ID,s.USERNAME,s.LAST_LOGIN,s.EMAIL,s.PHONE,s.IS_DISABLE,s.SCHOOLS ';
+        $extra['SELECT'] .= ',s.FIRST_NAME,s.LAST_NAME,s.MIDDLE_NAME,s.USERNAME,s.LAST_LOGIN,s.EMAIL,s.PHONE,s.IS_DISABLE,s.CURRENT_SCHOOL_ID ';
 	
 }
 
@@ -161,8 +162,8 @@ else
 			$fields_list['General'] += $extra['field_names'];
 	}
 /*******************************************************************************/
-	$categories_RET = DBGet(DBQuery("SELECT ID,TITLE FROM staff_field_categories ORDER BY SORT_ORDER"));
-	$custom_RET = DBGet(DBQuery("SELECT TITLE,ID,TYPE,CATEGORY_ID FROM staff_fields ORDER BY SORT_ORDER"),array(),array('CATEGORY_ID'));
+	$categories_RET = DBGet(DBQuery('SELECT ID,TITLE FROM staff_field_categories ORDER BY SORT_ORDER'));
+	$custom_RET = DBGet(DBQuery('SELECT TITLE,ID,TYPE,CATEGORY_ID FROM staff_fields ORDER BY SORT_ORDER'),array(),array('CATEGORY_ID'));
 	foreach($categories_RET as $category)
 	{
 		if(AllowUse('Users/User.php&category_id='.$category['ID']))

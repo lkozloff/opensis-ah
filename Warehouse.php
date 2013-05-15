@@ -36,9 +36,9 @@ if(WAREHOUSE_PHP==0)
 	require_once("database.inc.php");
 	
 	//Create Default Year Picture Folder
-	if(!file_exists($StudentPicturesPath.$_SESSION['UserSyear']))
+	if(!file_exists($StudentPicturesPath))
 	{
-		mkdir($StudentPicturesPath.$_SESSION['UserSyear']);
+		mkdir($StudentPicturesPath);
 	}
 
 	// Load functions.

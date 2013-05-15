@@ -66,18 +66,18 @@ if($function('Confirm Scheduler Run','Are you sure you want to run the scheduler
 	flush();
 	ini_set('MAX_EXECUTION_TIME',0);
 	// get the fy marking period id, there should be exactly one fy marking period
-	$fy_id = DBGet(DBQuery("SELECT MARKING_PERIOD_ID FROM school_years WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+	$fy_id = DBGet(DBQuery('SELECT MARKING_PERIOD_ID FROM school_years WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 	$fy_id = $fy_id[1]['MARKING_PERIOD_ID'];
-	$sql = "SELECT r.REQUEST_ID,r.STUDENT_ID,s.GENDER as GENDER,r.SUBJECT_ID,r.COURSE_ID,MARKING_PERIOD_ID,WITH_TEACHER_ID,NOT_TEACHER_ID,WITH_PERIOD_ID,NOT_PERIOD_ID,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=r.COURSE_ID) AS SECTIONS
+	$sql = 'SELECT r.REQUEST_ID,r.STUDENT_ID,s.GENDER as GENDER,r.SUBJECT_ID,r.COURSE_ID,MARKING_PERIOD_ID,WITH_TEACHER_ID,NOT_TEACHER_ID,WITH_PERIOD_ID,NOT_PERIOD_ID,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=r.COURSE_ID) AS SECTIONS
 	FROM schedule_requests r,students s,student_enrollment ssm
 	WHERE s.STUDENT_ID=ssm.STUDENT_ID AND ssm.SYEAR=r.SYEAR
-	AND ('".DBDate()."' BETWEEN ssm.START_DATE AND ssm.END_DATE OR ssm.END_DATE IS NULL)
-	AND s.STUDENT_ID=r.STUDENT_ID AND r.SYEAR='".UserSyear()."' AND r.SCHOOL_ID='".UserSchool()."' ORDER BY SECTIONS";
+	AND (\''.DBDate().'\' BETWEEN ssm.START_DATE AND ssm.END_DATE OR ssm.END_DATE IS NULL)
+	AND s.STUDENT_ID=r.STUDENT_ID AND r.SYEAR=\''.UserSyear().'\' AND r.SCHOOL_ID=\''.UserSchool().'\' ORDER BY SECTIONS';
 	$requests_RET = DBGet(DBQuery($sql),array(),array('REQUEST_ID'));
 	//print_r($requests_RET);
 	if($_REQUEST['delete_mode']=='Y')
 	{
-	$not_delete=DBGet(DBQuery("SELECT DISTINCT SC.ID AS NOT_DEL FROM schedule SC,attendance_period AP WHERE (SC.STUDENT_ID=AP.STUDENT_ID AND SC.COURSE_PERIOD_ID=AP.COURSE_PERIOD_ID AND SC.SCHOOL_ID='".UserSchool()."' AND SC.SYEAR='".UserSyear()."') UNION SELECT DISTINCT SC.ID AS NOT_DEL FROM schedule SC,student_report_card_grades SRCG WHERE (SC.STUDENT_ID=SRCG.STUDENT_ID AND SC.COURSE_PERIOD_ID=SRCG.COURSE_PERIOD_ID AND SC.SCHOOL_ID='".UserSchool()."' AND SC.SYEAR='".UserSyear()."')"));
+	$not_delete=DBGet(DBQuery('SELECT DISTINCT SC.ID AS NOT_DEL FROM schedule SC,attendance_period AP WHERE (SC.STUDENT_ID=AP.STUDENT_ID AND SC.COURSE_PERIOD_ID=AP.COURSE_PERIOD_ID AND SC.SCHOOL_ID=\''.UserSchool().'\' AND SC.SYEAR=\''.UserSyear().'\') UNION SELECT DISTINCT SC.ID AS NOT_DEL FROM schedule SC,student_report_card_grades SRCG WHERE (SC.STUDENT_ID=SRCG.STUDENT_ID AND SC.COURSE_PERIOD_ID=SRCG.COURSE_PERIOD_ID AND SC.SCHOOL_ID=\''.UserSchool().'\' AND SC.SYEAR=\''.UserSyear().'\')'));
 	
 	$notin='';
 	foreach($not_delete as $value){
@@ -85,34 +85,35 @@ if($function('Confirm Scheduler Run','Are you sure you want to run the scheduler
 	}
 	if($notin!=''){
 	$notin=substr($notin, 0, -1); 
-                    DBQuery("UPDATE course_periods SET FILLED_SEATS=0 WHERE COURSE_PERIOD_ID IN(SELECT COURSE_PERIOD_ID  FROM schedule WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' AND (SCHEDULER_LOCK!='Y' OR SCHEDULER_LOCK IS NULL OR SCHEDULER_LOCK='') AND ID NOT IN ($notin))");
+                    DBQuery('UPDATE course_periods SET FILLED_SEATS=0 WHERE COURSE_PERIOD_ID IN(SELECT COURSE_PERIOD_ID  FROM schedule WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' AND (SCHEDULER_LOCK!=\''.'Y'.'\' OR SCHEDULER_LOCK IS NULL OR SCHEDULER_LOCK=\''.''.'\') AND ID NOT IN ('.$notin.'))');
                         //DBQuery("DELETE FROM missing_attendance WHERE COURSE_PERIOD_ID IN(SELECT COURSE_PERIOD_ID  FROM schedule WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' AND (SCHEDULER_LOCK!='Y' OR SCHEDULER_LOCK IS NULL OR SCHEDULER_LOCK='') AND ID NOT IN ($notin))");
-		DBQuery("DELETE FROM schedule WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' AND (SCHEDULER_LOCK!='Y' OR SCHEDULER_LOCK IS NULL OR SCHEDULER_LOCK='') AND ID NOT IN ($notin)");
+		DBQuery('DELETE FROM schedule WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' AND (SCHEDULER_LOCK!=\''.'Y'.'\' OR SCHEDULER_LOCK IS NULL OR SCHEDULER_LOCK=\''.''.'\') AND ID NOT IN ('.$notin.')');
 		}else{
-                    DBQuery("UPDATE course_periods SET FILLED_SEATS=0 WHERE COURSE_PERIOD_ID IN(SELECT COURSE_PERIOD_ID FROM schedule WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' AND (SCHEDULER_LOCK!='Y' OR SCHEDULER_LOCK IS NULL OR SCHEDULER_LOCK=''))");
+                    DBQuery('UPDATE course_periods SET FILLED_SEATS=0 WHERE COURSE_PERIOD_ID IN(SELECT COURSE_PERIOD_ID FROM schedule WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' AND (SCHEDULER_LOCK!=\''.'Y'.'\' OR SCHEDULER_LOCK IS NULL OR SCHEDULER_LOCK=\''.''.'\'))');
                         //DBQuery("DELETE FROM missing_attendance WHERE COURSE_PERIOD_ID IN(SELECT COURSE_PERIOD_ID FROM schedule WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' AND (SCHEDULER_LOCK!='Y' OR SCHEDULER_LOCK IS NULL OR SCHEDULER_LOCK=''))");
-		DBQuery("DELETE FROM schedule WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' AND (SCHEDULER_LOCK!='Y' OR SCHEDULER_LOCK IS NULL OR SCHEDULER_LOCK='')");
+		DBQuery('DELETE FROM schedule WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' AND (SCHEDULER_LOCK!=\''.'Y'.'\' OR SCHEDULER_LOCK IS NULL OR SCHEDULER_LOCK=\''.''.'\')');
 		}
                 //DBQuery("UPDATE program_config SET VALUE='".date('Y-m-d')."' WHERE PROGRAM='missing_attendance' AND TITLE='LAST_UPDATE'");
 		// FIX THIS
 	}
-	$count = DBGet(DBQuery("SELECT COUNT(*) AS COUNT FROM schedule WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
+	$count = DBGet(DBQuery('SELECT COUNT(*) AS COUNT FROM schedule WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\''));
 //$sql = "SELECT COALESCE(PARENT_ID,COURSE_PERIOD_ID) AS PARENT_ID,COURSE_PERIOD_ID,COURSE_ID,COURSE_ID AS COURSE,GENDER_RESTRICTION,PERIOD_ID,DAYS,TEACHER_ID,MARKING_PERIOD_ID,MP,COALESCE(TOTAL_SEATS,0)-COALESCE(FILLED_SEATS,0) AS AVAILABLE_SEATS,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=cp.COURSE_ID) AS SECTIONS FROM course_periods cp WHERE cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' ORDER BY SECTIONS,AVAILABLE_SEATS";
-   $sql = "SELECT mp.PARENT_ID,mp.GRANDPARENT_ID FROM marking_periods mp,schedule_requests sr WHERE mp.MARKING_PERIOD_ID=sr.MARKING_PERIOD_ID and sr.SCHOOL_ID='".UserSchool()."'";
+   $sql = 'SELECT mp.PARENT_ID,mp.GRANDPARENT_ID FROM marking_periods mp,schedule_requests sr WHERE mp.MARKING_PERIOD_ID=sr.MARKING_PERIOD_ID and sr.SCHOOL_ID=\''.UserSchool().'\'';
    $get_parent_id = DBGet(DBQuery($sql));
    $parent_id = $get_parent_id[1]['PARENT_ID'];
    $grand_pid = $get_parent_id[1]['GRANDPARENT_ID'];
  //$sql = "SELECT COALESCE(cp.PARENT_ID,cp.COURSE_PERIOD_ID) AS PARENT_ID,cp.COURSE_PERIOD_ID,cp.COURSE_ID,cp.COURSE_ID AS COURSE,cp.GENDER_RESTRICTION,cp.PERIOD_ID,cp.DAYS,cp.TEACHER_ID,cp.MARKING_PERIOD_ID,cp.MP,COALESCE(cp.TOTAL_SEATS,0)-COALESCE(cp.FILLED_SEATS,0) AS AVAILABLE_SEATS,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=cp.COURSE_ID) AS SECTIONS FROM course_periods cp,schedule_requests sr WHERE cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND cp.MARKING_PERIOD_ID IN (sr.MARKING_PERIOD_ID,'".$parent_id."','".$grand_pid."') ORDER BY SECTIONS,AVAILABLE_SEATS";
-  $sql = "SELECT DISTINCT COALESCE(cp.PARENT_ID,cp.COURSE_PERIOD_ID) AS PARENT_ID,cp.COURSE_PERIOD_ID,cp.COURSE_ID,cp.COURSE_ID AS COURSE,cp.GENDER_RESTRICTION,cp.PERIOD_ID,cp.DAYS,cp.TEACHER_ID,cp.MARKING_PERIOD_ID,cp.MP,COALESCE(cp.TOTAL_SEATS,0)-COALESCE(cp.FILLED_SEATS,0) AS AVAILABLE_SEATS,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=cp.COURSE_ID) AS SECTIONS FROM course_periods cp LEFT JOIN schedule_requests sr ON cp.COURSE_ID=sr.COURSE_ID WHERE cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND cp.MARKING_PERIOD_ID IN (sr.MARKING_PERIOD_ID,'".$parent_id."','".$grand_pid."') ORDER BY SECTIONS,AVAILABLE_SEATS";	$cp_parent_RET = DBGet(DBQuery($sql),array(),array('PARENT_ID'));
-	$sql = "SELECT COALESCE(PARENT_ID,COURSE_PERIOD_ID) AS PARENT_ID,COURSE_PERIOD_ID,COURSE_ID,COURSE_ID AS COURSE,GENDER_RESTRICTION,PERIOD_ID,DAYS,TEACHER_ID,MARKING_PERIOD_ID,MP,COALESCE(TOTAL_SEATS,0)-COALESCE(FILLED_SEATS,0) AS AVAILABLE_SEATS,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=cp.COURSE_ID) AS SECTIONS FROM course_periods cp WHERE cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND (PARENT_ID IS NULL OR PARENT_ID=COURSE_PERIOD_ID) ORDER BY SECTIONS,AVAILABLE_SEATS";
+  $sql = 'SELECT DISTINCT COALESCE(cp.PARENT_ID,cp.COURSE_PERIOD_ID) AS PARENT_ID,cp.COURSE_PERIOD_ID,cp.COURSE_ID,cp.COURSE_ID AS COURSE,cp.GENDER_RESTRICTION,cp.PERIOD_ID,cp.DAYS,cp.TEACHER_ID,cp.MARKING_PERIOD_ID,cp.MP,COALESCE(cp.TOTAL_SEATS,0)-COALESCE(cp.FILLED_SEATS,0) AS AVAILABLE_SEATS,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=cp.COURSE_ID) AS SECTIONS FROM course_periods cp LEFT JOIN schedule_requests sr ON cp.COURSE_ID=sr.COURSE_ID WHERE cp.SYEAR=\''.UserSyear().'\' AND cp.SCHOOL_ID=\''.UserSchool().'\' AND cp.MARKING_PERIOD_ID IN (sr.MARKING_PERIOD_ID,\''.$parent_id.'\',\''.$grand_pid.'\') ORDER BY SECTIONS,AVAILABLE_SEATS';	
+  $cp_parent_RET = DBGet(DBQuery($sql),array(),array('PARENT_ID'));
+	$sql = 'SELECT COALESCE(PARENT_ID,COURSE_PERIOD_ID) AS PARENT_ID,COURSE_PERIOD_ID,COURSE_ID,COURSE_ID AS COURSE,GENDER_RESTRICTION,PERIOD_ID,DAYS,TEACHER_ID,MARKING_PERIOD_ID,MP,COALESCE(TOTAL_SEATS,0)-COALESCE(FILLED_SEATS,0) AS AVAILABLE_SEATS,(SELECT COUNT(*) FROM course_periods cp2 WHERE cp2.COURSE_ID=cp.COURSE_ID) AS SECTIONS FROM course_periods cp WHERE cp.SYEAR=\''.UserSyear().'\' AND cp.SCHOOL_ID=\''.UserSchool().'\' AND (PARENT_ID IS NULL OR PARENT_ID=COURSE_PERIOD_ID) ORDER BY SECTIONS,AVAILABLE_SEATS';
 	$cp_course_RET = DBGet(DBQuery($sql),array(),array('COURSE'));
-	$mps_RET = DBGet(DBQuery("SELECT SEMESTER_ID,MARKING_PERIOD_ID FROM school_quarters WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"),array(),array('SEMESTER_ID','MARKING_PERIOD_ID'));
+	$mps_RET = DBGet(DBQuery('SELECT SEMESTER_ID,MARKING_PERIOD_ID FROM school_quarters WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''),array(),array('SEMESTER_ID','MARKING_PERIOD_ID'));
 	// GET FILLED/LOCKED REQUESTS
-	$sql = "SELECT s.STUDENT_ID,r.REQUEST_ID,s.COURSE_PERIOD_ID,cp.PARENT_ID,s.COURSE_ID,cp.PERIOD_ID,cp.TEACHER_ID FROM schedule_requests r,schedule s,course_periods cp WHERE
+	$sql = 'SELECT s.STUDENT_ID,r.REQUEST_ID,s.COURSE_PERIOD_ID,cp.PARENT_ID,s.COURSE_ID,cp.PERIOD_ID,cp.TEACHER_ID FROM schedule_requests r,schedule s,course_periods cp WHERE
 				s.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND cp.PARENT_ID=cp.COURSE_PERIOD_ID AND r.WITH_TEACHER_ID=cp.TEACHER_ID AND cp.period_id=r.with_period_id AND
-				r.SYEAR='".UserSyear()."' AND r.SCHOOL_ID='".UserSchool()."' AND s.SYEAR=r.SYEAR AND s.SCHOOL_ID=r.SCHOOL_ID
+				r.SYEAR=\''.UserSyear().'\' AND r.SCHOOL_ID=\''.UserSchool().'\' AND s.SYEAR=r.SYEAR AND s.SCHOOL_ID=r.SCHOOL_ID
 				AND s.COURSE_ID=r.COURSE_ID AND r.STUDENT_ID = s.STUDENT_ID
-				AND ('".DBDate()."' BETWEEN s.START_DATE AND s.END_DATE OR s.END_DATE IS NULL)";
+				AND (\''.DBDate().'\' BETWEEN s.START_DATE AND s.END_DATE OR s.END_DATE IS NULL)';
 	$QI = DBQuery($sql);
 	$locked_RET = DBGet($QI,array(),array('STUDENT_ID','REQUEST_ID'));
 	foreach($locked_RET as $student_id=>$courses)
@@ -206,13 +207,13 @@ if($function('Confirm Scheduler Run','Are you sure you want to run the scheduler
                                             if($course_period['AVAILABLE_SEATS']!=0)
                                             {
                                                    
-                                                    $mp_RET = DBGet(DBQuery("SELECT MP,MARKING_PERIOD_ID,DAYS,PERIOD_ID,MARKING_PERIOD_ID,TOTAL_SEATS,COALESCE(FILLED_SEATS,0) AS FILLED_SEATS FROM course_periods WHERE COURSE_PERIOD_ID='".$course_period['COURSE_PERIOD_ID']."'"));
+                                                    $mp_RET = DBGet(DBQuery('SELECT MP,MARKING_PERIOD_ID,DAYS,PERIOD_ID,MARKING_PERIOD_ID,TOTAL_SEATS,COALESCE(FILLED_SEATS,0) AS FILLED_SEATS FROM course_periods WHERE COURSE_PERIOD_ID=\''.$course_period['COURSE_PERIOD_ID'].'\''));
                                                     $mps = GetAllMP(GetMPTable(GetMP($mp_RET[1]['MARKING_PERIOD_ID'],'TABLE')),$mp_RET[1]['MARKING_PERIOD_ID']);
                                                     $cp_conflicts=false;
-                                                    $existing_cp_RET=  DBGet(DBQuery("SELECT COURSE_PERIOD_ID FROM schedule s WHERE course_period_id='".$course_period['COURSE_PERIOD_ID']."' AND (s.END_DATE IS NULL OR '".$date."'<=s.END_DATE) AND s.MARKING_PERIOD_ID IN (".$mps.") AND s.STUDENT_ID='$student_id'"));
+                                                    $existing_cp_RET=  DBGet(DBQuery('SELECT COURSE_PERIOD_ID FROM schedule s WHERE course_period_id=\''.$course_period['COURSE_PERIOD_ID'].'\' AND (s.END_DATE IS NULL OR \''.$date.'\'<=s.END_DATE) AND s.MARKING_PERIOD_ID IN ('.$mps.') AND s.STUDENT_ID=\''.$student_id.'\''));
                                                     if($existing_cp_RET)
                                                         $cp_conflicts=true;
-                                                    $period_RET = DBGet(DBQuery("SELECT cp.DAYS FROM schedule s,course_periods cp,school_periods sp WHERE cp.COURSE_PERIOD_ID=s.COURSE_PERIOD_ID AND cp.period_id=sp.period_id AND s.STUDENT_ID='$student_id' AND cp.PERIOD_ID='".$mp_RET[1]['PERIOD_ID']."' AND s.MARKING_PERIOD_ID IN (".$mps.") AND (s.END_DATE IS NULL OR '".DBDate()."'<=s.END_DATE) AND sp.ignore_scheduling IS NULL"));
+                                                    $period_RET = DBGet(DBQuery('SELECT cp.DAYS FROM schedule s,course_periods cp,school_periods sp WHERE cp.COURSE_PERIOD_ID=s.COURSE_PERIOD_ID AND cp.period_id=sp.period_id AND s.STUDENT_ID=\''.$student_id.'\' AND cp.PERIOD_ID=\''.$mp_RET[1]['PERIOD_ID'].'\' AND s.MARKING_PERIOD_ID IN ('.$mps.') AND (s.END_DATE IS NULL OR \''.DBDate().'\'<=s.END_DATE) AND sp.ignore_scheduling IS NULL'));
                                                     $days_conflict = false;
                                                     
                                                     foreach($period_RET as $existing)
@@ -232,18 +233,18 @@ if($function('Confirm Scheduler Run','Are you sure you want to run the scheduler
                                                     }
                                                     //**********************************************************************************************/
                                                     $course_per_id = clean_param($course_period['COURSE_PERIOD_ID'],PARAM_INT);
-                                                    $per_id = DBGet(DBQuery("SELECT PERIOD_ID, DAYS, MARKING_PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID ='$course_per_id'"));
+                                                    $per_id = DBGet(DBQuery('SELECT PERIOD_ID, DAYS, MARKING_PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID =\''.$course_per_id.'\''));
                                                     $period_id = $per_id[1]['PERIOD_ID'];
                                                     $days = $per_id[1]['DAYS'];
                                                     $day_st_count = strlen($days);
                                                     $mp_id = $per_id[1]['MARKING_PERIOD_ID'];
-                                                    $st_time = DBGet(DBQuery("SELECT START_TIME, END_TIME FROM school_periods WHERE PERIOD_ID = $period_id AND (IGNORE_SCHEDULING IS NULL OR IGNORE_SCHEDULING!='Y')"));    /********* for homeroom scheduling*/
+                                                    $st_time = DBGet(DBQuery('SELECT START_TIME, END_TIME FROM school_periods WHERE PERIOD_ID = \''.$period_id.'\' AND (IGNORE_SCHEDULING IS NULL OR IGNORE_SCHEDULING!=\''.'Y'.'\')'));    /********* for homeroom scheduling*/
                                                     $start_time = $st_time[1]['START_TIME'];
                                                     $min_start_time = get_min($start_time);
                                                     $end_time = $st_time[1]['END_TIME'];
                                                     $min_end_time = get_min($end_time);
                                                     $child_mpid = $mps;
-                                                    $sql = "SELECT COURSE_PERIOD_ID,START_DATE FROM schedule WHERE STUDENT_ID = ".$student_id." AND (END_DATE IS NULL OR END_DATE>CURRENT_DATE) AND SCHOOL_ID='".UserSchool()."' AND COURSE_PERIOD_ID NOT IN (SELECT COURSE_PERIOD_ID FROM course_periods CP,school_periods SP WHERE CP.PERIOD_ID=SP.PERIOD_ID AND SP.IGNORE_SCHEDULING IS NOT NULL)  AND MARKING_PERIOD_ID IN($child_mpid)";
+                                                    $sql = 'SELECT COURSE_PERIOD_ID,START_DATE FROM schedule WHERE STUDENT_ID = \''.$student_id.'\' AND (END_DATE IS NULL OR END_DATE>CURRENT_DATE) AND SCHOOL_ID=\''.UserSchool().'\' AND COURSE_PERIOD_ID NOT IN (SELECT COURSE_PERIOD_ID FROM course_periods CP,school_periods SP WHERE CP.PERIOD_ID=SP.PERIOD_ID AND SP.IGNORE_SCHEDULING IS NOT NULL)  AND MARKING_PERIOD_ID IN('.$child_mpid.')';
                                                     $xyz = mysql_query($sql);
                                                     $time_clash_conflict = false;
                                                     while($coue_p_id = mysql_fetch_array($xyz))
@@ -251,12 +252,12 @@ if($function('Confirm Scheduler Run','Are you sure you want to run the scheduler
                                                     $cp_id = $coue_p_id[0];
                                                     $st_dt = $coue_p_id[1];
                                                     $convdate = con_date($st_dt);
-                                                    $sel_per_id = DBGet(DBQuery("SELECT COURSE_PERIOD_ID, PERIOD_ID, DAYS, MARKING_PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID = $cp_id"));
+                                                    $sel_per_id = DBGet(DBQuery('SELECT COURSE_PERIOD_ID, PERIOD_ID, DAYS, MARKING_PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID = \''.$cp_id.'\''));
                                                     $sel_period_id = $sel_per_id[1]['PERIOD_ID'];
                                                     $sel_days = $sel_per_id[1]['DAYS'];
                                                     $sel_mp = $sel_per_id[1]['MARKING_PERIOD_ID'];
                                                     $sel_cp = $sel_per_id[1]['COURSE_PERIOD_ID'];
-                                                    $sel_st_time = DBGet(DBQuery("SELECT START_TIME, END_TIME FROM school_periods WHERE PERIOD_ID = $sel_period_id"));
+                                                    $sel_st_time = DBGet(DBQuery('SELECT START_TIME, END_TIME FROM school_periods WHERE PERIOD_ID = \''.$sel_period_id.'\''));
                                                     if($sel_st_time)
                                                     {
                                                         $sel_start_time = $sel_st_time[1]['START_TIME'];
@@ -291,9 +292,9 @@ if($function('Confirm Scheduler Run','Are you sure you want to run the scheduler
                                                     if(!$days_conflict && !$time_clash_conflict && !$cp_conflicts)
                                                    // if(!$days_conflict)
                                                     {
-							DBQuery("INSERT INTO schedule (SYEAR,SCHOOL_ID,STUDENT_ID,START_DATE,COURSE_ID,COURSE_PERIOD_ID,MP,MARKING_PERIOD_ID) values('".UserSyear()."','".UserSchool()."','".$student_id."','".$date."','".$course_period['COURSE_ID']."','".$course_period['COURSE_PERIOD_ID']."','".$course_period['MP']."','".$course_period['MARKING_PERIOD_ID']."');");
-                                                        DBQuery("UPDATE course_periods SET FILLED_SEATS=FILLED_SEATS+1 WHERE COURSE_PERIOD_ID='".$course_period['COURSE_PERIOD_ID']."'");
-							DBQuery("DELETE FROM schedule_requests WHERE REQUEST_ID='".$course_period['REQUEST_ID']."'");
+							DBQuery('INSERT INTO schedule (SYEAR,SCHOOL_ID,STUDENT_ID,START_DATE,COURSE_ID,COURSE_PERIOD_ID,MP,MARKING_PERIOD_ID) values(\''.UserSyear().'\',\''.UserSchool().'\',\''.$student_id.'\',\''.$date.'\',\''.$course_period['COURSE_ID'].'\',\''.$course_period['COURSE_PERIOD_ID'].'\',\''.$course_period['MP'].'\',\''.$course_period['MARKING_PERIOD_ID'].'\')');
+                                                        DBQuery('UPDATE course_periods SET FILLED_SEATS=FILLED_SEATS+1 WHERE COURSE_PERIOD_ID=\''.$course_period['COURSE_PERIOD_ID'].'\'');
+							DBQuery('DELETE FROM schedule_requests WHERE REQUEST_ID=\''.$course_period['REQUEST_ID'].'\'');
      
                                                      }
                                                     

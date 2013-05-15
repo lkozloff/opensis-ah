@@ -28,12 +28,12 @@
 include('../../Redirect_modules.php');
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save' && AllowEdit())
 {
-	$current_RET = DBGet(DBQuery("SELECT STAFF_ID FROM students_join_users WHERE STUDENT_ID='".UserStudentID()."'"),array(),array('STAFF_ID'));
+	$current_RET = DBGet(DBQuery('SELECT STAFF_ID FROM students_join_users WHERE STUDENT_ID=\''.UserStudentID().'\''),array(),array('STAFF_ID'));
 	foreach($_REQUEST['staff'] as $staff_id=>$yes)
 	{
 		if(!$current_RET[$staff_id])
 		{
-			$sql = "INSERT INTO students_join_users (STAFF_ID,STUDENT_ID) values('".$staff_id."','".UserStudentID()."')";
+			$sql = 'INSERT INTO students_join_users (STAFF_ID,STUDENT_ID) values(\''.$staff_id.'\',\''.UserStudentID().'\')';
 			DBQuery($sql);
 		}
 	}
@@ -50,13 +50,13 @@ if(isset($_REQUEST['student_id']) && $_REQUEST['student_id']!='new' || UserStude
             $stu_id=$_REQUEST['student_id'];
         else
             $stu_id=UserStudentID ();
-        $RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME,MIDDLE_NAME,NAME_SUFFIX,SCHOOL_ID FROM students,student_enrollment WHERE students.STUDENT_ID='".$stu_id."' AND student_enrollment.STUDENT_ID = students.STUDENT_ID "));
+        $RET = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME,MIDDLE_NAME,NAME_SUFFIX,SCHOOL_ID FROM students,student_enrollment WHERE students.STUDENT_ID=\''.$stu_id.'\' AND student_enrollment.STUDENT_ID = students.STUDENT_ID '));
         //$_SESSION['UserSchool'] = $RET[1]['SCHOOL_ID'];
-        $count_student_RET=DBGet(DBQuery("SELECT COUNT(*) AS NUM FROM students"));
+        $count_student_RET=DBGet(DBQuery('SELECT COUNT(*) AS NUM FROM students'));
         if($count_student_RET[1]['NUM']>1){
-	DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Students/Student.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
+	DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Deselect</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Students/Student.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
         }else if($count_student_RET[1]['NUM']==1){
-        DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) ');
+        DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Deselect</font></A>) ');
         }
 }
 
@@ -64,7 +64,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete' && AllowEdit())
 {
 	if(DeletePromptCommon('student from that user','remove access to'))
 	{
-		DBQuery("DELETE FROM students_join_users WHERE STAFF_ID='$_REQUEST[staff_id]' AND STUDENT_ID='".UserStudentID()."'");
+		DBQuery('DELETE FROM students_join_users WHERE STAFF_ID=\''.$_REQUEST[staff_id].'\' AND STUDENT_ID=\''.UserStudentID().'\'');
 		unset($_REQUEST['modfunc']);
 	}
 }
@@ -74,12 +74,13 @@ if($note)
 
 if($_REQUEST['modfunc']!='delete')
 {
-	$extra['SELECT'] = ",(SELECT count(u.STAFF_ID) FROM students_join_users u,staff st WHERE u.STUDENT_ID=s.STUDENT_ID AND st.STAFF_ID=u.STAFF_ID AND st.SYEAR=ssm.SYEAR) AS ASSOCIATED";
+	$extra['SELECT'] = ',(SELECT count(u.STAFF_ID) FROM students_join_users u,staff st,staff_school_relationship ssr WHERE u.STUDENT_ID=s.STUDENT_ID AND st.STAFF_ID=u.STAFF_ID AND st.STAFF_ID=ssr.STAFF_ID AND ssr.SYEAR=ssm.SYEAR) AS ASSOCIATED';
 	$extra['columns_after'] = array('ASSOCIATED'=>'# Associated');
 	Search('student_id',$extra);
 
 	if(UserStudentID())
 	{
+            
 		if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='list')
 		{
 			echo "<FORM action=Modules.php?modname=$_REQUEST[modname]&modfunc=save method=POST>";
@@ -87,7 +88,7 @@ if($_REQUEST['modfunc']!='delete')
 		}
 
 		echo '<CENTER><TABLE><TR><TD valign=top>';
-		$current_RET = DBGet(DBQuery("SELECT u.STAFF_ID,CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME,s.LAST_LOGIN FROM students_join_users u,staff s WHERE s.STAFF_ID=u.STAFF_ID AND u.STUDENT_ID='".UserStudentID()."' AND s.SYEAR='".UserSyear()."'"),array('LAST_LOGIN'=>'_makeLogin'));
+		$current_RET = DBGet(DBQuery('SELECT u.STAFF_ID,CONCAT(s.LAST_NAME,\', \',s.FIRST_NAME) AS FULL_NAME,s.LAST_LOGIN FROM students_join_users u,staff s,staff_school_relationship ssr WHERE s.STAFF_ID=u.STAFF_ID AND u.STUDENT_ID=\''.UserStudentID().'\' AND ssr.STAFF_ID=s.STAFF_ID AND ssr.SYEAR=\''.UserSyear().'\''),array('LAST_LOGIN'=>'_makeLogin'));
 		$link['remove'] = array('link'=>"Modules.php?modname=$_REQUEST[modname]&modfunc=delete",'variables'=>array('staff_id'=>'STAFF_ID'));
 		#$link['remove'] = array('link'=>"#"." onclick='check_content(\"ajax.php?modname=$_REQUEST[modname]&modfunc=delete\");'",'variables'=>array('staff_id'=>'STAFF_ID'));
 		ListOutput($current_RET,array('FULL_NAME'=>'Parents','LAST_LOGIN'=>'Last Login'),'','',$link,array(),array('search'=>false));
@@ -97,7 +98,7 @@ if($_REQUEST['modfunc']!='delete')
 		{
 			unset($extra);
 			$extra['link'] = array('FULL_NAME'=>false);
-			$extra['SELECT'] = ",CAST(NULL AS CHAR(1)) AS CHECKBOX";
+			$extra['SELECT'] = ',CAST(NULL AS CHAR(1)) AS CHECKBOX';
 			$extra['functions'] = array('CHECKBOX'=>'_makeChooseCheckbox');
 			$extra['columns_before'] = array('CHECKBOX'=>'</A><INPUT type=checkbox value=Y name=controller onclick="checkAll(this.form,this.form.controller.checked,\'staff\');"><A>');
 			$extra['new'] = true;

@@ -32,10 +32,11 @@ if($_REQUEST['modfunc']=='save')
 	{
 		$cp_list = '\''.implode('\',\'',$_REQUEST['cp_arr']).'\'';
 
-		$course_periods_RET = DBGet(DBQuery("SELECT cp.COURSE_PERIOD_ID,cp.TITLE,TEACHER_ID FROM course_periods cp WHERE cp.COURSE_PERIOD_ID IN ($cp_list) ORDER BY (SELECT SORT_ORDER FROM school_periods WHERE PERIOD_ID=cp.PERIOD_ID)"));
+		$course_periods_RET = DBGet(DBQuery('SELECT cp.COURSE_PERIOD_ID,cp.TITLE,TEACHER_ID FROM course_periods cp WHERE cp.COURSE_PERIOD_ID IN ('.$cp_list.') ORDER BY (SELECT SORT_ORDER FROM school_periods WHERE PERIOD_ID=cp.PERIOD_ID)'));
 		//echo '<pre>'; var_dump($course_periods_RET); echo '</pre>';
 		if($_REQUEST['include_teacher']=='Y')
-			$teachers_RET = DBGet(DBQuery("SELECT STAFF_ID,LAST_NAME,FIRST_NAME,ROLLOVER_ID FROM staff WHERE STAFF_ID IN (SELECT TEACHER_ID FROM course_periods WHERE COURSE_PERIOD_ID IN ($cp_list))"),array(),array('STAFF_ID'));
+			#$teachers_RET = DBGet(DBQuery('SELECT STAFF_ID,LAST_NAME,FIRST_NAME,ROLLOVER_ID FROM staff WHERE STAFF_ID IN (SELECT TEACHER_ID FROM course_periods WHERE COURSE_PERIOD_ID IN ('.$cp_list.'))'),array(),array('STAFF_ID'));
+			$teachers_RET = DBGet(DBQuery('SELECT STAFF_ID,LAST_NAME,FIRST_NAME FROM staff WHERE STAFF_ID IN (SELECT TEACHER_ID FROM course_periods WHERE COURSE_PERIOD_ID IN ('.$cp_list.'))'),array(),array('STAFF_ID'));                
 		//echo '<pre>'; var_dump($teachers_RET); echo '</pre>';
 
 		$handle = PDFStart();
@@ -90,7 +91,7 @@ if($_REQUEST['modfunc']=='save')
 							echo '<TR>';
 							
 						echo '<TD valign=bottom><TABLE>';
-						if($StudentPicturesPath && (($size=getimagesize($picture_path=$StudentPicturesPath.UserSyear().'/'.$student_id.'.JPG')) || $_REQUEST['last_year']=='Y' && ($size=getimagesize($picture_path=$StudentPicturesPath.(UserSyear()-1).'/'.$student_id.'.JPG'))))
+						if($StudentPicturesPath && (($size=getimagesize($picture_path=$StudentPicturesPath.'/'.$student_id.'.JPG')) || $_REQUEST['last_year']=='Y' && ($size=getimagesize($picture_path=$StudentPicturesPath.'/'.$student_id.'.JPG'))))
 							if($size[1]/$size[0] > 144/144)
 								echo '<TR><TD><IMG SRC="'.$picture_path.'" width=144></TD></TR>';
 							else
@@ -158,8 +159,8 @@ function mySearch($type,$extra='')
 		PopTable('header','Search');
 		echo "<FORM action=Modules.php?modname=$_REQUEST[modname]&modfunc=$_REQUEST[modfunc]&search_modfunc=list&next_modname=$_REQUEST[next_modname] method=POST>";
 		echo '<TABLE border=0>';
-
-		$RET = DBGet(DBQuery("SELECT STAFF_ID,CONCAT(LAST_NAME,LAST_NAME,', ',FIRST_NAME) AS FULL_NAME FROM staff WHERE PROFILE='teacher' AND position(',".UserSchool().",' IN SCHOOLS)>0 AND SYEAR='".UserSyear()."' ORDER BY FULL_NAME"));
+		#$RET = DBGet(DBQuery('SELECT s.STAFF_ID,CONCAT(s.LAST_NAME,\''.','. '\',s.FIRST_NAME) AS FULL_NAME FROM staff s,staff_school_relationship ssr WHERE s.STAFF_ID=ssr.STAFF_ID AND s.PROFILE=\''.'teacher'.'\' AND position(\''.','.''.UserSchool().''.','.'\' IN ssr.SCHOOL_ID)>0 AND ssr.SYEAR=\''.UserSyear().'\' ORDER BY FULL_NAME'));
+		$RET = DBGet(DBQuery('SELECT s.STAFF_ID,CONCAT(s.LAST_NAME,\''.','. '\',s.FIRST_NAME) AS FULL_NAME FROM staff s,staff_school_relationship ssr WHERE s.STAFF_ID=ssr.STAFF_ID AND s.PROFILE=\''.'teacher'.'\' AND position(\''.UserSchool().'\' IN ssr.SCHOOL_ID)>0 AND ssr.SYEAR=\''.UserSyear().'\' ORDER BY FULL_NAME'));                
 		echo '<TR><TD align=right width=120>Teacher</TD><TD>';
 		echo "<SELECT name=teacher_id style='max-width:250;'><OPTION value=''>N/A</OPTION>";
 		foreach($RET as $teacher)
@@ -167,14 +168,14 @@ function mySearch($type,$extra='')
 		echo '</SELECT>';
 		echo '</TD></TR>';
 
-		$RET = DBGet(DBQuery("SELECT SUBJECT_ID,TITLE FROM course_subjects WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY TITLE"));
+		$RET = DBGet(DBQuery('SELECT SUBJECT_ID,TITLE FROM course_subjects WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY TITLE'));
 		echo '<TR><TD align=right width=120>Subject</TD><TD>';
 		echo "<SELECT name=subject_id style='max-width:250;'><OPTION value=''>N/A</OPTION>";
 		foreach($RET as $subject)
 			echo "<OPTION value=$subject[SUBJECT_ID]>$subject[TITLE]</OPTION>";
 		echo '</SELECT>';
 
-		$RET = DBGet(DBQuery("SELECT PERIOD_ID,TITLE FROM school_periods WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER"));
+		$RET = DBGet(DBQuery('SELECT PERIOD_ID,TITLE FROM school_periods WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER'));
 		echo '<TR><TD align=right width=120>Period</TD><TD>';
 		echo "<SELECT name=period_id style='max-width:250;'><OPTION value=''>N/A</OPTION>";
 		foreach($RET as $period)
@@ -201,31 +202,31 @@ function mySearch($type,$extra='')
 		if(User('PROFILE')=='admin')
 		{
 			if($_REQUEST['teacher_id'])
-				$where .= " AND cp.TEACHER_ID='$_REQUEST[teacher_id]'";
+				$where .= ' AND cp.TEACHER_ID=\''.$_REQUEST[teacher_id].'\'';
 			if($_REQUEST['first'])
-				$where .= " AND UPPER(s.FIRST_NAME) LIKE '".strtoupper($_REQUEST['first'])."%'";
+				$where .= ' AND UPPER(s.FIRST_NAME) LIKE \''.strtoupper($_REQUEST['first']).'%'.'\'';
 			if($_REQUEST['w_course_period_id'])
 				if($_REQUEST['w_course_period_id_which']=='course')
-					$where .= " AND cp.COURSE_ID=(SELECT COURSE_ID FROM course_periods WHERE COURSE_PERIOD_ID='".$_REQUEST['w_course_period_id']."')";
+					$where .= ' AND cp.COURSE_ID=(SELECT COURSE_ID FROM course_periods WHERE COURSE_PERIOD_ID=\''.$_REQUEST['w_course_period_id'].'\')';
 				else
-					$where .= " AND cp.COURSE_PERIOD_ID='".$_REQUEST['w_course_period_id']."'";
+					$where .= ' AND cp.COURSE_PERIOD_ID=\''.$_REQUEST['w_course_period_id'].'\'';
 			if($_REQUEST['subject_id'])
 			{
-				$from .= ",courses c";
-				$where .= " AND c.COURSE_ID=cp.COURSE_ID AND c.SUBJECT_ID='".$_REQUEST['subject_id']."'";
+				$from .= ',courses c';
+				$where .= ' AND c.COURSE_ID=cp.COURSE_ID AND c.SUBJECT_ID=\''.$_REQUEST['subject_id'].'\'';
 			}
 			if($_REQUEST['period_id'])
 				$where .= " AND cp.PERIOD_ID='".$_REQUEST['period_id']."'";
 
-			$sql = "SELECT cp.COURSE_PERIOD_ID,cp.TITLE,sp.ATTENDANCE FROM course_periods cp,school_periods sp$from WHERE cp.SCHOOL_ID='".UserSchool()."' AND cp.SYEAR='".UserSyear()."' AND sp.PERIOD_ID=cp.PERIOD_ID$where";
+			$sql = 'SELECT cp.COURSE_PERIOD_ID,cp.TITLE,sp.ATTENDANCE FROM course_periods cp,school_periods sp'.$from.' WHERE cp.SCHOOL_ID=\''.UserSchool().'\' AND cp.SYEAR=\''.UserSyear().'\' AND sp.PERIOD_ID=cp.PERIOD_ID'.$where.'';
 		}
 		elseif(User('PROFILE')=='teacher')
 		{
-			$sql = "SELECT cp.COURSE_PERIOD_ID,cp.TITLE,sp.ATTENDANCE FROM course_periods cp,school_periods sp WHERE cp.SCHOOL_ID='".UserSchool()."' AND cp.SYEAR='".UserSyear()."' AND cp.TEACHER_ID='".User('STAFF_ID')."' AND sp.PERIOD_ID=cp.PERIOD_ID";
+			$sql = 'SELECT cp.COURSE_PERIOD_ID,cp.TITLE,sp.ATTENDANCE FROM course_periods cp,school_periods sp WHERE cp.SCHOOL_ID=\''.UserSchool().'\' AND cp.SYEAR=\''.UserSyear().'\' AND cp.TEACHER_ID=\''.User('STAFF_ID').'\' AND sp.PERIOD_ID=cp.PERIOD_ID';
 		}
 		else
 		{
-			$sql = "SELECT cp.COURSE_PERIOD_ID,cp.TITLE,sp.ATTENDANCE FROM course_periods cp,school_periods sp,schedule ss WHERE cp.SCHOOL_ID='".UserSchool()."' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.SYEAR='".UserSyear()."' AND ss.STUDENT_ID='".UserStudentID()."' AND (CURRENT_DATE>=ss.START_DATE AND (ss.END_DATE IS NULL OR CURRENT_DATE<=ss.END_DATE)) AND sp.PERIOD_ID=cp.PERIOD_ID";
+			$sql = 'SELECT cp.COURSE_PERIOD_ID,cp.TITLE,sp.ATTENDANCE FROM course_periods cp,school_periods sp,schedule ss WHERE cp.SCHOOL_ID=\''.UserSchool().'\' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.SYEAR=\''.UserSyear().'\' AND ss.STUDENT_ID=\''.UserStudentID().'\' AND (CURRENT_DATE>=ss.START_DATE AND (ss.END_DATE IS NULL OR CURRENT_DATE<=ss.END_DATE)) AND sp.PERIOD_ID=cp.PERIOD_ID';
 		}
 		$sql .= ' ORDER BY sp.PERIOD_ID';
 

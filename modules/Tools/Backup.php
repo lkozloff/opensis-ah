@@ -31,7 +31,11 @@ require_once("data.php");
 $print_form=1;
 $output_messages=array();
 //test mysql connection
-
+ini_set('memory_limit','9000M');
+//ini_set('post_max_size','9000M');
+//ini_set('upload_max_filesize','9000M');
+ini_set('max_execution_time','50000');
+ini_set('max_input_time','50000');
 if($_REQUEST['modfunc']=='cancel')
 echo " ";
 else if(User('PROFILE')=='admin'&& isset($_REQUEST['action']) )
@@ -82,8 +86,8 @@ function _mysqldump($mysql_database)
 {
 
 
-        $sql="show tables where tables_in_$mysql_database not like 'course_details%' and tables_in_$mysql_database not like 'enroll_grade%'
-               and tables_in_$mysql_database not like 'marking_periods%' and tables_in_$mysql_database not like 'student_contacts%' and tables_in_$mysql_database not like 'transcript_grades%' ;";
+        $sql='show tables where tables_in_'.$mysql_database.' not like \'course_details%\' and tables_in_'.$mysql_database.' not like \'enroll_grade%\'
+               and tables_in_'.$mysql_database.' not like \'marking_periods%\' and tables_in_'.$mysql_database.' not like \'student_contacts%\' and tables_in_'.$mysql_database.' not like \'transcript_grades%\' ;';
 	$result= mysql_query($sql);
 	if( $result)
 	{
@@ -167,20 +171,20 @@ function _mysqldump($mysql_database)
             FROM people,students_join_people stp ,students st  WHERE   people.person_id=stp.person_id  AND   st.student_id=stp.student_id;\n\n
 
 
-            CREATE VIEW transcript_grades AS
-                SELECT s.id AS school_id, s.title AS school_name, rcg.course_period_id as mp_source, mp.marking_period_id AS mp_id,
-                    mp.title AS mp_name, mp.syear, mp.end_date AS posted, rcg.student_id,
-                    sgc.grade_level_short AS gradelevel, rcg.grade_letter, rcg.unweighted_gp AS gp_value,
-                    rcg.weighted_gp AS weighting, rcg.gp_scale, rcg.credit_attempted, rcg.credit_earned,
-                    rcg.credit_category, rcg.course_title AS course_name,
-                    sgc.weighted_gpa,
-                    sgc.unweighted_gpa,
-                    sgc.gpa,
-                    sgc.class_rank,mp.sort_order
-                FROM student_report_card_grades rcg
-                INNER JOIN marking_periods mp ON mp.marking_period_id = rcg.marking_period_id AND mp.mp_type IN ('year','semester','quarter')
-                INNER JOIN student_gpa_calculated sgc ON sgc.student_id = rcg.student_id AND sgc.marking_period_id = rcg.marking_period_id
-                INNER JOIN schools s ON s.id = mp.school_id;\n
+    CREATE VIEW transcript_grades AS
+    SELECT s.id AS school_id, IF(mp.mp_source='history',(SELECT school_name FROM history_school WHERE student_id=rcg.student_id and marking_period_id=mp.marking_period_id),s.title) AS school_name,mp_source, mp.marking_period_id AS mp_id,
+	mp.title AS mp_name, mp.syear, mp.end_date AS posted, rcg.student_id,
+	sgc.grade_level_short AS gradelevel, rcg.grade_letter, rcg.unweighted_gp AS gp_value,
+	rcg.weighted_gp AS weighting, rcg.gp_scale, rcg.credit_attempted, rcg.credit_earned,
+	rcg.credit_category, rcg.course_title AS course_name,
+	sgc.weighted_gpa,
+	sgc.unweighted_gpa,
+                  sgc.gpa,
+	sgc.class_rank,mp.sort_order
+    FROM student_report_card_grades rcg
+    INNER JOIN marking_periods mp ON mp.marking_period_id = rcg.marking_period_id AND mp.mp_type IN ('year','semester','quarter')
+    INNER JOIN student_gpa_calculated sgc ON sgc.student_id = rcg.student_id AND sgc.marking_period_id = rcg.marking_period_id
+    INNER JOIN schools s ON s.id = mp.school_id;\n
             ";
         echo "DELIMITER $$
 --
@@ -648,7 +652,7 @@ function _mysqldump_table_structure($table)
 
 function _mysqldump_table_data($table)
 {
-	$sql="select * from `$table`;";
+	$sql='select * from `'.$table.'`;';
 	$result=mysql_query($sql);
 	if( $result)
 	{
@@ -674,23 +678,23 @@ function _mysqldump_table_data($table)
 				$i++;
 			}
 			//print_r( $field_type);
-			echo "insert into `$table` (";
+			echo 'insert into `'.$table.'` (';
                         for($j=0; $j < $num_fields; $j++)
                         {
                             if($j==$num_fields-1)
                             echo $colfields[$j];
                         else
-                        echo $colfields[$j].",";
+                        echo $colfields[$j].',';
                         }
                         echo ")values\n";
 			$index=0;
 			while( $row= mysql_fetch_row($result))
 			{
-				echo "(";
+				echo '(';
 				for( $i=0; $i <$num_fields; $i++)
 				{
 					if( is_null( $row[$i]))
-						echo "null";
+						echo 'null';
 					else
 					{
 						switch( $field_type[$i])
@@ -705,11 +709,11 @@ function _mysqldump_table_data($table)
 						}
 					}
 					if( $i <$num_fields-1)
-						echo ",";
+						echo ',';
 				}
-				echo ")";
+				echo ')';
 				if( $index <$num_rows-1)
-					echo ",";
+					echo ',';
 				else
 					echo ";";
 				echo "\n";

@@ -32,21 +32,21 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
     {
             if($id!='new')
             {
-                $sql = "UPDATE school_gradelevels SET ";
+                $sql = 'UPDATE school_gradelevels SET ';
                 foreach($columns as $column=>$value)
                 {
                     $value=trim(paramlib_validation($column,$value));
                     if($column==NEXT_GRADE_ID && (str_replace("\'","''",$value)=='' || str_replace("\'","''",$value)==0 ))
-                        $sql .= $column."=NULL,";
+                        $sql .= $column.'=NULL,';
                     else
-                        $sql .= $column."='".str_replace("'","''",str_replace("\'","''",$value))."',";
+                        $sql .= $column.'=\''.str_replace("'","''",str_replace("\'","''",$value)).'\',';
                 }
-                $sql = substr($sql,0,-1) . " WHERE ID='$id'";
+                $sql = substr($sql,0,-1) . ' WHERE ID=\''.$id.'\'';
                     DBQuery($sql);
             }
             else
             {
-                $sql="SELECT TITLE,SHORT_NAME,SORT_ORDER FROM school_gradelevels WHERE SCHOOL_ID ='".UserSchool()."'";
+                $sql='SELECT TITLE,SHORT_NAME,SORT_ORDER FROM school_gradelevels WHERE SCHOOL_ID =\''.UserSchool().'\'';
                 $gradelevels=  DBGet(DBQuery($sql));
                 for($i=1;$i<=count($gradelevels);$i++)
                 {
@@ -77,9 +77,9 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
                         {
                             if(clean_param(trim($_REQUEST['values']['new']['TITLE']),PARAM_NOTAGS)!='')
                             {
-                                $sql = "INSERT INTO school_gradelevels ";
+                                $sql = 'INSERT INTO school_gradelevels ';
                                 $fields = 'SCHOOL_ID,';
-                                $values = "'".UserSchool()."',";
+                                $values = '\''.UserSchool().'\',';
 
                                 $go = 0;
                                 foreach($columns as $column=>$value)
@@ -88,7 +88,7 @@ if(clean_param($_REQUEST['values'],PARAM_NOTAGS) && ($_POST['values'] || $_REQUE
                                         {
                                                 $value=trim(paramlib_validation($column,$value));
                                                 $fields .= $column.',';
-                                                $values .= "'".str_replace("'","''",str_replace("\'","''",$value))."',";
+                                                $values .= '\''.str_replace("'","''",str_replace("\'","''",$value)).'\',';
                                                 $go = true;
                                         }
                                 }
@@ -108,7 +108,7 @@ DrawBC("School Setup > ".ProgramTitle());
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='remove')
 {
     $grd_id=paramlib_validation($colmn=PERIOD_ID,$_REQUEST[id]);
-    $has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_enrollment WHERE GRADE_ID='$grd_id'"));
+    $has_assigned_RET=DBGet(DBQuery('SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_enrollment WHERE GRADE_ID=\''.$grd_id.'\''));
 	$has_assigned=$has_assigned_RET[1]['TOTAL_ASSIGNED'];
 	if($has_assigned>0){
 	UnableDeletePrompt('Cannot delete because grade levels are associated.');
@@ -123,7 +123,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='remove')
 
 if($_REQUEST['modfunc']!='remove')
 {
-	$sql = "SELECT ID,TITLE,SHORT_NAME,SORT_ORDER,NEXT_GRADE_ID FROM school_gradelevels WHERE SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER";
+	$sql = 'SELECT ID,TITLE,SHORT_NAME,SORT_ORDER,NEXT_GRADE_ID FROM school_gradelevels WHERE SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER';
 	$QI = DBQuery($sql);
 	$grades_RET = DBGet($QI,array('TITLE'=>'makeTextInput','SHORT_NAME'=>'makeTextInput','SORT_ORDER'=>'makeTextInput','NEXT_GRADE_ID'=>'makeGradeInput'));
 	
@@ -221,7 +221,7 @@ function makeGradeInput($value,$name)
 		
 	if(!$grades)
 	{
-		$grades_RET = DBGet(DBQuery("SELECT ID,TITLE FROM school_gradelevels WHERE SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER"));
+		$grades_RET = DBGet(DBQuery('SELECT ID,TITLE FROM school_gradelevels WHERE SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER'));
 		if(count($grades_RET))
 		{
 			foreach($grades_RET as $grade)

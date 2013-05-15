@@ -36,23 +36,23 @@ Search('student_id',$extra);
 if($_REQUEST['modfunc']=='add' || $_REQUEST['student_id'])
 {
         if($_REQUEST['student_id'])
-	$RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME,MIDDLE_NAME,NAME_SUFFIX FROM students WHERE STUDENT_ID='".$_REQUEST['student_id']."'"));
+	$RET = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME,MIDDLE_NAME,NAME_SUFFIX FROM students WHERE STUDENT_ID=\''.$_REQUEST['student_id'].'\''));
     else
-        $RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME,MIDDLE_NAME,NAME_SUFFIX FROM students WHERE STUDENT_ID='".UserStudentID()."'"));
-        $count_student_RET=DBGet(DBQuery("SELECT COUNT(*) AS NUM FROM students"));
+        $RET = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME,MIDDLE_NAME,NAME_SUFFIX FROM students WHERE STUDENT_ID=\''.UserStudentID().'\''));
+        $count_student_RET=DBGet(DBQuery('SELECT COUNT(*) AS NUM FROM students'));
         if($count_student_RET[1]['NUM']>1){
-	DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.clean_param($_REQUEST['modcat'],PARAM_NOTAGS).'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname='.clean_param($_REQUEST['modname'],PARAM_NOTAGS).'&search_modfunc=list&next_modname=Students/Student.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
+	DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.clean_param($_REQUEST['modcat'],PARAM_NOTAGS).'><font color=red>Deselect</font></A>) | <A HREF=Modules.php?modname='.clean_param($_REQUEST['modname'],PARAM_NOTAGS).'&search_modfunc=list&next_modname=Students/Student.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
 	  /*  if($_REQUEST['modname']!='Attendance/Administration.php')
 	{
 		DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname='.$_REQUEST['modname'].'&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
 	}*/
         }else if($count_student_RET[1]['NUM']==1){
-            DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.clean_param($_REQUEST['modcat'],PARAM_NOTAGS).'><font color=red>Remove</font></A>) ');
+            DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.clean_param($_REQUEST['modcat'],PARAM_NOTAGS).'><font color=red>Deselect</font></A>) ');
         }
 }
 if($_REQUEST['modfunc']=='add' && AllowEdit())
 {
-	DBQuery("INSERT INTO student_eligibility_activities (STUDENT_ID,ACTIVITY_ID,SYEAR) values('".UserStudentID()."','".$_REQUEST['new_activity']."','".UserSyear()."')");
+	DBQuery('INSERT INTO student_eligibility_activities (STUDENT_ID,ACTIVITY_ID,SYEAR) values(\''.UserStudentID().'\',\''.$_REQUEST['new_activity'].'\',\''.UserSyear().'\')');
 	unset($_REQUEST['modfunc']);
 }
 
@@ -60,14 +60,14 @@ if($_REQUEST['modfunc']=='remove' && AllowEdit())
 {
 	if(DeletePrompt('activity'))
 	{
-		DBQuery("DELETE FROM student_eligibility_activities WHERE STUDENT_ID='".UserStudentID()."' AND ACTIVITY_ID='".$_REQUEST['activity_id']."' AND SYEAR='".UserSyear()."'");
+		DBQuery('DELETE FROM student_eligibility_activities WHERE STUDENT_ID=\''.UserStudentID().'\' AND ACTIVITY_ID=\''.$_REQUEST['activity_id'].'\' AND SYEAR=\''.UserSyear().'\'');
 		unset($_REQUEST['modfunc']);
 	}
 }
 
 if(UserStudentID() && !$_REQUEST['modfunc'])
 {
-	$start_end_RET = DBGet(DBQuery("SELECT TITLE,VALUE FROM program_config WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND PROGRAM='eligibility' AND TITLE IN ('START_DAY','END_DAY')"));
+	$start_end_RET = DBGet(DBQuery('SELECT TITLE,VALUE FROM program_config WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND PROGRAM=\'eligibility\' AND TITLE IN (\''.'START_DAY'.'\',\''.'END_DAY'.'\')'));
 	if(count($start_end_RET))
 	{
 		foreach($start_end_RET as $value)
@@ -115,7 +115,7 @@ if(UserStudentID() && !$_REQUEST['modfunc'])
 		$end_date = strtoupper(date('d-M-y',$start_time+60*60*24*7));
 	}
 
-	$sql = "SELECT min(unix_timestamp(SCHOOL_DATE)) as SCHOOL_DATE FROM attendance_calendar WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'";
+	$sql = 'SELECT min(unix_timestamp(SCHOOL_DATE)) as SCHOOL_DATE FROM attendance_calendar WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\'';
 	$begin_year = DBGet(DBQuery($sql));
 	$begin_year = $begin_year[1]['SCHOOL_DATE'];
 	
@@ -133,9 +133,9 @@ if(UserStudentID() && !$_REQUEST['modfunc'])
 
 	echo '<TABLE border=0 width=100%><TR><TD width=50% valign=top>';
 	
-	$RET = DBGet(DBQuery("SELECT em.STUDENT_ID,em.ACTIVITY_ID,ea.TITLE,ea.START_DATE,ea.END_DATE FROM eligibility_activities ea,student_eligibility_activities em WHERE em.SYEAR='".UserSyear()."' AND em.STUDENT_ID='".UserStudentID()."' AND em.SYEAR=ea.SYEAR AND em.ACTIVITY_ID=ea.ID ORDER BY ea.START_DATE"),array('START_DATE'=>'ProperDate','END_DATE'=>'ProperDate'));
+	$RET = DBGet(DBQuery('SELECT em.STUDENT_ID,em.ACTIVITY_ID,ea.TITLE,ea.START_DATE,ea.END_DATE FROM eligibility_activities ea,student_eligibility_activities em WHERE em.SYEAR=\''.UserSyear().'\' AND em.STUDENT_ID=\''.UserStudentID().'\' AND em.SYEAR=ea.SYEAR AND em.ACTIVITY_ID=ea.ID ORDER BY ea.START_DATE'),array('START_DATE'=>'ProperDate','END_DATE'=>'ProperDate'));
 
-	$activities_RET = DBGet(DBQuery("SELECT ID,TITLE FROM eligibility_activities WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+	$activities_RET = DBGet(DBQuery('SELECT ID,TITLE FROM eligibility_activities WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 	if(count($activities_RET))
 	{
 		foreach($activities_RET as $value)
@@ -156,7 +156,7 @@ if(UserStudentID() && !$_REQUEST['modfunc'])
 
 	echo '</TD><TD width=50% valign=top>';
 	
-	$RET = DBGet(DBQuery("SELECT e.ELIGIBILITY_CODE,c.TITLE as COURSE_TITLE FROM eligibility e,courses c,course_periods cp WHERE e.STUDENT_ID='".UserStudentID()."' AND e.SYEAR='".UserSyear()."' AND e.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND e.SCHOOL_DATE BETWEEN '".date('Y-m-d',strtotime($start_date))."' AND '".date('Y-m-d',strtotime($end_date))."'"),array('ELIGIBILITY_CODE'=>'_makeLower'));
+	$RET = DBGet(DBQuery('SELECT e.ELIGIBILITY_CODE,c.TITLE as COURSE_TITLE FROM eligibility e,courses c,course_periods cp WHERE e.STUDENT_ID=\''.UserStudentID().'\' AND e.SYEAR=\''.UserSyear().'\' AND e.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND e.SCHOOL_DATE BETWEEN \''.date('Y-m-d',strtotime($start_date)).'\' AND \''.date('Y-m-d',strtotime($end_date)).'\''),array('ELIGIBILITY_CODE'=>'_makeLower'));
 	$columns = array('COURSE_TITLE'=>'Course','ELIGIBILITY_CODE'=>'Grade');
 	ListOutput($RET,$columns,'Course','Courses');
 	

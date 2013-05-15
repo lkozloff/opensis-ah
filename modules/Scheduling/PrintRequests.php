@@ -120,8 +120,8 @@ else
 			foreach($courses as $key=>$value){
 				// set MARKING_PERIOD_ID
 				if($courses[$key]['WITH_TEACHER_ID']){
-				$stmt = $mysqli->prepare("select title from marking_periods
-									  where marking_period_id=? limit 1");
+				$stmt = $mysqli->prepare('select title from marking_periods
+									  where marking_period_id=? limit 1');
 				$stmt->bind_param("i",$marking_period_id); //binding name as string
 				$marking_period_id = $courses[$key]['MARKING_PERIOD_ID'];
 				$stmt->execute();
@@ -133,7 +133,7 @@ else
 				}
 				// set WITH_TEACHER_ID
 				if($courses[$key]['WITH_TEACHER_ID']){
-				$stmt = $mysqli->prepare("select CONCAT(first_name,' ',last_name) as title from staff where staff_id=? limit 1");
+				$stmt = $mysqli->prepare('select CONCAT(first_name,\''.' '.'\',last_name) as title from staff where staff_id=? limit 1');
 				$stmt->bind_param("i",$staff_id); //binding name as string
 				$staff_id = $courses[$key]['WITH_TEACHER_ID'];
 				$stmt->execute();
@@ -145,7 +145,7 @@ else
 				}
 				// set NOT_TEACHER_ID
 				if($courses[$key]['NOT_TEACHER_ID']){
-				$stmt = $mysqli->prepare("select CONCAT(first_name,' ',last_name) as title from staff where staff_id=? limit 1");
+				$stmt = $mysqli->prepare('select CONCAT(first_name,\''.' '.'\',last_name) as title from staff where staff_id=? limit 1');
 				$stmt->bind_param("i",$staff_id); //binding name as string
 				$staff_id = $courses[$key]['NOT_TEACHER_ID'];
 				$stmt->execute();
@@ -157,7 +157,7 @@ else
 				}
 				// set WITH_PERIOD_ID
 				if($courses[$key]['WITH_PERIOD_ID']){
-				$stmt = $mysqli->prepare("select title from school_periods where period_id=? limit 1");
+				$stmt = $mysqli->prepare('select title from school_periods where period_id=? limit 1');
 				$stmt->bind_param("i",$period_id); //binding name as string
 				$period_id = $courses[$key]['WITH_PERIOD_ID'];
 				$stmt->execute();
@@ -169,7 +169,7 @@ else
 				}
 				// set NOT_PERIOD_ID
 				if($courses[$key]['NOT_PERIOD_ID']){
-				$stmt = $mysqli->prepare("select title from school_periods where period_id=? limit 1");
+				$stmt = $mysqli->prepare('select title from school_periods where period_id=? limit 1');
 				$stmt->bind_param("i",$period_id); //binding name as string
 				$period_id = $courses[$key]['NOT_PERIOD_ID'];
 				$stmt->execute();

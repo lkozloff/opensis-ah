@@ -40,7 +40,21 @@ function DateInput($value,$name,$title='',$div=true,$allow_na=true)
 	else
 		return (($value!='')?ProperDate($value):'-').($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'');
 }
+function DateInput2($value,$name,$selectid,$title='',$div=true,$allow_na=true)
+{
+	if(Preferences('HIDDEN')!='Y')
+		$div = false;
 
+	if(AllowEdit() && !$_REQUEST['_openSIS_PDF'])
+	{
+		if($value=='' || $div==false)
+			return PrepareDate2($value,"_$name",$selectid,$allow_na).($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'');
+		else
+			return "<DIV id='div$name'><div onclick='javascript:addHTML(\"".str_replace('"','\"',PrepareDate2($value,"_$name",$selectid,$allow_na,array('Y'=>1,'M'=>1,'D'=>1))).($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'')."\",\"div$name\",true)'>".(($value!='')?ProperDate($value):'-').($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'').'</div></DIV>';
+	}
+	else
+		return (($value!='')?ProperDate($value):'-').($title!=''?'<BR><small>'.(strpos(strtolower($title),'<font ')===false?'<FONT color='.Preferences('TITLES').'>':'').$title.(strpos(strtolower($title),'<font ')===false?'</FONT>':'').'</small>':'');
+}
 function SearchDateInput($day,$month,$year,$allow_day,$allow_month,$allow_year)
 {
 	$dt='';
@@ -353,6 +367,10 @@ function SelectInput_for_EndInput($value,$name,$title='',$options,$type_id='',$a
 			$extra = str_replace('"','\"',$extra);
 		}
 
+                    $onchange=str_replace('"','\"',"onchange=javascript:if(this.value==\"$type_id\")window.open(\"for_window.php?modname=$_REQUEST[modname]&modfunc=detail&student_id=".UserStudentID()."&drop_code=$type_id\",\"blank\",\"width=500,height=300\");");
+                if($value!='' && $div)		
+                    $return .= "<SELECT name=$name $extra  $onchange>";
+                else
 		$return .= "<SELECT name=$name $extra  onchange=javascript:if(this.value==\"$type_id\")window.open(\"for_window.php?modname=$_REQUEST[modname]&modfunc=detail&student_id=".UserStudentID()."&drop_code=$type_id\",\"blank\",\"width=500,height=300\");>";
 		if($allow_na!==false)
 		{

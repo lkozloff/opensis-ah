@@ -70,7 +70,7 @@ if($_GET["upreq"] == 'true')
     $url .= '?upreq=true';
 }
 ?>
-                          <iframe src="<?php echo $url; ?>" scrolling="no" frameborder="0" style="background-color:transparent; height:271px; width:100%"></iframe>
+                          <iframe src="<?php echo $url; ?>" scrolling="no" frameborder="0" style="background-color:transparent; height:300px; width:100%"></iframe>
                        </td>
                     </tr>
                   </table>

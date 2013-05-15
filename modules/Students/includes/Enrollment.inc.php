@@ -60,7 +60,7 @@ if(($_REQUEST['month_values'] && ($_POST['month_values'] || $_REQUEST['ajax'])) 
 
 $functions = array('START_DATE'=>'_makeStartInput','END_DATE'=>'_makeEndInput','SCHOOL_ID'=>'_makeSchoolInput');
 unset($THIS_RET);
-$RET = DBGet(DBQuery("SELECT e.ID,e.ENROLLMENT_CODE,e.START_DATE,e.DROP_CODE,e.END_DATE,e.END_DATE AS END,e.SCHOOL_ID,e.NEXT_SCHOOL,e.CALENDAR_ID FROM student_enrollment e WHERE e.STUDENT_ID='".UserStudentID()."' AND e.SYEAR='".UserSyear()."' ORDER BY e.START_DATE"),$functions);
+$RET = DBGet(DBQuery('SELECT e.ID,e.ENROLLMENT_CODE,e.START_DATE,e.DROP_CODE,e.END_DATE,e.END_DATE AS END,e.SCHOOL_ID,e.NEXT_SCHOOL,e.CALENDAR_ID FROM student_enrollment e WHERE e.STUDENT_ID=\''.UserStudentID().'\' AND e.SYEAR=\''.UserSyear().'\' ORDER BY e.START_DATE'),$functions);
 
 $add = true;
 if(count($RET))
@@ -76,7 +76,7 @@ if($add)
 
 $columns = array('START_DATE'=>'Attendance Start Date this School Year','END_DATE'=>'Dropped','SCHOOL_ID'=>'School');
 //$_REQUEST['modfunc'] = '';
-$schools_RET = DBGet(DBQuery("SELECT ID,TITLE FROM schools WHERE ID!='".UserSchool()."'"));
+$schools_RET = DBGet(DBQuery('SELECT ID,TITLE FROM schools WHERE ID!=\''.UserSchool().'\''));
 $next_school_options = array(UserSchool()=>'Next grade at current school','0'=>'Retain','-1'=>'Do not enroll after this school year');
 if(count($schools_RET))
 {
@@ -84,7 +84,7 @@ if(count($schools_RET))
 		$next_school_options[$school['ID']] = $school['TITLE'];
 }
 
-$calendars_RET = DBGet(DBQuery("SELECT CALENDAR_ID,DEFAULT_CALENDAR,TITLE FROM attendance_calendars WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY DEFAULT_CALENDAR ASC"));
+$calendars_RET = DBGet(DBQuery('SELECT CALENDAR_ID,DEFAULT_CALENDAR,TITLE FROM attendance_calendars WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY DEFAULT_CALENDAR ASC'));
 if(count($calendars_RET))
 {
 	foreach($calendars_RET as $calendar)

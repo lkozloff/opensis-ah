@@ -73,7 +73,7 @@ if(isset ($_SESSION['staf_search']['sql'])){
 	
 //if(($_REQUEST['school'] && $_REQUEST['school']!=$old_school) || ($_REQUEST['period'] && $_REQUEST['period']!=$old_period))
 if((optional_param('school','',PARAM_SPCL) && optional_param('school','',PARAM_SPCL)!=$old_school) || (optional_param('period','',PARAM_SPCL) && optional_param('period','',PARAM_SPCL)!=$old_period))
-{
+{ 
 	unset($_SESSION['student_id']);
 	$_SESSION['unset_student'] = true;
 	unset($_SESSION['staff_id']);
@@ -91,7 +91,7 @@ if(optional_param('modfunc','',PARAM_SPCL)=='update' && $_POST)
 	//if(User('PROFILE')=='teacher' &&($_REQUEST['school']!=$old_school || $nsc=='NT'))
 	if(User('PROFILE')=='teacher' &&(optional_param('school','',PARAM_SPCL)!=$old_school || $nsc=='NT'))
  	{
-		
+	//echo 'pinki'; exit;	
 		
 		//if($_REQUEST['act']=='school')
 		if(optional_param('act','',PARAM_SPCL)=='school')
@@ -106,7 +106,7 @@ if(optional_param('modfunc','',PARAM_SPCL)=='update' && $_POST)
 		unset($_SESSION['UserCourse']);
 		unset($_SESSION['UserCoursePeriod']);
 		
-                                        $school_years_RET=DBGet(DBQuery("SELECT MAX(sy.SYEAR) AS SYEAR FROM school_years sy,staff s WHERE s.SYEAR=sy.SYEAR AND SCHOOL_ID=".UserSchool()." AND  s.USERNAME=(SELECT USERNAME FROM staff WHERE STAFF_ID='$_SESSION[STAFF_ID]')"));
+                                        $school_years_RET=DBGet(DBQuery("SELECT MAX(sy.SYEAR) AS SYEAR FROM school_years sy,staff s INNER JOIN staff_school_relationship ssr USING(staff_id) WHERE ssr.school_id=sy.school_id AND sy.syear=ssr.syear AND sy.SCHOOL_ID=".UserSchool()." AND  STAFF_ID='$_SESSION[STAFF_ID]'"));
                                         $_SESSION['UserSyear']=$school_years_RET[1]['SYEAR'];
 
                                         $RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,TITLE FROM school_quarters WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY SORT_ORDER"));
@@ -129,7 +129,7 @@ if(optional_param('modfunc','',PARAM_SPCL)=='update' && $_POST)
                                                 $_SESSION['UserMP'] = GetCurrentMP('FY', DBDate());
                                             }	
                                         }
-		
+		//echo $_SESSION['UserSyear']; exit;  //pinki
 		}
 		//elseif($_REQUEST['act']=='syear')
 		elseif(optional_param('act','',PARAM_SPCL)=='syear')
@@ -198,14 +198,16 @@ if(optional_param('modfunc','',PARAM_SPCL)=='update' && $_POST)
  
                    if (User('PROFILE') == 'admin' && (clean_param($_REQUEST['school'], PARAM_NOTAGS) != $old_school || $nsc == 'NT')) 
                    {
-                        if ($_POST['school']) 
+                        
+                       
+                       if ($_POST['school']) 
                         {
                             $_SESSION['UserSchool'] = clean_param($_REQUEST['school'], PARAM_NOTAGS);
                             DBQuery("UPDATE staff SET CURRENT_SCHOOL_ID='" . UserSchool() . "' WHERE STAFF_ID='" . $_SESSION['STAFF_ID']. "'");
                             unset($_SESSION['UserSyear']);
                             unset($_SESSION['UserMP']);
  
-                            $school_years_RET=DBGet(DBQuery("SELECT MAX(sy.SYEAR) AS SYEAR FROM school_years sy,staff s WHERE s.SYEAR=sy.SYEAR AND SCHOOL_ID=".UserSchool()." AND  s.USERNAME=(SELECT USERNAME FROM staff WHERE STAFF_ID='$_SESSION[STAFF_ID]')"));
+                            $school_years_RET=DBGet(DBQuery("SELECT MAX(sy.SYEAR) AS SYEAR FROM school_years sy,staff_school_relationship ssr WHERE ssr.SYEAR=sy.SYEAR AND sy.SCHOOL_ID=".UserSchool()." AND ssr.STAFF_ID='$_SESSION[STAFF_ID]'"));
                             $_SESSION['UserSyear']=$school_years_RET[1]['SYEAR'];
  
                             $RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,TITLE FROM school_quarters WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY SORT_ORDER"));
@@ -222,11 +224,11 @@ if(optional_param('modfunc','',PARAM_SPCL)=='update' && $_POST)
                             }
  
                             if(!$RET)
-	{
+                            {
                                 $RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,TITLE FROM school_years WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY SORT_ORDER"));
                                 if  (!isset($_SESSION['UserMP'])) {
                                     $_SESSION['UserMP'] = GetCurrentMP('FY', DBDate());
-	}
+                                }
                             }
                         } 
 	

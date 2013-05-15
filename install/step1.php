@@ -62,7 +62,18 @@ function hideAlert() {
     <?php
     error_reporting(0);
     session_start();
-
+ $version=phpversion();
+ $version_allow='5.0.0';
+ if(!version_compare($version, $version_allow, '>='))
+ {  
+     $ver_comp='false';
+ }
+ else
+ {
+     $ver_comp='true';
+ }
+//echo ini_get ( 'safe_mode' )."asdasd";
+//print_r(ini_get_all());
     if($_REQUEST['mod']=='upgrade')
     {
         echo '<div class="heading">You have chosen upgrade';
@@ -137,18 +148,26 @@ function hideAlert() {
 	<?php
 	if($_SESSION['mod']!='upgrade')
 	{
-	echo 'background-image:url(images/step1_new.gif); background-repeat:no-repeat; background-position:50% 20px; height:270px;">';	
+	echo 'background-image:url(images/step1_new.gif); background-repeat:no-repeat; background-position:49% 25px; height:270px;">';	
 	}
 	else
 	{
-	echo 'background-image:url(images/step1.gif); background-repeat:no-repeat; background-position:50% 20px; height:270px;">';
-	}
-	?>
-
-    <form name='step1' id='step1' method="post" action="ins1.php<?php echo ($_REQUEST['mod']=='upgrade')?'?mod=upgrade':''; ?>">
-        <table border="0" cellspacing="6" cellpadding="3" align="center">
+	echo 'background-image:url(images/step1.gif); background-repeat:no-repeat; background-position:49% 25px; height:270px;">';
+	} ?>
+    <form name='step1' id='step1' method="post" <?php if($ver_comp=='true'){ ?>action="ins1.php<?php echo ($_REQUEST['mod']=='upgrade')?'?mod=upgrade':''; }?> ">
+              <table border="0" cellspacing="6" cellpadding="3" align="center">
             <tr>
-                <td  align="center" style="padding-top:36px">
+                <td  align="center">
+                 <?php   if($ver_comp=='true')
+                                echo "<font color='green'><b>Your php version is ".$version.".You can install this system<b></font>";
+                         else
+                                echo "<font color='red'><b>Your php version is ".$version.".<br>But your system must have php version ".$version_allow." to install this system<b></font>";
+                ?>
+                 </td>
+            </tr>
+            <tr>
+                <td  align="center">
+                    <div style="margin-top: 12px">
                     <?php
                     if($_SESSION['mod']!='upgrade')
                     {
@@ -159,6 +178,7 @@ function hideAlert() {
                     echo "Step 1 of 4";
                     }
                     ?>
+                    </div>
                 </td>
             </tr>
             <tr>

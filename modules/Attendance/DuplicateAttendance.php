@@ -86,7 +86,7 @@ if(optional_param('delete','',PARAM_ALPHA)=='true')
                                                                     $val4 = $val_sdt;
                                                                     if($val1 == $iii){
                                                                                 //echo "$val1 - $val2 - $val3 - $val4 ||| ";
-                                                                                DBQuery("DELETE FROM attendance_period WHERE STUDENT_ID='".$val2."' AND SCHOOL_DATE='".$val4."' AND COURSE_PERIOD_ID='".$val3."'");
+                                                                                DBQuery('DELETE FROM attendance_period WHERE STUDENT_ID=\''.$val2.'\' AND SCHOOL_DATE=\''.$val4.'\' AND COURSE_PERIOD_ID=\''.$val3.'\'');
                                                                     }
                                                                     $iii++;
                                                             }
@@ -145,11 +145,11 @@ elseif($_REQUEST['delete']!='true')
         {
 
                unset($extra);
-               $extra['SELECT_ONLY'] .= "ap.COURSE_PERIOD_ID, s.STUDENT_ID, s.FIRST_NAME, s.LAST_NAME, ap.SCHOOL_DATE, cp.TITLE, ap.PERIOD_ID, sc.START_DATE, sc.END_DATE ";
-               $extra['FROM'] .= " ,attendance_period ap, course_periods cp, schedule sc ";
+               $extra['SELECT_ONLY'] .= 'ap.COURSE_PERIOD_ID, s.STUDENT_ID, s.FIRST_NAME, s.LAST_NAME, ap.SCHOOL_DATE, cp.TITLE, ap.PERIOD_ID, sc.START_DATE, sc.END_DATE ';
+               $extra['FROM'] .= ' ,attendance_period ap, course_periods cp, schedule sc ';
                //$extra['WHERE'] .= " AND ssm.student_id=s.student_id AND ap.STUDENT_ID=s.STUDENT_ID AND ap.COURSE_PERIOD_ID = cp.COURSE_PERIOD_ID AND ('".DBDate()."' BETWEEN ssm.START_DATE AND ssm.END_DATE OR ssm.END_DATE IS NULL) ";
                //$extra['WHERE'] .= " AND ssm.student_id=s.student_id AND ap.STUDENT_ID=s.STUDENT_ID AND ap.COURSE_PERIOD_ID = cp.COURSE_PERIOD_ID ";
-               $extra['WHERE'] .= " AND ap.STUDENT_ID=s.STUDENT_ID AND sc.STUDENT_ID=s.STUDENT_ID AND ap.COURSE_PERIOD_ID = cp.COURSE_PERIOD_ID AND ap.COURSE_PERIOD_ID = sc.COURSE_PERIOD_ID AND sc.END_DATE > '1999-01-01' ";
+               $extra['WHERE'] .= ' AND ap.STUDENT_ID=s.STUDENT_ID AND sc.STUDENT_ID=s.STUDENT_ID AND ap.COURSE_PERIOD_ID = cp.COURSE_PERIOD_ID AND ap.COURSE_PERIOD_ID = sc.COURSE_PERIOD_ID AND sc.END_DATE > \'1999-01-01\' ';
                $extra['ORDER_BY'] = ' STUDENT_ID, COURSE_PERIOD_ID, SCHOOL_DATE';
                Widgets('course');
                Widgets('gpa');
@@ -196,11 +196,11 @@ elseif($_REQUEST['delete']!='true')
 	       //echo "$totalrows";
 
                unset($extra);
-               $extra['SELECT_ONLY'] .= "ap.COURSE_PERIOD_ID, s.STUDENT_ID, s.FIRST_NAME, s.LAST_NAME, ap.SCHOOL_DATE, cp.TITLE, cp.SHORT_NAME, ap.PERIOD_ID, sc.START_DATE, sc.END_DATE ";
-               $extra['FROM'] .= " ,attendance_period ap, course_periods cp, schedule sc ";
+               $extra['SELECT_ONLY'] .= 'ap.COURSE_PERIOD_ID, s.STUDENT_ID, s.FIRST_NAME, s.LAST_NAME, ap.SCHOOL_DATE, cp.TITLE, cp.SHORT_NAME, ap.PERIOD_ID, sc.START_DATE, sc.END_DATE ';
+               $extra['FROM'] .= ' ,attendance_period ap, course_periods cp, schedule sc ';
                //$extra['WHERE'] .= " AND ssm.student_id=s.student_id AND ap.STUDENT_ID=s.STUDENT_ID AND ap.COURSE_PERIOD_ID = cp.COURSE_PERIOD_ID AND ('".DBDate()."' BETWEEN ssm.START_DATE AND ssm.END_DATE OR ssm.END_DATE IS NULL) ";
                //$extra['WHERE'] .= " AND ssm.student_id=s.student_id AND ap.STUDENT_ID=s.STUDENT_ID AND ap.COURSE_PERIOD_ID = cp.COURSE_PERIOD_ID ";
-               $extra['WHERE'] .= " AND ap.STUDENT_ID=s.STUDENT_ID AND sc.STUDENT_ID=s.STUDENT_ID AND ap.COURSE_PERIOD_ID = cp.COURSE_PERIOD_ID AND ap.COURSE_PERIOD_ID = sc.COURSE_PERIOD_ID AND sc.END_DATE > '1999-01-01' ";
+               $extra['WHERE'] .= ' AND ap.STUDENT_ID=s.STUDENT_ID AND sc.STUDENT_ID=s.STUDENT_ID AND ap.COURSE_PERIOD_ID = cp.COURSE_PERIOD_ID AND ap.COURSE_PERIOD_ID = sc.COURSE_PERIOD_ID AND sc.END_DATE > \'1999-01-01\' ';
                $extra['ORDER_BY'] = ' STUDENT_ID, COURSE_PERIOD_ID, SCHOOL_DATE';
                Widgets('course');
                Widgets('gpa');

@@ -117,7 +117,7 @@ else
 	{
 		$extra['SELECT'] .= ',sam.ADDRESS_ID';
 		if(!($_REQUEST['expanded_view']=='true' || $_REQUEST['addr'] || $extra['addr']))
-			$extra['FROM'] = " LEFT OUTER JOIN students_join_address sam ON (sam.STUDENT_ID=ssm.STUDENT_ID AND sam.RESIDENCE='Y')".$extra['FROM'];
+			$extra['FROM'] = ' LEFT OUTER JOIN students_join_address sam ON (sam.STUDENT_ID=ssm.STUDENT_ID AND sam.RESIDENCE=\''.Y.'\')\''.$extra['FROM'].'\'';
 		$extra['group'] = array('ADDRESS_ID');
 	}
 	$students_RET = GetStuList($extra);

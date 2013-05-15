@@ -44,7 +44,7 @@ if(optional_param('modfunc','',PARAM_NOTAGS)=='save')
 {
 	if($_REQUEST['activity_id'])
 	{
-		$current_RET = DBGet(DBQuery("SELECT STUDENT_ID FROM student_eligibility_activities WHERE ACTIVITY_ID='".$_SESSION['activity_id']."' AND SYEAR='".UserSyear()."'"),array(),array('STUDENT_ID'));
+		$current_RET = DBGet(DBQuery('SELECT STUDENT_ID FROM student_eligibility_activities WHERE ACTIVITY_ID=\''.$_SESSION['activity_id'].'\' AND SYEAR=\''.UserSyear().'\''),array(),array('STUDENT_ID'));
 		foreach($_REQUEST['student'] as $student_id=>$yes)
 		{
 			if(!$current_RET[$student_id])
@@ -52,8 +52,8 @@ if(optional_param('modfunc','',PARAM_NOTAGS)=='save')
 				/*$sql = "INSERT INTO student_eligibility_activities (SYEAR,STUDENT_ID,ACTIVITY_ID)
 							values('".UserSyear()."','".$student_id."','".$_REQUEST['activity_id']."')";*/
 							
-				$sql = "INSERT INTO student_eligibility_activities (SYEAR,STUDENT_ID,ACTIVITY_ID)
-							values('".UserSyear()."','".$student_id."','".optional_param('activity_id','',PARAM_SPCL)."')";
+				$sql = 'INSERT INTO student_eligibility_activities (SYEAR,STUDENT_ID,ACTIVITY_ID)
+							values(\''.UserSyear().'\',\''.$student_id.'\',\''.optional_param('activity_id','',PARAM_SPCL).'\')';
 				DBQuery($sql);
 			}
 		}
@@ -77,7 +77,7 @@ if($_REQUEST['search_modfunc']=='list')
 
 	echo '<CENTER><TABLE cellpadding=6><TR><TD align=right><b>Activity</b></TD>';
 	echo '<TD>';
-	$activities_RET = DBGet(DBQuery("SELECT ID,TITLE FROM eligibility_activities WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+	$activities_RET = DBGet(DBQuery('SELECT ID,TITLE FROM eligibility_activities WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 	echo '<SELECT name=activity_id><OPTION value="">N/A</OPTION>';
 	if(count($activities_RET))
 	{

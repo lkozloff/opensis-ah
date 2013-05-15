@@ -59,19 +59,19 @@ include('../../Redirect_modules.php');
                 ##############################################################################################################
                     if($id!='new')
                     {
-                        $sql = "UPDATE school_periods SET ";
+                        $sql = 'UPDATE school_periods SET ';
 
                         foreach($columns as $column=>$value)
                         {
                             $value=trim(paramlib_validation($column,$value));
                             if($column=='ignore_scheduling' && $value==''){
-                                $sql .= $column."=NULL";
+                                $sql .= $column.'=NULL';
                             }
                             else{
-                            $sql .= $column."='".str_replace("'","''",str_replace("\'","''",$value))."',";
+                            $sql .= $column.'=\''.str_replace("'","''",str_replace("\'","''",$value)).'\',';
                         }
                         }
-                        $sql = substr($sql,0,-1) . " WHERE PERIOD_ID='$id'";
+                        $sql = substr($sql,0,-1) . ' WHERE PERIOD_ID=\''.$id.'\'';
                         //echo $sql.'<br>';
                         $sql = str_replace('&amp;', "", $sql);
                         $sql = str_replace('&quot', "", $sql);
@@ -82,7 +82,7 @@ include('../../Redirect_modules.php');
 
                         # -------------------------- Length Update Start -------------------------- #
 
-                        $sql_get_length = "SELECT start_time, end_time from school_periods WHERE period_id='$id'";
+                        $sql_get_length = 'SELECT start_time, end_time from school_periods WHERE period_id=\''.$id.'\'';
 
                         $res_get_length = mysql_query($sql_get_length);
                         $row_get_length = mysql_fetch_array($res_get_length);				
@@ -93,7 +93,7 @@ include('../../Redirect_modules.php');
 
                         $length = ($end_time-$start_time)/60;
 
-                        $sql_length_update = "UPDATE school_periods set length = ".$length." where period_id='$id'";
+                        $sql_length_update = 'UPDATE school_periods set length = '.$length.' where period_id=\''.$id.'\'';
                         $res_length_update = mysql_query($sql_length_update);
 
                         # --------------------------- Length Update End --------------------------- #
@@ -101,7 +101,7 @@ include('../../Redirect_modules.php');
                     }
                     else
                     {
-                        $sql="SELECT TITLE,SHORT_NAME,SORT_ORDER,START_TIME,END_TIME FROM  school_periods WHERE SYEAR= '".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'";
+                        $sql='SELECT TITLE,SHORT_NAME,SORT_ORDER,START_TIME,END_TIME FROM  school_periods WHERE SYEAR= \''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\'';
                         $periods=DBGET(DBQuery($sql));
                         for($i=1;$i<=count($periods);$i++)
                         {
@@ -146,9 +146,9 @@ include('../../Redirect_modules.php');
                                         }
                                         else 
                                         {
-                                            $sql = "INSERT INTO school_periods ";
+                                            $sql = 'INSERT INTO school_periods ';
                                             $fields = 'SCHOOL_ID,SYEAR,';
-                                            $values = "'".UserSchool()."','".UserSyear()."',";
+                                            $values = '\''.UserSchool().'\',\''.UserSyear().'\',';
                                             $go = 0;
                                             foreach($columns as $column=>$value)
                                             {
@@ -156,7 +156,7 @@ include('../../Redirect_modules.php');
                                                 {
                                                 $value=trim(paramlib_validation($column,$value));
                                                 $fields .= $column.',';
-                                                $values .= "'".str_replace("'","''",str_replace("\'","''",$value))."',";
+                                                $values .= '\''.str_replace("'","''",str_replace("\'","''",$value)).'\',';
                                                 $go = true;
                                                 }
                                             }
@@ -167,10 +167,10 @@ include('../../Redirect_modules.php');
 
                                             # ----------------------------- Length Calculate start --------------------- #
 
-                                            $p_id = DBGet(DBQuery("SELECT max(PERIOD_ID) AS period_id FROM school_periods WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+                                            $p_id = DBGet(DBQuery('SELECT max(PERIOD_ID) AS period_id FROM school_periods WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
                                             $period_id = $p_id[1]['PERIOD_ID'];
 
-                                            $time_chk = DBGet(DBQuery("SELECT START_TIME,END_TIME FROM school_periods WHERE PERIOD_ID='$period_id' AND SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+                                            $time_chk = DBGet(DBQuery('SELECT START_TIME,END_TIME FROM school_periods WHERE PERIOD_ID=\''.$period_id.'\' AND SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
                                             $start_tm_chk = $time_chk[1][START_TIME];
                                             $end_tm_chk = $time_chk[1][END_TIME];
 
@@ -181,7 +181,7 @@ include('../../Redirect_modules.php');
 
                                             $length = ($end_time-$start_time)/60;
 
-                                            $sql_up = "update school_periods set length = ".$length." where period_id='$period_id' and syear='".UserSyear()."' and school_id='".UserSchool()."'";
+                                            $sql_up = 'update school_periods set length = '.$length.' where period_id=\''.$period_id.'\' and syear=\''.UserSyear().'\' and school_id=\''.UserSchool().'\'';
                                             $res_up = mysql_query($sql_up);
 
                                             # -------------------------------------------------------------------------- #
@@ -200,14 +200,14 @@ DrawBC("School Setup > ".ProgramTitle());
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='remove' && AllowEdit())
 {
                   $prd_id=paramlib_validation($colmn=PERIOD_ID,$_REQUEST[id]);
-	$has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM course_periods WHERE PERIOD_ID='$prd_id'"));
+	$has_assigned_RET=DBGet(DBQuery('SELECT COUNT(*) AS TOTAL_ASSIGNED FROM course_periods WHERE PERIOD_ID=\''.$prd_id.'\''));
 	$has_assigned=$has_assigned_RET[1]['TOTAL_ASSIGNED'];
 	if($has_assigned>0){
 	UnableDeletePrompt('Cannot delete because periods are associated.');
 	}else{
 	if(DeletePrompt_Period('period'))
 	{
-		DBQuery("DELETE FROM school_periods WHERE PERIOD_ID='$prd_id'");
+		DBQuery('DELETE FROM school_periods WHERE PERIOD_ID=\''.$prd_id.'\'');
 		unset($_REQUEST['modfunc']);
 	}
 	}
@@ -217,7 +217,7 @@ if($_REQUEST['modfunc']!='remove')
 {
 	#$sql = "SELECT PERIOD_ID,TITLE,SHORT_NAME,SORT_ORDER,LENGTH,START_TIME,END_TIME,BLOCK,ATTENDANCE FROM school_periods WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER";
 
-$sql = "SELECT PERIOD_ID,TITLE,SHORT_NAME,SORT_ORDER,LENGTH,START_TIME,END_TIME,ATTENDANCE,IGNORE_SCHEDULING FROM school_periods WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER";
+$sql = 'SELECT PERIOD_ID,TITLE,SHORT_NAME,SORT_ORDER,LENGTH,START_TIME,END_TIME,ATTENDANCE,IGNORE_SCHEDULING FROM school_periods WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER';
 	$QI = DBQuery($sql);
 	
 	#$periods_RET = DBGet($QI,array('TITLE'=>'_makeTextInput','SHORT_NAME'=>'_makeTextInput','SORT_ORDER'=>'_makeTextInputMod','BLOCK'=>'_makeTextInput','LENGTH'=>'_makeTextInputMod','START_TIME'=>'_makeTimeInput','END_TIME'=>'_makeTimeInputEnd','ATTENDANCE'=>'_makeCheckboxInput'));

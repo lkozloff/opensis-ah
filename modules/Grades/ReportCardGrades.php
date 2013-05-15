@@ -43,9 +43,9 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
                                         if($id!='new')
                                         {
                                             if($_REQUEST['tab_id']!='new')
-                                            $sql = "UPDATE report_card_grades SET ";
+                                            $sql = 'UPDATE report_card_grades SET ';
                                             else
-                                            $sql = "UPDATE report_card_grade_scales SET ";
+                                            $sql = 'UPDATE report_card_grade_scales SET ';
 
                                             foreach($columns as $column=>$value)
                                             {
@@ -53,14 +53,14 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
                                                 $values .= ' " '.trim(str_replace("\'","'",$value)).' ",';
                                                 //$sql .= $column."='".str_replace("\'","''",$value)."',";
                                                 if(isset($value))
-                                                    $sql .= $column . '="'.str_replace("\'","'",trim($value)).'",';
+                                                    $sql .= $column . '=\''.str_replace("\'","'",trim($value)).'\',';
                                                 else
                                                     $sql .= $column . '=NULL ,';
                                             }
                                             if($_REQUEST['tab_id']!='new')
-                                                $sql = substr($sql,0,-1) . " WHERE ID='$id'";
+                                                $sql = substr($sql,0,-1) . ' WHERE ID=\''.$id.'\'';
                                             else
-                                                $sql = substr($sql,0,-1) . " WHERE ID='$id'";
+                                                $sql = substr($sql,0,-1) . ' WHERE ID=\''.$id.'\'';
                                             DBQuery($sql);
                                         }
                                         else
@@ -107,10 +107,10 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='remove')
 {
  if($_REQUEST['tab_id']!='new'){
-	$has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_report_card_grades WHERE REPORT_CARD_GRADE_ID='$_REQUEST[id]'"));
+	$has_assigned_RET=DBGet(DBQuery('SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_report_card_grades WHERE REPORT_CARD_GRADE_ID=\''.$_REQUEST['id'].'\''));
 	$has_assigned=$has_assigned_RET[1]['TOTAL_ASSIGNED'];
 	}else{
-	$has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_report_card_grades WHERE REPORT_CARD_GRADE_ID IN ( SELECT ID FROM report_card_grades WHERE GRADE_SCALE_ID ='$_REQUEST[id]')"));
+	$has_assigned_RET=DBGet(DBQuery('SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_report_card_grades WHERE REPORT_CARD_GRADE_ID IN ( SELECT ID FROM report_card_grades WHERE GRADE_SCALE_ID =\''.$_REQUEST['id'].'\')'));
 	$has_assigned=$has_assigned_RET[1]['TOTAL_ASSIGNED'];
 	}
 	if($has_assigned>0){
@@ -126,8 +126,8 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='remove')
 	else
 		if(DeletePromptX('Report Card Grading Scale'))
 		{
-			DBQuery("DELETE FROM report_card_grades WHERE GRADE_SCALE_ID='$_REQUEST[id]'");
-			DBQuery("DELETE FROM report_card_grade_scales WHERE ID='$_REQUEST[id]'");
+			DBQuery('DELETE FROM report_card_grades WHERE GRADE_SCALE_ID=\''.$_REQUEST[id].'\'');
+			DBQuery('DELETE FROM report_card_grade_scales WHERE ID=\''.$_REQUEST[id].'\'');
 			unset($_SESSION['GR_scale_id']);
 		}
 		}
@@ -167,7 +167,7 @@ if(!$_REQUEST['modfunc'])
 		if($course_period_RET[1]['DOES_BREAKOFF']=='Y')
 		{
 			$teacher_id = $course_period_RET[1]['TEACHER_ID'];
-			$config_RET = DBGet(DBQuery("SELECT TITLE,VALUE FROM program_user_config WHERE USER_ID='$teacher_id' AND PROGRAM='Gradebook'"),array(),array('TITLE'));
+			$config_RET = DBGet(DBQuery('SELECT TITLE,VALUE FROM program_user_config WHERE USER_ID=\''.$teacher_id.'\' AND PROGRAM=\'Gradebook\''),array(),array('TITLE'));
 		}
 		$_REQUEST['tab_id'] = key($grade_scales_RET);
 	}

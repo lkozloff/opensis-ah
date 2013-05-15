@@ -27,7 +27,7 @@
 #***************************************************************************************
 include('../../Redirect_modules.php');
 unset($_SESSION['student_id']);
-
+$stu_sd_err_count=0;
 if(!$_REQUEST['modfunc'] && $_REQUEST['search_modfunc']!='list')
 	unset($_SESSION['MassSchedule.php']);
 
@@ -36,13 +36,13 @@ if(isset($_REQUEST['per']))
 
 
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
-{
+{   
 	if($_SESSION['MassSchedule.php'])
 	{
 		$start_date = $_REQUEST['day'].'-'.$_REQUEST['month'].'-'.$_REQUEST['year'];
 		if(!VerifyDate($start_date))
 			BackPrompt('The date you entered is not valid');
-		$course_mp = DBGet(DBQuery("SELECT MARKING_PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID='".$_SESSION['MassSchedule.php']['course_period_id']."'"));
+		$course_mp = DBGet(DBQuery('SELECT MARKING_PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID=\''.$_SESSION['MassSchedule.php']['course_period_id'].'\''));
 		$course_mp = $course_mp[1]['MARKING_PERIOD_ID'];
 		$course_mp_table = GetMPTable(GetMP($course_mp,'TABLE'));
 
@@ -54,8 +54,8 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
 		}
 		$mp_table = GetMPTable(GetMP($_REQUEST['marking_period_id'],'TABLE'));
 
-		$current_RET = DBGet(DBQuery("SELECT STUDENT_ID FROM schedule WHERE COURSE_PERIOD_ID='".$_SESSION['MassSchedule.php']['course_period_id']."' AND SYEAR='".UserSyear()."' AND (('".$start_date."' BETWEEN START_DATE AND END_DATE OR END_DATE IS NULL) AND '".$start_date."'>=START_DATE)"),array(),array('STUDENT_ID'));
-		$request_RET = DBGet(DBQuery("SELECT STUDENT_ID FROM schedule_requests WHERE WITH_PERIOD_ID=(SELECT PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID='".$_SESSION['MassSchedule.php']['course_period_id']."') AND SYEAR='".UserSyear()."' AND COURSE_ID='".$_SESSION['MassSchedule.php']['course_id']."'"),array(),array('STUDENT_ID'));
+		$current_RET = DBGet(DBQuery('SELECT STUDENT_ID FROM schedule WHERE COURSE_PERIOD_ID=\''.$_SESSION['MassSchedule.php']['course_period_id'].'\' AND SYEAR=\''.UserSyear().'\' AND ((\''.$start_date.'\' BETWEEN START_DATE AND END_DATE OR END_DATE IS NULL) AND \''.$start_date.'\'>=START_DATE)'),array(),array('STUDENT_ID'));
+		$request_RET = DBGet(DBQuery('SELECT STUDENT_ID FROM schedule_requests WHERE WITH_PERIOD_ID=(SELECT PERIOD_ID FROM course_periods WHERE COURSE_PERIOD_ID=\''.$_SESSION['MassSchedule.php']['course_period_id'].'\') AND SYEAR=\''.UserSyear().'\' AND COURSE_ID=\''.$_SESSION['MassSchedule.php']['course_id'].'\''),array(),array('STUDENT_ID'));
 		
 		
 // ----------------------------------------- Time Clash Logic Start ---------------------------------------------------------- //
@@ -123,13 +123,35 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
 			
 		}
                 $convdate = con_date($start_date);
+                
+                ////Start Date Check///////////////////
+                $start_date_q=DBGet(DBQuery('SELECT START_DATE FROM school_years WHERE school_id='.UserSchool().' AND syear='.UserSyear().''));
+                if(strtotime($start_date_q[1]['START_DATE'])>strtotime($convdate))
+                {
+                 $start_date_q_clash='Cannot schedule students before school start date';   
+                }
+                else
+                {
+                unset($start_date_q_clash);
+                foreach($_REQUEST['student'] as $index=>$value)
+                {
+                $stu_start_date_q=DBGet(DBQuery('SELECT START_DATE FROM student_enrollment WHERE STUDENT_ID='.$index.' AND school_id='.UserSchool().' AND syear='.UserSyear().''));
+                    if(strtotime($stu_start_date_q[1]['START_DATE'])>strtotime($convdate))
+                    {
+                        unset($_REQUEST['student'][$index]);
+                        $stu_s_date_err_q=DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME FROM students WHERE STUDENT_ID='.$index.''));
+                        $stu_s_date_err_n=$stu_s_date_err_q[1]['FIRST_NAME']."&nbsp;".$stu_s_date_err_q[1]['LAST_NAME'];
+                        $stu_sd_err.=$stu_s_date_err_n.'<br>';
+                        $stu_sd_err_count++;
+                    }
+                }
 		$course_per_id = $_SESSION['MassSchedule.php']['course_period_id'];
-		$per_id = DBGet(DBQuery("SELECT PERIOD_ID, DAYS FROM course_periods WHERE COURSE_PERIOD_ID = $course_per_id"));
+		$per_id = DBGet(DBQuery('SELECT PERIOD_ID, DAYS FROM course_periods WHERE COURSE_PERIOD_ID = \''.$course_per_id.'\''));
 		$period_id = $per_id[1]['PERIOD_ID'];
 		$days = $per_id[1]['DAYS'];
 		$day_st_count = strlen($days);
 		
-                        $st_time = DBGet(DBQuery("SELECT START_TIME, END_TIME FROM school_periods WHERE PERIOD_ID = $period_id AND (IGNORE_SCHEDULING IS NULL OR IGNORE_SCHEDULING!='Y')"));    /********* for homeroom scheduling*/
+                        $st_time = DBGet(DBQuery('SELECT START_TIME, END_TIME FROM school_periods WHERE PERIOD_ID = \''.$period_id.'\' AND (IGNORE_SCHEDULING IS NULL OR IGNORE_SCHEDULING!=\''.Y.'\')'));    /********* for homeroom scheduling*/
                         if($st_time)
                         {
                             $start_time = $st_time[1]['START_TIME'];
@@ -143,14 +165,14 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
 		{
                     
                      # ------------------------------------ PARENT RESTRICTION STARTS----------------------------------------- #
-                                    $pa_RET=DBGet(DBQuery("SELECT PARENT_ID FROM course_periods WHERE COURSE_PERIOD_ID='".$_SESSION['MassSchedule.php']['course_period_id']."'"));
+                                    $pa_RET=DBGet(DBQuery('SELECT PARENT_ID FROM course_periods WHERE COURSE_PERIOD_ID=\''.$_SESSION['MassSchedule.php']['course_period_id'].'\''));
                                     if($pa_RET[1]['PARENT_ID']!=$_SESSION['MassSchedule.php']['course_period_id'])
                                     {
-                                        $stu_pa=DBGet(DBQuery("SELECT START_DATE,END_DATE FROM schedule WHERE STUDENT_ID='$student_id' AND COURSE_PERIOD_ID='".$pa_RET[1]['PARENT_ID']."' AND DROPPED='N' AND START_DATE<='".date('Y-m-d',strtotime($start_date))."'"));
+                                        $stu_pa=DBGet(DBQuery('SELECT START_DATE,END_DATE FROM schedule WHERE STUDENT_ID=\''.$student_id.'\' AND COURSE_PERIOD_ID=\''.$pa_RET[1]['PARENT_ID'].'\' AND DROPPED=\''.N.'\' AND START_DATE<=\''.date('Y-m-d',strtotime($start_date)).'\''));
                                         $par_sch=count($stu_pa);
                                         if($par_sch<1 || (strtotime(DBDate())<strtotime($stu_pa[$par_sch]['START_DATE']) && $stu_pa[$par_sch]['START_DATE']!="") || (strtotime(DBDate())>strtotime($stu_pa[$par_sch]['END_DATE']) && $stu_pa[$par_sch]['END_DATE']!=""))
                                         {
-                                             $select_stu_RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME FROM students WHERE STUDENT_ID='".$student_id."'"));
+                                             $select_stu_RET = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME FROM students WHERE STUDENT_ID=\''.$student_id.'\''));
                                                                 $select_stu = $select_stu_RET[1]['FIRST_NAME']."&nbsp;".$select_stu_RET[1]['LAST_NAME'];
                                                                 $parent_res .= $select_stu."<br>";
                                                                 continue;
@@ -162,7 +184,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
                                     # ------------------------------------ PARENT RESTRICTION ENDS----------------------------------------- #
 			if($_SESSION['MassSchedule.php']['gender']!='N')
                                                      {
-                                                            $select_stu_RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME,LEFT(GENDER,1) AS GENDER FROM students WHERE STUDENT_ID='".$student_id."'"));
+                                                            $select_stu_RET = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME,LEFT(GENDER,1) AS GENDER FROM students WHERE STUDENT_ID=\''.$student_id.'\''));
                                                             if($_SESSION['MassSchedule.php']['gender']!=$select_stu_RET[1]['GENDER']){
                                                                 $select_stu = $select_stu_RET[1]['FIRST_NAME']."&nbsp;".$select_stu_RET[1]['LAST_NAME'];
                                                                 $gender_conflict .= $select_stu."<br>";
@@ -171,11 +193,11 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
                                                             #$clash = true;
                                                      }
                          # ------------------------------------ Same Days Conflict Start ------------------------------------------ #
-			$mp_RET = DBGet(DBQuery("SELECT MP,MARKING_PERIOD_ID,DAYS,PERIOD_ID,MARKING_PERIOD_ID,TOTAL_SEATS,COALESCE(FILLED_SEATS,0) AS FILLED_SEATS FROM course_periods WHERE COURSE_PERIOD_ID='".$_SESSION['MassSchedule.php']['course_period_id']."'"));
+			$mp_RET = DBGet(DBQuery('SELECT MP,MARKING_PERIOD_ID,DAYS,PERIOD_ID,MARKING_PERIOD_ID,TOTAL_SEATS,COALESCE(FILLED_SEATS,0) AS FILLED_SEATS FROM course_periods WHERE COURSE_PERIOD_ID=\''.$_SESSION['MassSchedule.php']['course_period_id'].'\''));
                         $mps = GetAllMP(GetMPTable(GetMP($mp_RET[1]['MARKING_PERIOD_ID'],'TABLE')),$mp_RET[1]['MARKING_PERIOD_ID']);
-                        $period_RET = DBGet(DBQuery("SELECT cp.DAYS FROM schedule s,course_periods cp WHERE cp.COURSE_PERIOD_ID=s.COURSE_PERIOD_ID AND s.STUDENT_ID='".$student_id."' AND cp.PERIOD_ID='".$mp_RET[1]['PERIOD_ID']."' AND s.MARKING_PERIOD_ID IN (".$mps.") AND (s.END_DATE IS NULL OR '".$convdate."'<=s.END_DATE)"));
-                        $ig_scheld=DBGet(DBQuery("SELECT IGNORE_SCHEDULING FROM school_periods WHERE PERIOD_ID='".$mp_RET[1]['PERIOD_ID']."' AND SCHOOL_ID='".UserSchool()."'"));
-                        $sql_dupl = "SELECT COURSE_PERIOD_ID FROM schedule WHERE STUDENT_ID = ".$student_id." AND COURSE_PERIOD_ID = ".$_SESSION['MassSchedule.php']['course_period_id']." AND (END_DATE IS NULL OR ('".$convdate."' BETWEEN START_DATE AND END_DATE)) AND SCHOOL_ID='".UserSchool()."'";
+                        $period_RET = DBGet(DBQuery('SELECT cp.DAYS FROM schedule s,course_periods cp WHERE cp.COURSE_PERIOD_ID=s.COURSE_PERIOD_ID AND s.STUDENT_ID=\''.$student_id.'\' AND cp.PERIOD_ID=\''.$mp_RET[1]['PERIOD_ID'].'\' AND s.MARKING_PERIOD_ID IN ('.$mps.') AND (s.END_DATE IS NULL OR \''.$convdate.'\'<=s.END_DATE)'));
+                        $ig_scheld=DBGet(DBQuery('SELECT IGNORE_SCHEDULING FROM school_periods WHERE PERIOD_ID=\''.$mp_RET[1]['PERIOD_ID'].'\' AND SCHOOL_ID=\''.UserSchool().'\''));
+                        $sql_dupl = 'SELECT COURSE_PERIOD_ID FROM schedule WHERE STUDENT_ID = \''.$student_id.'\' AND COURSE_PERIOD_ID = \''.$_SESSION['MassSchedule.php']['course_period_id'].'\' AND (END_DATE IS NULL OR (\''.$convdate.'\' BETWEEN START_DATE AND END_DATE)) AND SCHOOL_ID=\''.UserSchool().'\'';
                         $rit_dupl = DBQuery($sql_dupl);
                         $count_entry = mysql_num_rows($rit_dupl);
                         $days_conflict = false;
@@ -199,14 +221,14 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
                             $days_conflict = true;
                         if($days_conflict)
                         {
-                            $select_stu_RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME FROM students WHERE STUDENT_ID='".$student_id."'"));
+                            $select_stu_RET = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME FROM students WHERE STUDENT_ID=\''.$student_id.'\''));
                             $select_stu = $select_stu_RET[1]['FIRST_NAME']."&nbsp;".$select_stu_RET[1]['LAST_NAME'];
                             $period_res .= $select_stu."<br>";
                             continue;
 			
                         }
                         # ------------------------------------ Same Days Conflict End ------------------------------------------ #
-			$sql = "SELECT COURSE_PERIOD_ID,START_DATE, MARKING_PERIOD_ID FROM schedule WHERE STUDENT_ID = ".$student_id." AND SCHOOL_ID='".UserSchool()."' AND MARKING_PERIOD_ID IN (".$mps.") AND (END_DATE IS NULL OR END_DATE >'".$convdate."')";
+			$sql = 'SELECT COURSE_PERIOD_ID,START_DATE, MARKING_PERIOD_ID FROM schedule WHERE STUDENT_ID = \''.$student_id.'\' AND SCHOOL_ID=\''.UserSchool().'\' AND MARKING_PERIOD_ID IN ('.$mps.') AND (END_DATE IS NULL OR END_DATE >\''.$convdate.'\')';
 			$xyz = mysql_query($sql);
 			$coue_p_id = mysql_num_rows($xyz);
 //			$cp_id = $coue_p_id[0];
@@ -285,17 +307,17 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
 //					{
                                             
 					# -------------------------------------- #
-					$sel_per_id = DBGet(DBQuery("SELECT PERIOD_ID, DAYS FROM course_periods WHERE COURSE_PERIOD_ID = $cp_id"));
+					$sel_per_id = DBGet(DBQuery('SELECT PERIOD_ID, DAYS FROM course_periods WHERE COURSE_PERIOD_ID = \''.$cp_id.'\''));
 					$sel_period_id = $sel_per_id[1]['PERIOD_ID'];
 					$sel_days = $sel_per_id[1]['DAYS'];
 					
-					$ignore_existing_period_ret=DBGet(DBQuery("SELECT IGNORE_SCHEDULING FROM school_periods WHERE PERIOD_ID=".$sel_period_id));
+					$ignore_existing_period_ret=DBGet(DBQuery('SELECT IGNORE_SCHEDULING FROM school_periods WHERE PERIOD_ID=\''.$sel_period_id.'\''));
                                         $ignore_existing_period=$ignore_existing_period_ret[1]['IGNORE_SCHEDULING'];
                                         if($ignore_existing_period =='Y')
                                             $sel_period_id='';
                                          if($sel_period_id)
                                          {
-                                            $sel_st_time = DBGet(DBQuery("SELECT START_TIME, END_TIME FROM school_periods WHERE PERIOD_ID = $sel_period_id"));
+                                            $sel_st_time = DBGet(DBQuery('SELECT START_TIME, END_TIME FROM school_periods WHERE PERIOD_ID = \''.$sel_period_id.'\''));
                                             $sel_start_time = $sel_st_time[1]['START_TIME'];
                                             $min_sel_start_time = get_min($sel_start_time);
                                             $sel_end_time = $sel_st_time[1]['END_TIME'];
@@ -320,7 +342,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
                                             $time_clash_found = 0;
                                             if((($min_sel_start_time <= $min_start_time) && ($min_sel_end_time >= $min_start_time)) && $min_sel_start_time!='' || (($min_sel_start_time <= $min_end_time) && ($min_sel_end_time >= $min_end_time) && $min_sel_start_time!='') || (($min_sel_start_time >= $min_start_time) && ($min_sel_end_time <= $min_end_time) && $min_start_time!=''))
 						{
-							$select_stu = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME FROM students WHERE STUDENT_ID='".$student_id."'"));
+							$select_stu = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME FROM students WHERE STUDENT_ID=\''.$student_id.'\''));
 							$select_stu = $select_stu[1]['FIRST_NAME']."&nbsp;".$select_stu[1]['LAST_NAME'];
 							$time_clash .= $select_stu."<br>";
 							$time_clash_found = 1;
@@ -371,7 +393,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
 							
 							# -------------------- Manual OverRide -------------------------- #
 							
-							$check_seats = DBGet(DBQuery("SELECT  (TOTAL_SEATS - FILLED_SEATS) AS AVAILABLE_SEATS FROM course_periods WHERE COURSE_PERIOD_ID='".$_SESSION['MassSchedule.php']['course_period_id']."'"));
+							$check_seats = DBGet(DBQuery('SELECT  (TOTAL_SEATS - FILLED_SEATS) AS AVAILABLE_SEATS FROM course_periods WHERE COURSE_PERIOD_ID=\''.$_SESSION['MassSchedule.php']['course_period_id'].'\''));
 							$check_seats = $check_seats[1]['AVAILABLE_SEATS'];
 							
 							# -------------------- Manual OverRide -------------------------- #
@@ -379,10 +401,10 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
 							
 							if($check_seats > 0)
 							{
-								$sql = "INSERT INTO schedule (SYEAR,SCHOOL_ID,STUDENT_ID,COURSE_ID,COURSE_PERIOD_ID,MP,MARKING_PERIOD_ID,START_DATE,MODIFIED_DATE,MODIFIED_BY)
-													values('".UserSyear()."','".UserSchool()."','".clean_param($student_id,PARAM_INT)."','".$_SESSION['MassSchedule.php']['course_id']."','".$_SESSION['MassSchedule.php']['course_period_id']."','".$mp_table."','".clean_param($_REQUEST['marking_period_id'],PARAM_INT)."','".$start_date."','".date('Y-m-d')."','".User('STAFF_ID')."')";
+								$sql = 'INSERT INTO schedule (SYEAR,SCHOOL_ID,STUDENT_ID,COURSE_ID,COURSE_PERIOD_ID,MP,MARKING_PERIOD_ID,START_DATE,MODIFIED_DATE,MODIFIED_BY)
+													values(\''.UserSyear().'\',\''.UserSchool().'\',\''.clean_param($student_id,PARAM_INT).'\',\''.$_SESSION['MassSchedule.php']['course_id'].'\',\''.$_SESSION['MassSchedule.php']['course_period_id'].'\',\''.$mp_table.'\',\''.clean_param($_REQUEST['marking_period_id'],PARAM_INT).'\',\''.$start_date.'\',\''.date('Y-m-d').'\',\''.User('STAFF_ID').'\')';
 								DBQuery($sql);
-								DBQuery("UPDATE course_periods SET FILLED_SEATS=FILLED_SEATS+1 WHERE COURSE_PERIOD_ID='".$_SESSION['MassSchedule.php']['course_period_id']."'");
+								DBQuery('UPDATE course_periods SET FILLED_SEATS=FILLED_SEATS+1 WHERE COURSE_PERIOD_ID=\''.$_SESSION['MassSchedule.php']['course_period_id'].'\'');
 								$request_exists = false;
 								$note = "That course has been added to the selected students' schedules.";	
                                                                 //break;
@@ -410,14 +432,14 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
 				
 						# -------------------- Manual OverRide -------------------------- #
 						
-					$check_seats = DBGet(DBQuery("SELECT  (TOTAL_SEATS - FILLED_SEATS) AS AVAILABLE_SEATS FROM course_periods WHERE COURSE_PERIOD_ID='".$_SESSION['MassSchedule.php']['course_period_id']."'"));
+					$check_seats = DBGet(DBQuery('SELECT  (TOTAL_SEATS - FILLED_SEATS) AS AVAILABLE_SEATS FROM course_periods WHERE COURSE_PERIOD_ID=\''.$_SESSION['MassSchedule.php']['course_period_id'].'\''));
 					$check_seats = $check_seats[1]['AVAILABLE_SEATS'];
 						
 						# -------------------- Manual OverRide -------------------------- #
 				if($check_seats > 0)
 				{
-					$sql = "INSERT INTO schedule (SYEAR,SCHOOL_ID,STUDENT_ID,COURSE_ID,COURSE_PERIOD_ID,MP,MARKING_PERIOD_ID,START_DATE,MODIFIED_DATE,MODIFIED_BY)
-											values('".UserSyear()."','".UserSchool()."','".clean_param($student_id,PARAM_INT)."','".$_SESSION['MassSchedule.php']['course_id']."','".$_SESSION['MassSchedule.php']['course_period_id']."','".$mp_table."','".clean_param($_REQUEST['marking_period_id'],PARAM_INT)."','".$start_date."','".date('Y-m-d')."','".User('STAFF_ID')."')";
+					$sql = 'INSERT INTO schedule (SYEAR,SCHOOL_ID,STUDENT_ID,COURSE_ID,COURSE_PERIOD_ID,MP,MARKING_PERIOD_ID,START_DATE,MODIFIED_DATE,MODIFIED_BY)
+											values(\''.UserSyear().'\',\''.UserSchool().'\',\''.clean_param($student_id,PARAM_INT).'\',\''.$_SESSION['MassSchedule.php']['course_id'].'\',\''.$_SESSION['MassSchedule.php']['course_period_id'].'\',\''.$mp_table.'\',\''.clean_param($_REQUEST['marking_period_id'],PARAM_INT).'\',\''.$start_date.'\',\''.date('Y-m-d').'\',\''.User('STAFF_ID').'\')';
 					DBQuery($sql);
 					DBQuery("UPDATE course_periods SET FILLED_SEATS=FILLED_SEATS+1 WHERE COURSE_PERIOD_ID='".$_SESSION['MassSchedule.php']['course_period_id']."'");
 					$request_exists = false;
@@ -438,6 +460,10 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
 		
 		
 		}
+                    }
+                    
+                    DBQuery('DELETE FROM missing_attendance WHERE COURSE_PERIOD_ID ='.$_SESSION['MassSchedule.php']['course_period_id'].'');
+                    DBQuery('INSERT INTO missing_attendance(SCHOOL_ID,SYEAR,SCHOOL_DATE,COURSE_PERIOD_ID,PERIOD_ID,TEACHER_ID,SECONDARY_TEACHER_ID) SELECT s.ID AS SCHOOL_ID,acc.SYEAR,acc.SCHOOL_DATE,cp.COURSE_PERIOD_ID,cp.PERIOD_ID, IF(tra.course_period_id=cp.course_period_id AND acc.school_date<tra.assign_date =true,tra.pre_teacher_id,cp.teacher_id) AS TEACHER_ID,cp.SECONDARY_TEACHER_ID FROM attendance_calendar acc INNER JOIN marking_periods mp ON mp.SYEAR=acc.SYEAR AND mp.SCHOOL_ID=acc.SCHOOL_ID AND acc.SCHOOL_DATE BETWEEN mp.START_DATE AND mp.END_DATE INNER JOIN course_periods cp ON cp.MARKING_PERIOD_ID=mp.MARKING_PERIOD_ID AND cp.DOES_ATTENDANCE=\'Y\' AND cp.CALENDAR_ID=acc.CALENDAR_ID LEFT JOIN teacher_reassignment tra ON (cp.course_period_id=tra.course_period_id) INNER JOIN school_periods sp ON sp.SYEAR=acc.SYEAR AND sp.SCHOOL_ID=acc.SCHOOL_ID AND sp.PERIOD_ID=cp.PERIOD_ID AND (sp.BLOCK IS NULL AND position(substring(\'UMTWHFS\' FROM DAYOFWEEK(acc.SCHOOL_DATE) FOR 1) IN cp.DAYS)>0 OR sp.BLOCK IS NOT NULL AND acc.BLOCK IS NOT NULL AND sp.BLOCK=acc.BLOCK) INNER JOIN schools s ON s.ID=acc.SCHOOL_ID INNER JOIN schedule sch ON sch.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID  AND sch.START_DATE<=acc.SCHOOL_DATE AND (sch.END_DATE IS NULL OR sch.END_DATE>=acc.SCHOOL_DATE ) AND cp.COURSE_PERIOD_ID ='.$_SESSION['MassSchedule.php']['course_period_id'].' LEFT JOIN attendance_completed ac ON ac.SCHOOL_DATE=acc.SCHOOL_DATE AND IF(tra.course_period_id=cp.course_period_id AND acc.school_date<=tra.assign_date =true,ac.staff_id=tra.pre_teacher_id,ac.staff_id=cp.teacher_id) AND ac.PERIOD_ID=sp.PERIOD_ID WHERE acc.SYEAR=\''.UserSyear().'\'  AND acc.SCHOOL_ID=\''.UserSchool().'\' AND (acc.MINUTES IS NOT NULL AND acc.MINUTES>0) AND acc.SCHOOL_DATE<=\''.date('Y-m-d').'\'  AND ac.STAFF_ID IS NULL GROUP BY s.TITLE,acc.SCHOOL_DATE,cp.TITLE,cp.COURSE_PERIOD_ID,cp.TEACHER_ID');        
 //                UpdateMissingAttendance($_SESSION['MassSchedule.php']['course_period_id']);
 		unset($_REQUEST['modfunc']);
 		unset($_SESSION['MassSchedule.php']);
@@ -452,7 +478,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA)=='save')
 		
 }
 if($_REQUEST['modfunc']!='choose_course')
-{
+{ #echo "<script>alert('a')</script>";
 	DrawBC("Scheduling > ".ProgramTitle());
 	if($_REQUEST['search_modfunc']=='list')
 	{
@@ -462,9 +488,9 @@ if($_REQUEST['modfunc']!='choose_course')
 		echo '<TABLE><TR><TD>Course to Add</TD><TD><DIV id=course_div>';
 		if($_SESSION['MassSchedule.php'])
 		{
-			$course_title = DBGet(DBQuery("SELECT TITLE FROM courses WHERE COURSE_ID='".$_SESSION['MassSchedule.php']['course_id']."'"));
+			$course_title = DBGet(DBQuery('SELECT TITLE FROM courses WHERE COURSE_ID=\''.$_SESSION['MassSchedule.php']['course_id'].'\''));
 			$course_title = $course_title[1]['TITLE'];
-			$period_title = DBGet(DBQuery("SELECT TITLE FROM course_periods WHERE COURSE_PERIOD_ID='".$_SESSION['MassSchedule.php']['course_period_id']."'"));
+			$period_title = DBGet(DBQuery('SELECT TITLE FROM course_periods WHERE COURSE_PERIOD_ID=\''.$_SESSION['MassSchedule.php']['course_period_id'].'\''));
 			$period_title = $period_title[1]['TITLE'];
 
 			echo "$course_title - $_REQUEST[course_weight]<BR>$period_title";
@@ -474,9 +500,9 @@ if($_REQUEST['modfunc']!='choose_course')
 
 		echo '<TR><TD>Marking Period</TD><TD>';
 		//echo '<SELECT name=marking_period_id><OPTION value=0>Full Year</OPTION>';
-		$years_RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,TITLE,NULL AS SEMESTER_ID FROM school_years WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
-		$semesters_RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,TITLE,NULL AS SEMESTER_ID FROM school_semesters WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER"));
-		$quarters_RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,TITLE,SEMESTER_ID FROM school_quarters WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER"));
+		$years_RET = DBGet(DBQuery('SELECT MARKING_PERIOD_ID,TITLE,NULL AS SEMESTER_ID FROM school_years WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
+		$semesters_RET = DBGet(DBQuery('SELECT MARKING_PERIOD_ID,TITLE,NULL AS SEMESTER_ID FROM school_semesters WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER'));
+		$quarters_RET = DBGet(DBQuery('SELECT MARKING_PERIOD_ID,TITLE,SEMESTER_ID FROM school_quarters WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER'));
 		echo '<SELECT name=marking_period_id id=marking_period><OPTION value='.$years_RET[1]['MARKING_PERIOD_ID'].'>'.$years_RET[1]['TITLE'].'</OPTION>';
 		foreach($semesters_RET as $mp)
 			echo "<OPTION value=$mp[MARKING_PERIOD_ID]>".$mp['TITLE'].'</OPTION>';
@@ -494,6 +520,20 @@ if($_REQUEST['modfunc']!='choose_course')
                 DrawHeaderHome('<IMG SRC=assets/warning_button.gif><br>'.$gender_conflict.' have Gender Clash');
         if($parent_res)
                 DrawHeaderHome('<IMG SRC=assets/warning_button.gif><br>'.$parent_res.' have Parent course restriction');
+        if($start_date_q_clash)
+                DrawHeaderHome('<IMG SRC=assets/warning_button.gif><br>'.$start_date_q_clash);
+        if($stu_sd_err)
+                {
+                if($stu_sd_err_count>1)
+                {
+                $put='their';    
+                }
+                else
+                {$put='his/her';}
+                 DrawHeaderHome('<IMG SRC=assets/warning_button.gif><br>'.$stu_sd_err.' cannot be scheduled before '.$put.' enrolled date');
+                 unset($stu_sd_err);
+                 unset($stu_s_date_err_n);
+                }
 	if($period_res)
                 DrawHeaderHome('<IMG SRC=assets/warning_button.gif><br>'.$period_res.' have already scheduled in that period');
         if($time_clash)
@@ -544,9 +584,9 @@ if($_REQUEST['modfunc']=='choose_course')
 		//$_SESSION['MassSchedule.php']['course_weight'] = $_REQUEST['course_weight'];
 		$_SESSION['MassSchedule.php']['course_period_id'] = $_REQUEST['course_period_id'];
 
-		$course_title = DBGet(DBQuery("SELECT TITLE FROM courses WHERE COURSE_ID='".$_SESSION['MassSchedule.php']['course_id']."'"));
+		$course_title = DBGet(DBQuery('SELECT TITLE FROM courses WHERE COURSE_ID=\''.$_SESSION['MassSchedule.php']['course_id'].'\''));
 		$course_title = $course_title[1]['TITLE'];
-		$period_title_RET = DBGet(DBQuery("SELECT TITLE,MARKING_PERIOD_ID,GENDER_RESTRICTION FROM course_periods WHERE COURSE_PERIOD_ID='".$_SESSION['MassSchedule.php']['course_period_id']."'"));
+		$period_title_RET = DBGet(DBQuery('SELECT TITLE,MARKING_PERIOD_ID,GENDER_RESTRICTION FROM course_periods WHERE COURSE_PERIOD_ID=\''.$_SESSION['MassSchedule.php']['course_period_id'].'\''));
 		$period_title = $period_title_RET[1]['TITLE'];
 		$mperiod = $period_title_RET[1]['MARKING_PERIOD_ID'];
                                     $gender_res=$period_title_RET[1]['GENDER_RESTRICTION'];
@@ -564,11 +604,11 @@ if($_REQUEST['modfunc']=='seats')
 	
 	if($_REQUEST['tables']['course_periods'][$_REQUEST['course_period_id']]['TOTAL_SEATS']!='' && $_REQUEST['update'])
 		{
-			DBQuery("UPDATE course_periods SET TOTAL_SEATS='".$_REQUEST['tables']['course_periods'][$_REQUEST['course_period_id']]['TOTAL_SEATS']."' WHERE COURSE_PERIOD_ID='".$_REQUEST['course_period_id']."'");
+			DBQuery('UPDATE course_periods SET TOTAL_SEATS=\''.$_REQUEST['tables']['course_periods'][$_REQUEST['course_period_id']]['TOTAL_SEATS'].'\' WHERE COURSE_PERIOD_ID=\''.$_REQUEST['course_period_id'].'\'');
 		}
 	if($_REQUEST['course_period_id'])
 		{			
-				$sql = DBGet(DBQuery("SELECT TOTAL_SEATS FROM course_periods WHERE COURSE_PERIOD_ID='".$_REQUEST['course_period_id']."'"));
+				$sql = DBGet(DBQuery('SELECT TOTAL_SEATS FROM course_periods WHERE COURSE_PERIOD_ID=\''.$_REQUEST['course_period_id'].'\''));
 				$RET = $sql[1]; 
 		}
 	echo '<div align=center>'; 

@@ -40,7 +40,7 @@ else
 DrawBC("Attendance > ".ProgramTitle());
 
 //$QI = DBQuery("SELECT PERIOD_ID,TITLE FROM school_periods WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY SORT_ORDER ");
-$QI = DBQuery("SELECT sp.PERIOD_ID,sp.TITLE FROM school_periods sp WHERE sp.SCHOOL_ID='".UserSchool()."' AND sp.SYEAR='".UserSyear()."' AND EXISTS (SELECT '' FROM course_periods WHERE SYEAR=sp.SYEAR AND PERIOD_ID=sp.PERIOD_ID AND DOES_ATTENDANCE='Y') ORDER BY sp.SORT_ORDER");
+$QI = DBQuery('SELECT sp.PERIOD_ID,sp.TITLE FROM school_periods sp WHERE sp.SCHOOL_ID=\''.UserSchool().'\' AND sp.SYEAR=\''.UserSyear().'\' AND EXISTS (SELECT \'\' FROM course_periods WHERE SYEAR=sp.SYEAR AND PERIOD_ID=sp.PERIOD_ID AND DOES_ATTENDANCE=\'Y\') ORDER BY sp.SORT_ORDER');
 $periods_RET = DBGet($QI,array(),array('PERIOD_ID'));
 
 $period_select =  "<SELECT name=period><OPTION value=''>All</OPTION>";
@@ -86,17 +86,17 @@ if(!$current_mp){
     $current_mp = GetCurrentMP('FY',$date);
     $MP_TYPE='FY';
 }
-$sql = "SELECT concat(s.LAST_NAME,',',s.FIRST_NAME, ' ') AS FULL_NAME,sp.TITLE,cp.PERIOD_ID,s.STAFF_ID
+$sql = 'SELECT concat(s.LAST_NAME,\',\',s.FIRST_NAME, \' \') AS FULL_NAME,sp.TITLE,cp.PERIOD_ID,s.STAFF_ID
 		FROM staff s,course_periods cp,school_periods sp,attendance_calendar acc
 		WHERE
 			sp.PERIOD_ID = cp.PERIOD_ID
                                                       AND acc.CALENDAR_id=cp.CALENDAR_ID
-                                                      AND acc.SCHOOL_DATE='".date('Y-m-d',strtotime($date))."'
-			AND cp.TEACHER_ID=s.STAFF_ID AND cp.MARKING_PERIOD_ID IN (".GetAllMP($MP_TYPE,$current_mp).")
-			AND cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND s.PROFILE='teacher'
-			AND cp.DOES_ATTENDANCE='Y' AND instr(cp.DAYS,'$day')>0".(($p)?" AND cp.PERIOD_ID='$p'":'')."
-			AND NOT EXISTS (SELECT '' FROM attendance_completed ac WHERE ac.STAFF_ID=cp.TEACHER_ID AND ac.SCHOOL_DATE='".date('Y-m-d',strtotime($date))."' AND ac.PERIOD_ID=sp.PERIOD_ID)
-		";
+                                                      AND acc.SCHOOL_DATE=\''.date('Y-m-d',strtotime($date)).'\'
+			AND cp.TEACHER_ID=s.STAFF_ID AND cp.MARKING_PERIOD_ID IN ('.GetAllMP($MP_TYPE,$current_mp).')
+			AND cp.SYEAR=\''.UserSyear().'\' AND cp.SCHOOL_ID=\''.UserSchool().'\' AND s.PROFILE=\'teacher\'
+			AND cp.DOES_ATTENDANCE=\'Y\' AND instr(cp.DAYS,\'$day\')>0'.(($p)?' AND cp.PERIOD_ID=\''.$p.'\'':'').'
+			AND NOT EXISTS (SELECT \'\' FROM attendance_completed ac WHERE ac.STAFF_ID=cp.TEACHER_ID AND ac.SCHOOL_DATE=\''.date('Y-m-d',strtotime($date)).'\' AND ac.PERIOD_ID=sp.PERIOD_ID)
+		';
 
 
 

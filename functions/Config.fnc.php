@@ -30,7 +30,7 @@ function Config($item)
 
 	if(!$_openSIS['Config'])
 	{
-		$QI=DBQuery("SELECT LOGIN,TITLE,SYEAR FROM config");
+		$QI=DBQuery('SELECT LOGIN,TITLE,SYEAR FROM config');
 		$_openSIS['Config'] = DBGet($QI);
 		$_openSIS['Config'][1]['TITLE'] = $openSISTitle;
 		$_openSIS['Config'][1]['SYEAR'] = $DefaultSyear;

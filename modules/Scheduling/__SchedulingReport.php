@@ -32,22 +32,22 @@ if($_REQUEST['modfunc']=='remove')
 {
 	if(DeletePrompt('request'))
 	{
-		DBQuery("DELETE FROM schedule_requests WHERE STUDENT_ID='$_REQUEST[student_id]' AND COURSE_ID='$_REQUEST[course_id]' AND COURSE_WEIGHT='$_REQUEST[course_weight]' AND SYEAR='".UserSyear()."'");
+		DBQuery('DELETE FROM schedule_requests WHERE STUDENT_ID=\''.$_REQUEST[student_id].'\' AND COURSE_ID=\''.$_REQUEST[course_id].'\' AND COURSE_WEIGHT=\''.$_REQUEST[course_weight].'\' AND SYEAR=\''.UserSyear().'\'');
 		unset($_REQUEST['modfunc']);
 	}
 }
 	
 if(!$_REQUEST['modfunc'])
 {
-	$sql = "SELECT 
-				concat(s.FIRST_NAME, ' ', s.LAST_NAME) AS FULL_NAME,r.STUDENT_ID, concat(c.TITLE, ' - ', r.COURSE_WEIGHT) as COURSE,r.COURSE_ID,r.COURSE_WEIGHT
+	$sql = 'SELECT 
+				concat(s.FIRST_NAME, \''.' '.'\', s.LAST_NAME) AS FULL_NAME,r.STUDENT_ID, concat(c.TITLE, \''.' - '.'\', r.COURSE_WEIGHT) as COURSE,r.COURSE_ID,r.COURSE_WEIGHT
 			FROM
 				schedule_requests r,courses c,students s
 			WHERE
 				s.STUDENT_ID = r.STUDENT_ID AND r.COURSE_ID = c.COURSE_ID
-				AND r.SYEAR = '".UserSyear()."' AND r.SCHOOL_ID = '".UserSchool()."'
-				AND NOT EXISTS (SELECT '' FROM schedule ss WHERE ss.STUDENT_ID=r.STUDENT_ID AND ss.COURSE_ID=r.COURSE_ID AND ss.COURSE_WEIGHT=r.COURSE_WEIGHT)
-			";
+				AND r.SYEAR = \''.UserSyear().'\' AND r.SCHOOL_ID = \''.UserSchool().'\'
+				AND NOT EXISTS (SELECT \''.''.'\' FROM schedule ss WHERE ss.STUDENT_ID=r.STUDENT_ID AND ss.COURSE_ID=r.COURSE_ID AND ss.COURSE_WEIGHT=r.COURSE_WEIGHT)
+			';
 	$RET = DBGet(DBQuery($sql),array(),array('STUDENT_ID'));
 	$columns = array('FULL_NAME'=>'Student','STUDENT_ID'=>'Student ID','COURSE'=>'Course');
 	$link['remove']['link'] = "#"." onclick='check_content(\"ajax.php?modname=$_REQUEST[modname]&modfunc=remove\");'";

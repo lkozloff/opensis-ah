@@ -34,18 +34,18 @@ echo '<style type="text/css">#div_margin { margin-top:-20px; _margin-top:-1px; }
 
 if(isset($_REQUEST['student_id']) )
 {
-	$RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME,MIDDLE_NAME,NAME_SUFFIX,SCHOOL_ID FROM students,student_enrollment WHERE students.STUDENT_ID='".$_REQUEST['student_id']."' AND student_enrollment.STUDENT_ID = students.STUDENT_ID "));
+	$RET = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME,MIDDLE_NAME,NAME_SUFFIX,SCHOOL_ID FROM students,student_enrollment WHERE students.STUDENT_ID=\''.$_REQUEST['student_id'].'\' AND student_enrollment.STUDENT_ID = students.STUDENT_ID '));
 	//$_SESSION['UserSchool'] = $RET[1]['SCHOOL_ID'];
-        $count_student_RET=DBGet(DBQuery("SELECT COUNT(*) AS NUM FROM students"));
+        $count_student_RET=DBGet(DBQuery('SELECT COUNT(*) AS NUM FROM students'));
         if($count_student_RET[1]['NUM']>1){
-	DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Students/Student.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
+	DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Deselect</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Students/Student.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
 	//DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname=Scheduling/Schedule.php&search_modfunc=list&next_modname=Scheduling/Schedule.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
 
 
 
 //DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname='.$_REQUEST['modname'].'&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
         }else if($count_student_RET[1]['NUM']==1){
-        DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) ');
+        DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Deselect</font></A>) ');
         }
 
 	//echo '<div align="left" style="padding-left:16px"><b>Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'</b></div>';
@@ -58,7 +58,7 @@ if(UserStudentID())
     $mp_id = $_REQUEST['mp_id'];
     $tab_id = ($_REQUEST['tab_id']?$_REQUEST['tab_id']:'grades');
     if ($_REQUEST['modfunc']=='update' && $_REQUEST['removemp'] && $mp_id && DeletePromptX('Marking Period')){
-            DBQuery("DELETE FROM student_mp_stats WHERE student_id = $student_id and marking_period_id = $mp_id");
+            DBQuery('DELETE FROM student_mp_stats WHERE student_id = '.$student_id.' and marking_period_id = '.$mp_id.'');
             unset($mp_id);
     }
     
@@ -67,12 +67,12 @@ if(UserStudentID())
         if ($_REQUEST['new_sms']) {
 		
 			// ------------------------ Start -------------------------- //
-			$res=DBQuery("SELECT * FROM student_gpa_calculated WHERE student_id=$student_id AND marking_period_id=".$_REQUEST['new_sms']);
+			$res=DBQuery('SELECT * FROM student_gpa_calculated WHERE student_id='.$student_id.' AND marking_period_id='.$_REQUEST['new_sms']);
 			$rows = mysql_num_rows($res);
 			
 			if($rows==0)
 			{
-				DBQuery("INSERT INTO student_gpa_calculated (student_id, marking_period_id) VALUES ($student_id, ".$_REQUEST['new_sms'].")");
+				DBQuery('INSERT INTO student_gpa_calculated (student_id, marking_period_id) VALUES ('.$student_id.', '.$_REQUEST['new_sms'].')');
 			}
 			elseif($rows!=0)
 			{
@@ -87,32 +87,32 @@ if(UserStudentID())
 //            $updatestats = "UPDATE student_mp_stats SET grade_level_short = '".$_REQUEST['SMS_GRADE_LEVEL']."'
 //                            WHERE marking_period_id = $mp_id     
 //                            AND student_id = $student_id";
-             $updatestats = "UPDATE student_gpa_calculated SET grade_level_short = '".$_REQUEST['SMS_GRADE_LEVEL']."'
+             $updatestats = 'UPDATE student_gpa_calculated SET grade_level_short = \''.$_REQUEST['SMS_GRADE_LEVEL'].'\'
                             WHERE marking_period_id = $mp_id     
-                            AND student_id = $student_id";
+                            AND student_id = $student_id';
             DBQuery($updatestats);
         }    
         foreach($_REQUEST['values'] as $id=>$columns)
         {
                 if($id!='new')
                 {
-                        $sql = "UPDATE student_report_card_grades SET ";
+                        $sql = 'UPDATE student_report_card_grades SET ';
                         if($columns['UNWEIGHTED_GP']){
                             $gp=$columns['UNWEIGHTED_GP'];
                         }
                         else {
-                            $gp_RET=DBGet(DBQuery("SELECT IF(ISNULL(UNWEIGHTED_GP),  WEIGHTED_GP,UNWEIGHTED_GP ) AS GP FROM student_report_card_grades WHERE id='".$id."'"));
+                            $gp_RET=DBGet(DBQuery('SELECT IF(ISNULL(UNWEIGHTED_GP),  WEIGHTED_GP,UNWEIGHTED_GP ) AS GP FROM student_report_card_grades WHERE id=\''.$id.'\''));
                             $gp=$gp_RET[1];
                             $gp=$gp['GP'];
                         }
                         
                         $go = false;
                         if( $columns['WEIGHTED_GP']=='Y' && $tab_id=='grades'){
-                                $sql .= "WEIGHTED_GP"."='".$gp."',UNWEIGHTED_GP=NULL,";
+                                $sql .= 'WEIGHTED_GP'.'=\''.$gp.'\',UNWEIGHTED_GP=NULL,';
                                 $go=true;
                         }
                         elseif($tab_id=='grades'){
-                            $sql .= "UNWEIGHTED_GP"."='".$gp."',WEIGHTED_GP=NULL,";
+                            $sql .= 'UNWEIGHTED_GP'.'=\''.$gp.'\',WEIGHTED_GP=NULL,';
                             $go=true;
                         }
                         foreach($columns as $column=>$value)
@@ -120,10 +120,10 @@ if(UserStudentID())
                             if($column=='UNWEIGHTED_GP' || $column=='WEIGHTED_GP')
                                 continue;
                             $go=true;
-                            $sql .= $column."='".str_replace("\'","''",$value)."',";
+                            $sql .= $column.'=\''.str_replace("\'","''",$value).'\',';
                         }
 //                        if($_REQUEST['tab_id']!='new')
-                            $sql = substr($sql,0,-1) . " WHERE ID='$id'";
+                            $sql = substr($sql,0,-1) . ' WHERE ID=\''.$id.'\'';
 //                        else
 //                            $sql = substr($sql,0,-1) . " WHERE ID='$id'";
                             if($go)
@@ -171,11 +171,11 @@ if(UserStudentID())
     {
         if(DeletePromptX('Student Grade'))
         {
-            DBQuery("DELETE FROM student_report_card_grades WHERE ID='$_REQUEST[id]'");
+            DBQuery('DELETE FROM student_report_card_grades WHERE ID=\''.$_REQUEST['id'].'\'');
         }
     }    
     if(!$_REQUEST['modfunc']){    
-        $stuRET = DBGet(DBQuery("SELECT LAST_NAME, FIRST_NAME, MIDDLE_NAME, NAME_SUFFIX from students where STUDENT_ID = $student_id"));
+        $stuRET = DBGet(DBQuery('SELECT LAST_NAME, FIRST_NAME, MIDDLE_NAME, NAME_SUFFIX from students where STUDENT_ID = '.$student_id.''));
         $stuRET = $stuRET[1];
         $displayname = $stuRET['LAST_NAME'].(($stuRET['NAME_SUFFIX'])?$stuRET['suffix'].' ':'').', '.$stuRET['FIRST_NAME'].' '.$stuRET['MIDDLE_NAME'];
        
@@ -189,12 +189,12 @@ if(UserStudentID())
 //             s.id = mp.school_id and sms.student_id = $student_id
 //       AND mp.school_id = '".UserSchool()."' order by mp.post_end_date";
        
-        $gquery = "SELECT mp.syear, mp.marking_period_id as mp_id, mp.title as mp_name, mp.post_end_date as posted, sgc.grade_level_short as grade_level, 
+        $gquery = 'SELECT mp.syear, mp.marking_period_id as mp_id, mp.title as mp_name, mp.post_end_date as posted, sgc.grade_level_short as grade_level, 
        sgc.weighted_gpa, sgc.unweighted_gpa
        FROM marking_periods mp, student_gpa_calculated sgc, schools s
        WHERE sgc.marking_period_id = mp.marking_period_id and
-             s.id = mp.school_id and sgc.student_id = $student_id
-       AND mp.school_id = '".UserSchool()."' order by mp.post_end_date";
+             s.id = mp.school_id and sgc.student_id = '.$student_id.'
+       AND mp.school_id = \''.UserSchool().'\' order by mp.post_end_date';
            
         $GRET = DBGet(DBQuery($gquery));
         
@@ -247,8 +247,8 @@ if(UserStudentID())
             
             if ($mp_id=="0"){
                 $syear = UserSyear();
-                $sql = "SELECT MARKING_PERIOD_ID, SYEAR, TITLE, POST_END_DATE FROM marking_periods WHERE SCHOOL_ID = '".UserSchool().
-                        "' ORDER BY POST_END_DATE";
+                $sql = 'SELECT MARKING_PERIOD_ID, SYEAR, TITLE, POST_END_DATE FROM marking_periods WHERE SCHOOL_ID = \''.UserSchool().
+                        '\' ORDER BY POST_END_DATE';
                 $MPRET = DBGet(DBQuery($sql));
                 if ($MPRET){
                     $mpoptions = array();

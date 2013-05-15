@@ -29,7 +29,7 @@ include('../../Redirect_modules.php');
 include '_makeLetterGrade.fnc.php';
 
 $course_period_id = UserCoursePeriod();
-$course_id = DBGet(DBQuery("SELECT cp.COURSE_ID,c.TITLE FROM course_periods cp,courses c WHERE c.COURSE_ID=cp.COURSE_ID AND cp.COURSE_PERIOD_ID='$course_period_id'"));
+$course_id = DBGet(DBQuery('SELECT cp.COURSE_ID,c.TITLE FROM course_periods cp,courses c WHERE c.COURSE_ID=cp.COURSE_ID AND cp.COURSE_PERIOD_ID=\''.$course_period_id.'\''));
 $course_title = $course_id[1]['TITLE'];
 $course_id = $course_id[1]['COURSE_ID'];
 ##########################################################################
@@ -43,7 +43,7 @@ $course_id = $course_id[1]['COURSE_ID'];
 
 if($_REQUEST['modfunc']=='save')
 {
-	$config_RET = DBGet(DBQuery("SELECT TITLE,VALUE FROM program_user_config WHERE USER_ID='".User('STAFF_ID')."' AND PROGRAM='Gradebook'"),array(),array('TITLE'));
+	$config_RET = DBGet(DBQuery('SELECT TITLE,VALUE FROM program_user_config WHERE USER_ID=\''.User('STAFF_ID').'\' AND PROGRAM=\'Gradebook\''),array(),array('TITLE'));
 	if(count($config_RET))
 		foreach($config_RET as $title=>$value)
 			$programconfig[User('STAFF_ID')][$title] = $value[1]['VALUE'];
@@ -54,7 +54,7 @@ if($_REQUEST['modfunc']=='save')
 	{
 	$st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
         $extra['SELECT'] =',ssm.START_DATE';
-	$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
+	$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
 	Widgets('mailing_labels');
 
 	$RET = GetStuList($extra);
@@ -98,30 +98,41 @@ if($_REQUEST['modfunc']=='save')
 			unset($student_points);
 			unset($total_points);
 			unset($percent_weights);
+                        unset($total_stpoints);
+                        unset($total_asgnpoints);
 			if($programconfig[User('STAFF_ID')]['WEIGHT']=='Y')
-				$sql = "SELECT a.TITLE,a.ASSIGNED_DATE,a.DUE_DATE,      t.ASSIGNMENT_TYPE_ID,     t.FINAL_GRADE_PERCENT,g.POINTS,a.POINTS AS TOTAL_POINTS,g.COMMENT,g.POINTS AS LETTER_GRADE,CASE WHEN (a.ASSIGNED_DATE IS NULL OR CURRENT_DATE>=a.ASSIGNED_DATE) AND (a.DUE_DATE IS NULL OR CURRENT_DATE>=a.DUE_DATE) THEN 'Y' ELSE NULL END AS DUE FROM gradebook_assignment_types t,gradebook_assignments a LEFT OUTER JOIN gradebook_grades g ON (a.ASSIGNMENT_ID=g.ASSIGNMENT_ID AND g.STUDENT_ID='$student[STUDENT_ID]' AND g.COURSE_PERIOD_ID='".UserCoursePeriod()."') WHERE   a.ASSIGNMENT_TYPE_ID=t.ASSIGNMENT_TYPE_ID AND (a.COURSE_PERIOD_ID='".UserCoursePeriod()."' OR a.COURSE_ID='$course_id' AND a.STAFF_ID='".User('STAFF_ID')."') AND t.COURSE_ID='$course_id' AND a.MARKING_PERIOD_ID='".UserMP()."'";
+				$sql = 'SELECT a.TITLE,a.ASSIGNED_DATE,a.DUE_DATE,      t.ASSIGNMENT_TYPE_ID,     t.FINAL_GRADE_PERCENT,g.POINTS,a.POINTS AS TOTAL_POINTS,g.COMMENT,g.POINTS AS LETTER_GRADE,CASE WHEN (a.ASSIGNED_DATE IS NULL OR CURRENT_DATE>=a.ASSIGNED_DATE) AND (a.DUE_DATE IS NULL OR CURRENT_DATE>=a.DUE_DATE) THEN \'Y\' ELSE NULL END AS DUE FROM gradebook_assignment_types t,gradebook_assignments a LEFT OUTER JOIN gradebook_grades g ON (a.ASSIGNMENT_ID=g.ASSIGNMENT_ID AND g.STUDENT_ID=\''.$student['STUDENT_ID'].'\' AND g.COURSE_PERIOD_ID=\''.UserCoursePeriod().'\') WHERE   a.ASSIGNMENT_TYPE_ID=t.ASSIGNMENT_TYPE_ID AND (a.COURSE_PERIOD_ID=\''.UserCoursePeriod().'\' OR a.COURSE_ID=\''.$course_id.'\' AND a.STAFF_ID=\''.User('STAFF_ID').'\') AND t.COURSE_ID=\''.$course_id.'\' AND a.MARKING_PERIOD_ID=\''.UserMP().'\'';
 			else
-				$sql = "SELECT a.TITLE,a.ASSIGNED_DATE,a.DUE_DATE,'-1' AS ASSIGNMENT_TYPE_ID,'1' AS FINAL_GRADE_PERCENT,g.POINTS,a.POINTS AS TOTAL_POINTS,g.COMMENT,g.POINTS AS LETTER_GRADE,CASE WHEN (a.ASSIGNED_DATE IS NULL OR CURRENT_DATE>=a.ASSIGNED_DATE) AND (a.DUE_DATE IS NULL OR CURRENT_DATE>=a.DUE_DATE) THEN 'Y' ELSE NULL END AS DUE FROM                              gradebook_assignments a LEFT OUTER JOIN gradebook_grades g ON (a.ASSIGNMENT_ID=g.ASSIGNMENT_ID AND g.STUDENT_ID='$student[STUDENT_ID]' AND g.COURSE_PERIOD_ID='".UserCoursePeriod()."') WHERE                                             (a.COURSE_PERIOD_ID='".UserCoursePeriod()."' OR a.COURSE_ID='$course_id' AND a.STAFF_ID='".User('STAFF_ID')."')                              AND a.MARKING_PERIOD_ID='".UserMP()."'";
+				$sql = 'SELECT a.TITLE,a.ASSIGNED_DATE,a.DUE_DATE,\'-1\' AS ASSIGNMENT_TYPE_ID,\'1\' AS FINAL_GRADE_PERCENT,g.POINTS,a.POINTS AS TOTAL_POINTS,g.COMMENT,g.POINTS AS LETTER_GRADE,CASE WHEN (a.ASSIGNED_DATE IS NULL OR CURRENT_DATE>=a.ASSIGNED_DATE) AND (a.DUE_DATE IS NULL OR CURRENT_DATE>=a.DUE_DATE) THEN \'Y\' ELSE NULL END AS DUE FROM                              gradebook_assignments a LEFT OUTER JOIN gradebook_grades g ON (a.ASSIGNMENT_ID=g.ASSIGNMENT_ID AND g.STUDENT_ID=\''.$student[STUDENT_ID].'\' AND g.COURSE_PERIOD_ID=\''.UserCoursePeriod().'\') WHERE                                             (a.COURSE_PERIOD_ID=\''.UserCoursePeriod().'\' OR a.COURSE_ID=\''.$course_id.'\' AND a.STAFF_ID=\''.User('STAFF_ID').'\')                              AND a.MARKING_PERIOD_ID=\''.UserMP().'\'';
 			if($_REQUEST['exclude_notdue']=='Y')
-				$sql .= " AND ((a.ASSIGNED_DATE IS NULL OR CURRENT_DATE>=a.ASSIGNED_DATE) AND (a.DUE_DATE IS NULL OR CURRENT_DATE>=DUE_DATE) OR g.POINTS IS NOT NULL)";
+				$sql .= ' AND ((a.ASSIGNED_DATE IS NULL OR CURRENT_DATE>=a.ASSIGNED_DATE) AND (a.DUE_DATE IS NULL OR CURRENT_DATE>=DUE_DATE) OR g.POINTS IS NOT NULL)';
 			if($_REQUEST['exclude_ec']=='Y')
-				$sql .= " AND (a.POINTS!='0' OR g.POINTS IS NOT NULL AND g.POINTS!='-1')";
-			$sql .=" AND a.DUE_DATE>='$student[START_DATE]' ORDER BY a.ASSIGNMENT_ID";
+				$sql .= ' AND (a.POINTS!=\'0\' OR g.POINTS IS NOT NULL AND g.POINTS!=\'-1\')';
+			$sql .=' AND a.DUE_DATE>=\''.$student[START_DATE].'\' ORDER BY a.ASSIGNMENT_ID';
                        
 			$grades_RET = DBGet(DBQuery($sql),array('ASSIGNED_DATE'=>'_removeSpaces','DUE_DATE'=>'_removeSpaces','TITLE'=>'_removeSpaces','POINTS'=>'_makeExtra','LETTER_GRADE'=>'_makeExtra'));
 
 			$sum_points = $sum_percent = 0;
+                        $flag=false;
 			foreach($percent_weights as $assignment_type_id=>$percent)
-			{
-				$sum_points += $student_points[$assignment_type_id] * $percent_weights[$assignment_type_id] / $total_points[$assignment_type_id];
-				$sum_percent += $percent;
+			{    
+                            $flag=true;
+				$sum_points       += $student_points[$assignment_type_id] * $percent_weights[$assignment_type_id] / $total_points[$assignment_type_id];
+				$sum_percent      += $percent;
+                                $total_stpoints   += $student_points[$assignment_type_id];
+                                $total_asgnpoints += $total_points[$assignment_type_id];
+                            
+                                
 			}
 			if($sum_percent>0)
 				$sum_points /= $sum_percent;
 			else
 				$sum_points = 0;
-			$link['add']['html'] = array('TITLE'=>'<B>Total</B>','LETTER_GRADE'=>Percent($sum_points).'&nbsp;'._makeLetterGrade($sum_points));
-			$link['add']['html']['ASSIGNED_DATE'] = $link['add']['html']['DUE_DATE'] = $link['add']['html']['POINTS'] = $link['add']['html']['COMMENT'] = ' &nbsp; ';
+                        if($flag)
+                            $link['add']['html'] = array('TITLE'=>'<B>Total</B>','LETTER_GRADE'=>'( '.$total_stpoints.' / '.$total_asgnpoints.' ) '._makeLetterGrade($sum_points,"",User('STAFF_ID'),"%").'&nbsp;'._makeLetterGrade($sum_points,"",User('STAFF_ID')));
+			else
+                            $link['add']['html'] = array('TITLE'=>'<B>Total</B>','LETTER_GRADE'=>'Not Graded');
+                        $link['add']['html']['ASSIGNED_DATE'] = $link['add']['html']['DUE_DATE'] = $link['add']['html']['POINTS'] = $link['add']['html']['COMMENT'] = ' &nbsp; ';
 			echo '</table>';
 			ListOutputPrint($grades_RET,$columns,'Assignment','Assignments',$link,array(),array('center'=>false,'add'=>true));
 			echo '<div style="page-break-before: always;">&nbsp;</div>';
@@ -187,7 +198,7 @@ function _makeExtra($value,$column)
 		if($THIS_RET['TOTAL_POINTS']!='0')
 			if($value!='-1')
 			{
-				if($THIS_RET['DUE'] || $value!='')
+				if(($THIS_RET['DUE'] || $value!='')&& $value!='')
 				{
 					$student_points[$THIS_RET['ASSIGNMENT_TYPE_ID']] += $value;
 					$total_points[$THIS_RET['ASSIGNMENT_TYPE_ID']] += $THIS_RET['TOTAL_POINTS'];
@@ -207,10 +218,15 @@ function _makeExtra($value,$column)
 	{
 		if($THIS_RET['TOTAL_POINTS']!='0')
 			if($value!='-1')
-				if($THIS_RET['DUE'] || $value!='')
-					return Percent($value/$THIS_RET['TOTAL_POINTS'],0).'&nbsp;'. _makeLetterGrade($value/$THIS_RET['TOTAL_POINTS']);
-				else
-					return 'not due';
+				if($THIS_RET['DUE'] && $value=='')
+                                    return 'Not Graded';
+                                else if($THIS_RET['DUE'] || $value!='')
+                                {
+                                    $per = $value/$THIS_RET['TOTAL_POINTS'];
+                                    return _makeLetterGrade($per,"",User('STAFF_ID'),"%").'&nbsp;'. _makeLetterGrade($value/$THIS_RET['TOTAL_POINTS'],"",User('STAFF_ID'));
+                                }
+                                else
+					return 'Not Due';
 			else
 				return 'n/a&nbsp;n/a';
 		else

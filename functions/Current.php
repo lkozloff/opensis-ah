@@ -74,4 +74,9 @@ function UserStaffID()
 	return $_SESSION['staff_id'];
 }
 
+function UserID()
+{
+	return $_SESSION['STAFF_ID'];
+}
+
 ?>

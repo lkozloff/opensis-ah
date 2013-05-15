@@ -90,6 +90,24 @@ function DeletePromptMod($title,$queryString,$action='delete')
 	else
 		return true;
 }
+function DuplicateStudent($title,$action='delete')
+{
+   $tmp_REQUEST = $_REQUEST;
+
+     unset($tmp_REQUEST['delete_ok']);
+
+	$PHP_tmp_SELF = PreparePHP_SELF($tmp_REQUEST);
+	if(!$_REQUEST['delete_ok'] && !$_REQUEST['delete_cancel'])
+	{
+		echo '<BR>';
+		PopTable('header','Confirm '.(strpos($action,' ')===false? ucwords($action):$action));
+		echo "<CENTER><h4>Duplicate student found. There is already a student with the same information. Do you want to proceed?</h4><br><FORM action=$PHP_tmp_SELF&delete_ok=1 METHOD=POST><INPUT type=submit class=btn_medium value=OK>&nbsp;<INPUT type=button class=btn_medium name=delete_cancel value=Cancel onclick='load_link(\"Modules.php?modname=$_REQUEST[modname]\");'></FORM></CENTER>";
+		PopTable('footer');
+		return false;
+	}
+	else
+		return true;
+}
 
 function DeletePromptAssignment($title,$pid=0,$action='delete')
 {

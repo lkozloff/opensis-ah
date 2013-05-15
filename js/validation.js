@@ -577,8 +577,8 @@ function formcheck_student_student()
 	frmvalidator.addValidation("tables[progress][new][PROGRESS_DESCRIPTION]","req","Please enter progress assessment");
 	
 	
-	frmvalidator.setAddnlValidationFunction("ValidateDate_Student");
-
+            frmvalidator.setAddnlValidationFunction("ValidateDate_Student");
+        
 
 }
 
@@ -596,6 +596,8 @@ function change_pass()
 
 function ValidateDate_Student()
 {
+    
+
 var bm, bd, by ;
 var frm = document.forms["student"];
 var elem = frm.elements;
@@ -719,10 +721,71 @@ catch(err)
 
 }
 
-return true;
+//return true;
+//alert("Press a button!");
 
+for(var z = 0; z < elem.length; z++)
+{
+if(elem[z].name=="students[FIRST_NAME]")
+{
+var firstnameobj = elem[z];
+var firstname =elem[z].value;
+}
+if(elem[z].name=="students[MIDDLE_NAME]")
+{
+var middlenameobj  = elem[z];   
+var middlename =elem[z].value;
+}
+if(elem[z].name=="students[LAST_NAME]")
+{
+ var lastnameobj =    elem[z];
+var lastname =elem[z].value;
+}
+if(elem[z].name=="values[student_enrollment][new][GRADE_ID]")
+{
+  var gradeobj=  elem[z];
+var grade =elem[z].value;
+}
+var studentbirthday_year = by.value;
+var studentbirthday_month = bm.value;
+var studentbirthday_day = bd.value;
+}
+//alert(studentname);
+//return false;
+if(firstnameobj && middlenameobj && lastnameobj && gradeobj && by && bm && bd)
+{    
+ajax_call('check_duplicate_student.php?fn='+firstname+'&mn='+middlename+'&ln='+lastname+'&gd='+grade+'&byear='+studentbirthday_year+'&bmonth='+studentbirthday_month+'&bday='+studentbirthday_day, studentcheck_match, studentcheck_unmatch); 
+   return false;
+}
+else
+   return true;  
 }
 
+function studentcheck_match(data) {
+ 	var response = data;
+if(response!=0)
+{    
+ var result = confirm("Duplicate student found. There is already a student with the same information. Do you want to proceed?");
+if(result==true)
+  {
+  document.getElementById("student_isertion").submit();
+  return true;
+  }
+else
+  {
+  return false;
+  }
+ }
+ else
+ {    
+   document.getElementById("student_isertion").submit();
+   return true;
+ }
+ }
+ 
+ function studentcheck_unmatch (err) {
+ 	alert ("Error: " + err);
+ }
    
 
 
@@ -829,8 +892,10 @@ return true;
 
 
 	function formcheck_user_user(staff_school_chkbox_id){
-
+            
+        //alert(par);
   	var frmvalidator  = new Validator("staff");
+        //frmvalidator.addValidation("month_values[START_DATE]["+1+"]","req","Please Enter start date");
   	frmvalidator.addValidation("staff[FIRST_NAME]","req","Please enter the first name");
 //	frmvalidator.addValidation("staff[FIRST_NAME]","alphabetic", "First name allows only alphabetic value");
   	frmvalidator.addValidation("staff[FIRST_NAME]","maxlen=100", "Max length for first name is 100 characters");
@@ -844,24 +909,56 @@ return true;
 	
 
 	frmvalidator.addValidation("staff[PHONE]","ph","Please enter a valid telephone number");
-
-     return   school_check(staff_school_chkbox_id);
-
-	
+        return school_check(staff_school_chkbox_id);	
+        
 }
-
-        function school_check(staff_school_chkbox_id)
+function school_check(staff_school_chkbox_id)
 		{
+                    //alert(par);
+                    //alert(document.getElementById('daySelect11').value);
 			chk='n';
+                        var err='T';
 			if(staff_school_chkbox_id)
 			{
-				for(i=1;i<=staff_school_chkbox_id;i++)
-				{
-					if(document.getElementById('staff_SCHOOLS'+i).checked==true)
-					{
-						chk='y';
-					}
-				}
+                                    for(i=1;i<=staff_school_chkbox_id;i++)
+                                    {
+                                        
+                                            if(document.getElementById('staff_SCHOOLS'+i).checked==true)
+                                            {
+                                                    chk='y';
+                                                    //alert(document.staff.day_values['START_DATE'][i].value);
+                                                    //alert(document.staff)
+                                                   sd=document.getElementById('daySelect1'+i).value;
+                                                   sm=document.getElementById('monthSelect1'+i).value;
+                                                   sy=document.getElementById('yearSelect1'+i).value;
+
+                                                   ed=document.getElementById('daySelect2'+i).value;
+                                                   em=document.getElementById('monthSelect2'+i).value;
+                                                   ey=document.getElementById('yearSelect2'+i).value;
+                                                    //ed=
+                                                    //alert(sd+sm+sy);
+                                                    //alert(ed+em+ey);
+//                                                    if(sm=='' || sd=='' || sy=='')
+//                                                        {
+//                                                         err='F';
+//                                                         break;
+//                                                        }
+//                                                        else
+//                                                        {
+                                                            var starDate = new Date(sd+"/"+sm+"/"+sy);
+                                                            var endDate = new Date(ed+"/"+em+"/"+ey);
+                                                             if (starDate > endDate && endDate!='')
+                                                            {
+                                                                err='S';
+
+                                                            }
+//                                                        }
+                                            } 
+                                         
+                                    }
+                              
+                                
+                        }
 				if(chk!='y')
 				{
 					var d = $('divErr');
@@ -869,14 +966,41 @@ return true;
 					d.innerHTML="<b><font color=red>"+err+"</font></b>";
 					return false;
 				}
+                                else if(chk=='y')
+                                {
+//                                    if(err=='F')
+//                                    {
+//                                      var d = $('divErr');
+//                                       var err_date = "Please enter start date to selected school.";
+//                                        d.innerHTML="<b><font color=red>"+err_date+"</font></b>";
+//                                        return false;
+//                                    }
+                                    if(err=='S')
+                                    {
+                                      var d = $('divErr');
+                                       var err_stardate = "Start date cannot be greater than end date.";
+                                        d.innerHTML="<b><font color=red>"+err_stardate+"</font></b>";
+                                        return false;
+                                    }
+                                    else
+                                    {
+                                        return true;
+                                    }
+                                            
+                                }
 				else
 				{
 					return true;
 				}
-			}
+			
+//                        else
+//                            {
+//                            var d = $('divErr');
+//			    var err = "Please assign at least one school to this new user asd.";
+//                            d.innerHTML="<b><font color=red>"+err+"</font></b>";
+//                            return false;
+//                            }
 	    }
-	
-
 /////////////////////////////////////////  Add User End  ////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////  User Fields Start  //////////////////////////////////////////////////////////
@@ -926,6 +1050,21 @@ function formcheck_scheduling_course_F3()
 
 function formcheck_scheduling_course_F2()
 {
+    var count;
+    var check=0;
+    for(count=1;count<=7;count++)
+    {
+       if(document.getElementById("DAYS"+count).checked==true)
+         check++;  
+    }
+    if(check==0)
+    {    
+     document.getElementById("display_meeting_days_chk").innerHTML='<font color="red">Please select atleast one day</font>';
+     document.getElementById("DAYS1").focus();
+     return false;
+    } 
+    else
+    {    
 	var frmvalidator  = new Validator("F2");
   	frmvalidator.addValidation("tables[course_periods][new][SHORT_NAME]","req","Please enter the short name");
   	frmvalidator.addValidation("tables[course_periods][new][SHORT_NAME]","maxlen=20", "Max length for short name is 20");
@@ -941,6 +1080,8 @@ function formcheck_scheduling_course_F2()
 	frmvalidator.addValidation("tables[course_periods][new][TOTAL_SEATS]","maxlen=10","Max length for seats is 10");
        
         frmvalidator.addValidation("get_status","attendance=0","Cannot take attendance in this period");
+     //   alert(document.forms["F2"]["tables[course_periods][new][DAYS][M]"].value);
+    }  
 }
 
 

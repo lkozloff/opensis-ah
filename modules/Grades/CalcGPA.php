@@ -26,10 +26,10 @@
 #
 #***************************************************************************************
 include('../../Redirect_modules.php');
-$QI = DBQuery("SELECT PERIOD_ID,TITLE FROM school_periods WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY SORT_ORDER ");
+$QI = DBQuery('SELECT PERIOD_ID,TITLE FROM school_periods WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY SORT_ORDER ');
 $RET = DBGet($QI);
 
-$SCALE_RET = DBGet(DBQuery("SELECT * from schools where ID = '".UserSchool()."'"));
+$SCALE_RET = DBGet(DBQuery('SELECT * from schools where ID = \''.UserSchool().'\''));
 
 DrawBC("Gradebook > ".ProgramTitle());
  $mps = GetAllMP(GetMPTable(GetMP(UserMP(),'TABLE')),  UserMP());
@@ -58,14 +58,14 @@ $table .= '</TD>
 $go = Prompt_Home('GPA Calculation','Calculate GPA and Class Rank',$table);
 if($go)
 {
-    DBQuery("CREATE TEMPORARY table temp_cum_gpa AS
+    DBQuery('CREATE TEMPORARY table temp_cum_gpa AS
     SELECT  * FROM student_report_card_grades srcg WHERE credit_attempted=
     (SELECT MAX(credit_attempted) FROM student_report_card_grades srcg1 WHERE srcg.course_period_id=srcg1.course_period_id and srcg.student_id=srcg1.student_id AND srcg1.course_period_id IS NOT NULL) 
         GROUP BY course_period_id,student_id,marking_period_id
-     UNION SELECT * FROM student_report_card_grades WHERE course_period_id IS NULL AND report_card_grade_id IS NULL");
+     UNION SELECT * FROM student_report_card_grades WHERE course_period_id IS NULL AND report_card_grade_id IS NULL');
     
-                DBQuery("SELECT CALC_CUM_GPA_MP('".$_REQUEST['marking_period_id']."')");
-                DBQuery("SELECT SET_CLASS_RANK_MP('".$_REQUEST['marking_period_id']."')");
+                DBQuery('SELECT CALC_CUM_GPA_MP(\''.$_REQUEST['marking_period_id'].'\')');
+                DBQuery('SELECT SET_CLASS_RANK_MP(\''.$_REQUEST['marking_period_id'].'\')');
 
 	unset($_REQUEST['delete_ok']);
 	DrawHeader('<table><tr><td><IMG SRC=assets/check.gif></td><td>GPA and class rank for '.GetMP($_REQUEST['marking_period_id']).' has been calculated.</td></tr></table>');

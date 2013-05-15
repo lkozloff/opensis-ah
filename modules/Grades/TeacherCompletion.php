@@ -36,7 +36,7 @@ $pros = GetChildrenMP('PRO',UserMP());
 if(!$_REQUEST['mp'] || strpos($str="'".UserMP()."','".$sem."','".$fy."',".$pros,"'".ltrim($_REQUEST['mp'],'E')."'")===false)
 	$_REQUEST['mp'] = UserMP();
 
-$QI = DBQuery("SELECT PERIOD_ID,TITLE FROM school_periods WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY SORT_ORDER ");
+$QI = DBQuery('SELECT PERIOD_ID,TITLE FROM school_periods WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY SORT_ORDER ');
 $period_RET = DBGet($QI);
 
 $period_select =  "<SELECT name=period onChange='this.form.submit();'><OPTION value=''>All</OPTION>";
@@ -77,29 +77,29 @@ echo '</FORM>';
 //			AND NOT EXISTS (SELECT '' FROM grades_completed ac WHERE ac.STAFF_ID=cp.TEACHER_ID AND ac.MARKING_PERIOD_ID='$_REQUEST[mp]' AND ac.PERIOD_ID=sp.PERIOD_ID)
 //		";
 		
- $sql = "SELECT DISTINCT s.STAFF_ID,CONCAT(s.LAST_NAME,', ',s.FIRST_NAME) AS FULL_NAME,sp.TITLE,cp.PERIOD_ID FROM staff s,school_periods sp,course_periods cp 
+ $sql = 'SELECT DISTINCT s.STAFF_ID,CONCAT(s.LAST_NAME,\', \',s.FIRST_NAME) AS FULL_NAME,sp.TITLE,cp.PERIOD_ID FROM staff s,school_periods sp,course_periods cp 
 
 WHERE sp.PERIOD_ID = cp.PERIOD_ID AND cp.GRADE_SCALE_ID IS NOT NULL AND cp.TEACHER_ID=s.STAFF_ID  
 
 AND cp.MARKING_PERIOD_ID IN (SELECT MARKING_PERIOD_ID FROM school_years LEFT JOIN attendance_calendar acc  ON  school_years.SCHOOL_ID=acc.SCHOOL_ID WHERE acc.SCHOOL_DATE BETWEEN START_DATE AND END_DATE 
 UNION SELECT MARKING_PERIOD_ID FROM school_semesters LEFT JOIN attendance_calendar acc  ON  school_semesters.SCHOOL_ID=acc.SCHOOL_ID WHERE acc.SCHOOL_DATE BETWEEN START_DATE AND END_DATE 
 UNION SELECT MARKING_PERIOD_ID FROM school_quarters LEFT JOIN attendance_calendar acc  ON  school_quarters.SCHOOL_ID=acc.SCHOOL_ID WHERE acc.SCHOOL_DATE BETWEEN START_DATE AND END_DATE )
-AND cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND s.PROFILE='teacher'
-			".(($_REQUEST['period'])?" AND cp.PERIOD_ID='$_REQUEST[period]'":'')."
+AND cp.SYEAR=\''.UserSyear().'\' AND cp.SCHOOL_ID=\''.UserSchool().'\' AND s.PROFILE=\'teacher\'
+			'.(($_REQUEST['period'])?' AND cp.PERIOD_ID=\''.$_REQUEST[period].'\'':'').'
 			
-		";	
+		';	
  
- $sql_gradecompleted = "SELECT DISTINCT s.STAFF_ID,cp.PERIOD_ID FROM staff s,school_periods sp,course_periods cp 
+ $sql_gradecompleted = 'SELECT DISTINCT s.STAFF_ID,cp.PERIOD_ID FROM staff s,school_periods sp,course_periods cp 
 
 WHERE sp.PERIOD_ID = cp.PERIOD_ID AND cp.GRADE_SCALE_ID IS NOT NULL AND cp.TEACHER_ID=s.STAFF_ID  
 
 AND cp.MARKING_PERIOD_ID IN (SELECT MARKING_PERIOD_ID FROM school_years LEFT JOIN attendance_calendar acc  ON  school_years.SCHOOL_ID=acc.SCHOOL_ID WHERE acc.SCHOOL_DATE BETWEEN START_DATE AND END_DATE 
 UNION SELECT MARKING_PERIOD_ID FROM school_semesters LEFT JOIN attendance_calendar acc  ON  school_semesters.SCHOOL_ID=acc.SCHOOL_ID WHERE acc.SCHOOL_DATE BETWEEN START_DATE AND END_DATE 
 UNION SELECT MARKING_PERIOD_ID FROM school_quarters LEFT JOIN attendance_calendar acc  ON  school_quarters.SCHOOL_ID=acc.SCHOOL_ID WHERE acc.SCHOOL_DATE BETWEEN START_DATE AND END_DATE )
-AND cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND s.PROFILE='teacher'
-			".(($_REQUEST['period'])?" AND cp.PERIOD_ID='$_REQUEST[period]'":'')."
-AND EXISTS (SELECT '' FROM grades_completed ac WHERE ac.STAFF_ID=cp.TEACHER_ID AND ac.MARKING_PERIOD_ID='$_REQUEST[mp]' AND ac.PERIOD_ID=sp.PERIOD_ID)			
-		";
+AND cp.SYEAR='.UserSyear().' AND cp.SCHOOL_ID='.UserSchool().' AND s.PROFILE=\'teacher\'
+			'.(($_REQUEST['period'])?" AND cp.PERIOD_ID='$_REQUEST[period]'":'').'
+AND EXISTS (SELECT \'\' FROM grades_completed ac WHERE ac.STAFF_ID=cp.TEACHER_ID AND ac.MARKING_PERIOD_ID=\''.$_REQUEST[mp].'\' AND ac.PERIOD_ID=sp.PERIOD_ID)			
+		';
  
 $RET = DBGet(DBQuery($sql),array(),array('STAFF_ID','PERIOD_ID'));
 $RET_gradecompleted = DBGet(DBQuery($sql_gradecompleted));

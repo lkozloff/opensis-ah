@@ -789,7 +789,7 @@ function ListOutput($result,$column_names,$singular='',$plural='',$link=false,$g
 					foreach($column_names as $key=>$value)
 					{
 					 //Here to change the ListOutput Header Colour
-						echo "<TD class=subtabs><A><b>" . str_replace(' ','&nbsp;',$value) . "</b></A></TD>";
+						echo "<TD class=subtabs><A><b>".$value."</b></A></TD>";
 					}
 					echo "</TR>";
 
@@ -3046,7 +3046,10 @@ function ListOutputPrint($result,$column_names,$singular='',$plural='',$link=fal
 						echo '</TABLE>';
 						echo "<div style=\"page-break-after: always;\"></div>";
 						echo "<table width=100%  style=\" font-family:Arial; font-size:12px;\" >";
-                                                                                                            echo "<tr><td width=105>".DrawLogo()."</td><td style=\"font-size:15px; font-weight:bold; padding-top:20px;\">". GetSchool(UserSchool())."<div style=\"font-size:12px;\">Add / Drop Report</div></td><td align=right style=\"padding-top:20px;\">". ProperDate(DBDate()) ."<br />Powered by openSIS</td></tr><tr><td colspan=3 style=\"border-top:1px solid #333;\">&nbsp;</td></tr></table>";
+                                                if($_REQUEST['modname']=='Grades/AdminProgressReports.php' || $_REQUEST['modname']=='Grades/ProgressReports.php' || $_REQUEST['modname']=='Users/TeacherPrograms.php?include=Grades/ProgressReports.php')
+                                                        echo "<tr><td width=105>".DrawLogo()."</td><td style=\"font-size:15px; font-weight:bold; padding-top:20px;\">". GetSchool(UserSchool())."<div style=\"font-size:12px;\">Student Progress Report</div></td><td align=right style=\"padding-top:20px;\">". ProperDate(DBDate()) ."<br />Powered by openSIS</td></tr><tr><td colspan=3 style=\"border-top:1px solid #333;\">&nbsp;</td></tr></table>";
+                                                else
+                                                        echo "<tr><td width=105>".DrawLogo()."</td><td style=\"font-size:15px; font-weight:bold; padding-top:20px;\">". GetSchool(UserSchool())."<div style=\"font-size:12px;\">Add / Drop Report</div></td><td align=right style=\"padding-top:20px;\">". ProperDate(DBDate()) ."<br />Powered by openSIS</td></tr><tr><td colspan=3 style=\"border-top:1px solid #333;\">&nbsp;</td></tr></table>";
 						echo '<TABLE cellpadding=6 width=100% cellspacing=1 border="1px solid #a9d5e9 " style="border-collapse:collapse" align=center>';
 						
 					}

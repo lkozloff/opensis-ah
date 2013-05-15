@@ -32,8 +32,8 @@ include 'Menu.php';
 
 if(is_numeric(clean_param($_REQUEST['profile_id'],PARAM_INT)))
 {
-	$exceptions_RET = DBGet(DBQuery("SELECT PROFILE_ID,MODNAME,CAN_USE,CAN_EDIT FROM profile_exceptions WHERE PROFILE_ID='$_REQUEST[profile_id]'"),array(),array('MODNAME'));
-	$profile_RET = DBGet(DBQuery("SELECT PROFILE FROM user_profiles WHERE ID='$_REQUEST[profile_id]'"));
+	$exceptions_RET = DBGet(DBQuery('SELECT PROFILE_ID,MODNAME,CAN_USE,CAN_EDIT FROM profile_exceptions WHERE PROFILE_ID=\''.$_REQUEST[profile_id].'\''),array(),array('MODNAME'));
+	$profile_RET = DBGet(DBQuery('SELECT PROFILE FROM user_profiles WHERE ID=\''.$_REQUEST[profile_id].'\''));
 	$xprofile = $profile_RET[1]['PROFILE'];
 	if($xprofile=='student')
 	{
@@ -44,14 +44,14 @@ if(is_numeric(clean_param($_REQUEST['profile_id'],PARAM_INT)))
 
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete' && AllowEdit())
 {
-	$profile_RET = DBGet(DBQuery("SELECT TITLE FROM user_profiles WHERE ID='$_REQUEST[profile_id]'"));
+	$profile_RET = DBGet(DBQuery('SELECT TITLE FROM user_profiles WHERE ID=\''.$_REQUEST[profile_id].'\''));
 
 	if(Prompt('Confirm Delete','Are you sure you want to delete the user profile <i>'.$profile_RET[1]['TITLE'].'</i>?','Users of that profile will retain their permissions as a custom set which can be modified on a per-user basis through the User Permissions program.'))
 	{
-		DBQuery("DELETE FROM user_profiles WHERE ID='".$_REQUEST['profile_id']."'");
-		DBQuery("DELETE FROM staff_exceptions WHERE USER_ID IN (SELECT STAFF_ID FROM staff WHERE PROFILE_ID='".$_REQUEST['profile_id']."')");
-		DBQuery("INSERT INTO staff_exceptions (USER_ID,MODNAME,CAN_USE,CAN_EDIT) SELECT s.STAFF_ID,e.MODNAME,e.CAN_USE,e.CAN_EDIT FROM staff s,profile_exceptions e WHERE s.PROFILE_ID='$_REQUEST[profile_id]' AND s.PROFILE_ID=e.PROFILE_ID");
-		DBQuery("DELETE FROM profile_exceptions WHERE PROFILE_ID='".$_REQUEST['profile_id']."'");
+		DBQuery('DELETE FROM user_profiles WHERE ID=\''.$_REQUEST['profile_id'].'\'');
+		DBQuery('DELETE FROM staff_exceptions WHERE USER_ID IN (SELECT STAFF_ID FROM staff WHERE PROFILE_ID=\''.$_REQUEST['profile_id'].'\')');
+		DBQuery('INSERT INTO staff_exceptions (USER_ID,MODNAME,CAN_USE,CAN_EDIT) SELECT s.STAFF_ID,e.MODNAME,e.CAN_USE,e.CAN_EDIT FROM staff s,profile_exceptions e WHERE s.PROFILE_ID=\''.$_REQUEST[profile_id].'\' AND s.PROFILE_ID=e.PROFILE_ID');
+		DBQuery('DELETE FROM profile_exceptions WHERE PROFILE_ID=\''.$_REQUEST['profile_id'].'\'');
 		unset($_REQUEST['modfunc']);
 		unset($_REQUEST['profile_id']);
 	}
@@ -60,13 +60,13 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete' && AllowEdit())
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update' && AllowEdit() && !$_REQUEST['new_profile_title'])
 {
 	$tmp_menu = $menuprof;
-	$categories_RET = DBGet(DBQuery("SELECT ID,TITLE FROM student_field_categories"));
+	$categories_RET = DBGet(DBQuery('SELECT ID,TITLE FROM student_field_categories'));
 	foreach($categories_RET as $category)
 	{
 		$file = 'Students/Student.php&category_id='.$category['ID'];
 		$tmp_menu['Students'][$xprofile][$file] = ' &nbsp; &nbsp; &rsaquo; '.$category['TITLE'];
 	}
-	$categories_RET = DBGet(DBQuery("SELECT ID,TITLE FROM staff_field_categories"));
+	$categories_RET = DBGet(DBQuery('SELECT ID,TITLE FROM staff_field_categories'));
 	foreach($categories_RET as $category)
 	{
 		$file = 'Users/User.php&category_id='.$category['ID'];
@@ -81,28 +81,28 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update' && AllowEdit() && 
 			if(!is_numeric($modname))
 			{
 				if(!count($exceptions_RET[$modname]) && ($_REQUEST['can_edit'][str_replace('.','_',$modname)] || $_REQUEST['can_use'][str_replace('.','_',$modname)]))
-					DBQuery("INSERT INTO profile_exceptions (PROFILE_ID,MODNAME) values('$_REQUEST[profile_id]','$modname')");
+					DBQuery('INSERT INTO profile_exceptions (PROFILE_ID,MODNAME) values(\''.$_REQUEST[profile_id].'\',\''.$modname.'\')');
 				elseif(count($exceptions_RET[$modname]) && !$_REQUEST['can_edit'][str_replace('.','_',$modname)] && !$_REQUEST['can_use'][str_replace('.','_',$modname)])
-					DBQuery("DELETE FROM profile_exceptions WHERE PROFILE_ID='$_REQUEST[profile_id]' AND MODNAME='$modname'");
+					DBQuery('DELETE FROM profile_exceptions WHERE PROFILE_ID=\''.$_REQUEST[profile_id].'\' AND MODNAME=\''.$modname.'\'');
 
 				if($_REQUEST['can_edit'][str_replace('.','_',$modname)] || $_REQUEST['can_use'][str_replace('.','_',$modname)])
 				{
-					$update = "UPDATE profile_exceptions SET ";
+					$update = 'UPDATE profile_exceptions SET ';
 					if($_REQUEST['can_edit'][str_replace('.','_',$modname)])
-						$update .= "CAN_EDIT='Y',";
+						$update .= 'CAN_EDIT=\''.'Y'.'\',';
 					else
-						$update .= "CAN_EDIT=NULL,";
+						$update .= 'CAN_EDIT=NULL,';
 					if($_REQUEST['can_use'][str_replace('.','_',$modname)])
-						$update .= "CAN_USE='Y'";
+						$update .= 'CAN_USE=\''.'Y'.'\'';
 					else
-						$update .= "CAN_USE=NULL";
-					$update .= " WHERE PROFILE_ID='$_REQUEST[profile_id]' AND MODNAME='$modname';";
+						$update .= 'CAN_USE=NULL';
+					$update .= ' WHERE PROFILE_ID=\''.$_REQUEST[profile_id].'\' AND MODNAME=\''.$modname.'\';';
 					DBQuery($update);
 				}
 			}
 		}
 	}
-	$exceptions_RET = DBGet(DBQuery("SELECT MODNAME,CAN_USE,CAN_EDIT FROM profile_exceptions WHERE PROFILE_ID='$_REQUEST[profile_id]'"),array(),array('MODNAME'));
+	$exceptions_RET = DBGet(DBQuery('SELECT MODNAME,CAN_USE,CAN_EDIT FROM profile_exceptions WHERE PROFILE_ID=\''.$_REQUEST[profile_id].'\''),array(),array('MODNAME'));
 	unset($tmp_menu);
 	unset($_REQUEST['modfunc']);
 	unset($_REQUEST['can_edit']);
@@ -112,11 +112,11 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update' && AllowEdit() && 
 if(clean_param($_REQUEST['new_profile_title'],PARAM_NOTAGS) && AllowEdit())
 {     
 	// $id = DBGet(DBQuery("SELECT ".db_seq_nextval('USER_PROFILES_SEQ')." AS ID".FROM_DUAL));
-        $id = DBGet(DBQuery("SHOW TABLE STATUS LIKE 'user_profiles'"));
+        $id = DBGet(DBQuery('SHOW TABLE STATUS LIKE \''.'user_profiles'.'\''));
         $id[1]['ID']= $id[1]['AUTO_INCREMENT'];
 	$id = $id[1]['ID'];
 	$exceptions_RET = array();
-	DBQuery("INSERT INTO user_profiles (TITLE,PROFILE) values('".clean_param($_REQUEST['new_profile_title'],PARAM_NOTAGS)."','".clean_param($_REQUEST['new_profile_type'],PARAM_ALPHA)."')");
+	DBQuery('INSERT INTO user_profiles (TITLE,PROFILE) values(\''.clean_param($_REQUEST['new_profile_title'],PARAM_NOTAGS).'\',\''.clean_param($_REQUEST['new_profile_type'],PARAM_ALPHA).'\')');
 	$_REQUEST['profile_id'] = $id;
 	$xprofile = $_REQUEST['new_profile_type'];
 	unset($_REQUEST['new_profile_title']);
@@ -136,7 +136,7 @@ PopTable('header','Permissions');
 	$style = ' style="border:1px; border-style: none none none none; padding:4px;"';
 	$style1 = ' style="border:1px; border-style: solid none none none;"';
 	//$profiles_RET = DBGet(DBQuery("SELECT ID,TITLE,PROFILE FROM user_profiles"));
-	$profiles_RET = DBGet(DBQuery("SELECT ID,TITLE,PROFILE FROM user_profiles ORDER BY ID"),array(),array('PROFILE','ID'));
+	$profiles_RET = DBGet(DBQuery('SELECT ID,TITLE,PROFILE FROM user_profiles ORDER BY ID'),array(),array('PROFILE','ID'));
 	echo '<TR><TD colspan=3 style="border:1px; border-style: none none solid none;"><b>Profiles</b></TD></TR>';
 	foreach(array('admin','teacher','parent','student') as $profiles)
 	{
@@ -207,7 +207,7 @@ PopTable('header','Permissions');
 
 						if($modcat=='Students' && $file=='Students/Student.php')
 						{
-							$categories_RET = DBGet(DBQuery("SELECT ID,TITLE FROM student_field_categories ORDER BY SORT_ORDER,TITLE"));
+							$categories_RET = DBGet(DBQuery('SELECT ID,TITLE FROM student_field_categories ORDER BY SORT_ORDER,TITLE'));
 							foreach($categories_RET as $category)
 							{
 								$file = 'Students/Student.php&category_id='.$category['ID'];
@@ -223,7 +223,7 @@ PopTable('header','Permissions');
 						}
 						elseif($modcat=='Users' && $file=='Users/User.php')
 						{
-							$categories_RET = DBGet(DBQuery("SELECT ID,TITLE FROM staff_field_categories ORDER BY SORT_ORDER,TITLE"));
+							$categories_RET = DBGet(DBQuery('SELECT ID,TITLE FROM staff_field_categories ORDER BY SORT_ORDER,TITLE'));
 							foreach($categories_RET as $category)
 							{
 								$file = 'Users/User.php&category_id='.$category['ID'];

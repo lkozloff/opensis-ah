@@ -28,18 +28,18 @@
 if($_REQUEST['modfunc']=='update'){
 
 if($_REQUEST['activity']){
-$TOTAL_COUNT=DBGet(DBQuery("SELECT COUNT(ACTIVITY_DAYS) AS TOTAL_COUNT FROM system_preference_misc"));
+$TOTAL_COUNT=DBGet(DBQuery('SELECT COUNT(ACTIVITY_DAYS) AS TOTAL_COUNT FROM system_preference_misc'));
 $TOTAL_COUNT=$TOTAL_COUNT[1]['TOTAL_COUNT'];
 if($TOTAL_COUNT==0 && $_REQUEST['activity']['ACTIVITY_DAYS']){
-DBQuery("INSERT INTO system_preference_misc (ACTIVITY_DAYS) VALUES(".$_REQUEST['activity']['ACTIVITY_DAYS'].")");
+DBQuery('INSERT INTO system_preference_misc (ACTIVITY_DAYS) VALUES('.$_REQUEST['activity']['ACTIVITY_DAYS'].')');
 }else if($TOTAL_COUNT==1){
-$sql="UPDATE system_preference_misc SET ";
+$sql='UPDATE system_preference_misc SET ';
 foreach($_REQUEST['activity'] as $column_name=>$value)
 					{
-					$sql .= "$column_name='".str_replace("\'","''",str_replace("`","''",$value))."',";
+					$sql .= ''.$column_name.'=\''.str_replace("\'","''",str_replace("`","''",$value)).'\',';
 
 }
-$sql= substr($sql,0,-1) ." WHERE 1=1";
+$sql= substr($sql,0,-1) .' WHERE 1=1';
 DBQuery($sql);
 }
 }

@@ -35,15 +35,15 @@ DrawHeaderHome('<INPUT type=checkbox name=include_inactive value=Y'.($_REQUEST['
 echo '</FORM>';
 
 $course_period_id = UserCoursePeriod();
-$course_id = DBGet(DBQuery("SELECT COURSE_ID FROM course_periods WHERE COURSE_PERIOD_ID='$course_period_id'"));
+$course_id = DBGet(DBQuery('SELECT COURSE_ID FROM course_periods WHERE COURSE_PERIOD_ID=\''.$course_period_id.'\''));
 $course_id = $course_id[1]['COURSE_ID'];
 
 $max_allowed = Preferences('ANOMALOUS_MAX','Gradebook')/100;
 
-$extra['SELECT'] = ",ga.ASSIGNMENT_ID,gt.TITLE AS TYPE_TITLE,ga.TITLE,ga.POINTS AS TOTAL_POINTS,'' AS LETTER_GRADE";
+$extra['SELECT'] = ',ga.ASSIGNMENT_ID,gt.TITLE AS TYPE_TITLE,ga.TITLE,ga.POINTS AS TOTAL_POINTS,\'\' AS LETTER_GRADE';
 $extra['SELECT'] .= ',(SELECT POINTS FROM gradebook_grades WHERE STUDENT_ID=s.STUDENT_ID AND ASSIGNMENT_ID=ga.ASSIGNMENT_ID) AS POINTS';
 $extra['SELECT'] .= ',(SELECT COMMENT FROM gradebook_grades WHERE STUDENT_ID=s.STUDENT_ID AND ASSIGNMENT_ID=ga.ASSIGNMENT_ID) AS COMMENT';
-$extra['FROM'] = ",gradebook_assignments ga,gradebook_assignment_types gt";
+$extra['FROM'] = ',gradebook_assignments ga,gradebook_assignment_types gt';
 $extra['WHERE'] = 'AND ((SELECT POINTS FROM gradebook_grades WHERE STUDENT_ID=s.STUDENT_ID AND ASSIGNMENT_ID=ga.ASSIGNMENT_ID) IS NULL AND (ga.ASSIGNED_DATE IS NULL OR CURRENT_DATE>=ga.ASSIGNED_DATE) AND (ga.DUE_DATE IS NULL OR CURRENT_DATE>=ga.DUE_DATE) OR (SELECT POINTS FROM gradebook_grades WHERE STUDENT_ID=s.STUDENT_ID AND ASSIGNMENT_ID=ga.ASSIGNMENT_ID)<0 OR (SELECT POINTS FROM gradebook_grades WHERE STUDENT_ID=s.STUDENT_ID AND ASSIGNMENT_ID=ga.ASSIGNMENT_ID)>ga.POINTS*'.$max_allowed.') AND ((ga.COURSE_ID=\''.$course_id.'\' AND ga.STAFF_ID=\''.User('STAFF_ID').'\') OR ga.COURSE_PERIOD_ID=\''.$course_period_id.'\') AND ga.MARKING_PERIOD_ID=\''.UserMP().'\' AND gt.ASSIGNMENT_TYPE_ID=ga.ASSIGNMENT_TYPE_ID';
 
 $extra['functions'] = array('POINTS'=>'_makePoints');

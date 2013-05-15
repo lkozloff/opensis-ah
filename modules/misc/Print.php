@@ -46,7 +46,7 @@ if($_REQUEST['fields']['PARENTS'])
 	if($_REQUEST['relation']!='')
 	{
 		$_openSIS['makeParents'] = $_REQUEST['relation'];
-		$extra['students_join_address'] .= " AND EXISTS (SELECT '' FROM students_join_people sjp WHERE sjp.ADDRESS_ID=sam.ADDRESS_ID AND LOWER(sjp.STUDENT_RELATION) LIKE '".strtolower($_REQUEST['relation'])."%') ";
+		$extra['students_join_address'] .= ' AND EXISTS (SELECT \'\' FROM students_join_people sjp WHERE sjp.ADDRESS_ID=sam.ADDRESS_ID AND LOWER(sjp.STUDENT_RELATION) LIKE \''.strtolower($_REQUEST['relation']).'%\') ';
 	}
 }
 $extra['SELECT'] .= ',ssm.NEXT_SCHOOL,ssm.CALENDAR_ID,ssm.SYEAR,s.*';
@@ -64,12 +64,12 @@ if($_REQUEST['search_modfunc']=='list')
 		if($extra['field_names'])
 			$fields_list += $extra['field_names'];
 
-		$periods_RET = DBGet(DBQuery("SELECT TITLE,PERIOD_ID FROM school_periods WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER"));
+		$periods_RET = DBGet(DBQuery('SELECT TITLE,PERIOD_ID FROM school_periods WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER'));
 		foreach($periods_RET as $period)
 			$fields_list['PERIOD_'.$period['PERIOD_ID']] = $period['TITLE'].' Teacher - Room';
 	}
 
-	$custom_RET = DBGet(DBQuery("SELECT TITLE,ID,TYPE FROM custom_fields ORDER BY SORT_ORDER"));
+	$custom_RET = DBGet(DBQuery('SELECT TITLE,ID,TYPE FROM custom_fields ORDER BY SORT_ORDER'));
 
 	foreach($custom_RET as $field)
 	{
@@ -77,7 +77,7 @@ if($_REQUEST['search_modfunc']=='list')
 			$fields_list['CUSTOM_'.$field['ID']] = $field['TITLE'];
 	}
 
-	$custom_RET = DBGet(DBQuery("SELECT TITLE,ID,TYPE FROM address_fields ORDER BY SORT_ORDER"));
+	$custom_RET = DBGet(DBQuery('SELECT TITLE,ID,TYPE FROM address_fields ORDER BY SORT_ORDER'));
 
 	foreach($custom_RET as $field)
 	{
@@ -144,8 +144,8 @@ else
 		if(AllowUse('Students/Student.php&category_id=3'))
 		{
 			$fields_list['Address'] = array('ADDRESS'=>'Address','CITY'=>'City','STATE'=>'State','ZIPCODE'=>'Zip Code','PHONE'=>'Home Phone','MAIL_ADDRESS'=>'Mailing Address','MAIL_CITY'=>'Mailing City','MAIL_STATE'=>'Mailing State','MAIL_ZIPCODE'=>'Mailing Zipcode','PARENTS'=>'Contacts');
-			$categories_RET = DBGet(DBQuery("SELECT ID,TITLE FROM address_field_categories ORDER BY SORT_ORDER"));
-			$custom_RET = DBGet(DBQuery("SELECT TITLE,ID,TYPE,CATEGORY_ID FROM address_fields ORDER BY SORT_ORDER"),array(),array('CATEGORY_ID'));
+			$categories_RET = DBGet(DBQuery('SELECT ID,TITLE FROM address_field_categories ORDER BY SORT_ORDER'));
+			$custom_RET = DBGet(DBQuery('SELECT TITLE,ID,TYPE,CATEGORY_ID FROM address_fields ORDER BY SORT_ORDER'),array(),array('CATEGORY_ID'));
 
 			foreach($categories_RET as $category)
 			{
@@ -159,8 +159,8 @@ else
 			$fields_list['General'] += $extra['field_names'];
 	}
 
-	$categories_RET = DBGet(DBQuery("SELECT ID,TITLE FROM student_field_categories ORDER BY SORT_ORDER"));
-	$custom_RET = DBGet(DBQuery("SELECT TITLE,ID,TYPE,CATEGORY_ID FROM custom_fields ORDER BY SORT_ORDER"),array(),array('CATEGORY_ID'));
+	$categories_RET = DBGet(DBQuery('SELECT ID,TITLE FROM student_field_categories ORDER BY SORT_ORDER'));
+	$custom_RET = DBGet(DBQuery('SELECT TITLE,ID,TYPE,CATEGORY_ID FROM custom_fields ORDER BY SORT_ORDER'),array(),array('CATEGORY_ID'));
 
 	foreach($categories_RET as $category)
 	{
@@ -171,7 +171,7 @@ else
 		}
 	}
 
-	$periods_RET = DBGet(DBQuery("SELECT TITLE,PERIOD_ID FROM school_periods WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER"));
+	$periods_RET = DBGet(DBQuery('SELECT TITLE,PERIOD_ID FROM school_periods WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER'));
 	foreach($periods_RET as $period)
 		$fields_list['Schedule']['PERIOD_'.$period['PERIOD_ID']] = $period['TITLE'].' Teacher - Room';
 

@@ -37,7 +37,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA) =='remove')
 {
 	if(DeletePrompt('request'))
 	{
-		DBQuery("DELETE FROM schedule_requests WHERE REQUEST_ID='".paramlib_validation($colmn=PERIOD_ID,$_REQUEST['id'])."'");
+		DBQuery('DELETE FROM schedule_requests WHERE REQUEST_ID=\''.paramlib_validation($colmn=PERIOD_ID,$_REQUEST['id']).'\'');
 		unset($_REQUEST['modfunc']);
 		unset($_SESSION['_REQUEST_vars']['modfunc']);
 		unset($_SESSION['_REQUEST_vars']['id']);
@@ -48,17 +48,17 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA) =='update')
 {
     foreach($_REQUEST['values'] as $request_id=>$columns)
 	{
-		$sql = "UPDATE schedule_requests SET ";
+		$sql = 'UPDATE schedule_requests SET ';
 
 		foreach($columns as $column=>$value)
 		{
                     $value=paramlib_validation($column,$value);
                     if(str_replace("\'","''",$value)=='' || str_replace("\'","''",$value)==0)
-                        $sql .=$column."=NULL,";
+                        $sql .=$column.'=NULL,';
                     else
-                        $sql .= $column."='".str_replace("\'","''",$value)."',";
+                        $sql .= $column.'=\''.str_replace("\'","''",$value).'\',';
 		}
-		$sql = substr($sql,0,-1) . " WHERE STUDENT_ID='".UserStudentID()."' AND REQUEST_ID='".$request_id."'";
+		$sql = substr($sql,0,-1) . ' WHERE STUDENT_ID=\''.UserStudentID().'\' AND REQUEST_ID=\''.$request_id.'\'';
 		//echo $sql;
 		DBQuery($sql);
 	}
@@ -67,6 +67,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA) =='update')
 
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA) =='add')
 {
+    $flag=true;
     if($_REQUEST['subject_id']==0)
     {
         echo "<font color='red'>"."Please select a subject"."</font>";
@@ -84,10 +85,18 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHA) =='add')
 	$course_weight = substr($_REQUEST['course'],strpos($_REQUEST['course'],'-')+1);
 	//$subject_id = DBGet(DBQuery("SELECT SUBJECT_ID FROM courses WHERE COURSE_ID='".$course_id."'"));
 	$subject_id =$_REQUEST['subject_id'];
-	$mp_id = DBGet(DBQuery("SELECT MARKING_PERIOD_ID FROM school_years WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+	$mp_id = DBGet(DBQuery('SELECT MARKING_PERIOD_ID FROM school_years WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 	$mp_id = UserMP();
-        
-	DBQuery("INSERT INTO schedule_requests (SYEAR,SCHOOL_ID,STUDENT_ID,SUBJECT_ID,COURSE_ID,MARKING_PERIOD_ID) values('".UserSyear()."','".UserSchool()."','".UserStudentID()."','".$subject_id."','".$course_id."','".$mp_id."')");
+        $same_course_check=DBGet(DBQuery('SELECT COURSE_ID FROM schedule_requests WHERE STUDENT_ID=\''.UserStudentID().'\' AND SYEAR=\''.UserSyear().'\''));
+        foreach($same_course_check as $key=>$same_course)
+        {
+            if($same_course['COURSE_ID']==$course_id)
+                $flag=false;
+        }
+        if($flag)
+	DBQuery('INSERT INTO schedule_requests (SYEAR,SCHOOL_ID,STUDENT_ID,SUBJECT_ID,COURSE_ID,MARKING_PERIOD_ID) values(\''.UserSyear().'\',\''.UserSchool().'\',\''.UserStudentID().'\',\''.$subject_id.'\',\''.$course_id.'\',\''.$mp_id.'\')');
+        else
+            echo "<font color='red'><b>"."You have already requested for this course"."</b></font>";
 	unset($_REQUEST['modfunc']);
             }
         }
@@ -115,27 +124,26 @@ if(!$_REQUEST['modfunc'] && UserStudentID())
         {
             if(User('PROFILE')!='student')
             if(User('PROFILE_ID'))
-            $can_edit_RET = DBGet(DBQuery("SELECT MODNAME FROM profile_exceptions WHERE PROFILE_ID='".User('PROFILE_ID')."' AND MODNAME='Scheduling/Requests.php' AND CAN_EDIT='Y'"));
+            $can_edit_RET = DBGet(DBQuery('SELECT MODNAME FROM profile_exceptions WHERE PROFILE_ID=\''.User('PROFILE_ID').'\' AND MODNAME='.'Scheduling/Requests.php'.' AND CAN_EDIT='.'Y'.''));
             else
-            $can_edit_RET = DBGet(DBQuery("SELECT MODNAME FROM staff_exceptions WHERE USER_ID='".User('STAFF_ID')."' AND MODNAME='Scheduling/Requests.php' AND CAN_EDIT='Y'"),array(),array('MODNAME'));
+            $can_edit_RET = DBGet(DBQuery('SELECT MODNAME FROM staff_exceptions WHERE USER_ID=\''.User('STAFF_ID').'\' AND MODNAME='.'Scheduling/Requests.php'.' AND CAN_EDIT='.'Y'.''),array(),array('MODNAME'));
             else
-            $can_edit_RET = DBGet(DBQuery("SELECT MODNAME FROM profile_exceptions WHERE PROFILE_ID='0' AND MODNAME='Scheduling/Requests.php' AND CAN_EDIT='Y'"));
+            $can_edit_RET = DBGet(DBQuery('SELECT MODNAME FROM profile_exceptions WHERE PROFILE_ID=0 AND MODNAME=\'Scheduling/Requests.php\' AND CAN_EDIT=\'Y\''));
             if($can_edit_RET)
             $_openSIS['allow_edit'] = true;
         }
 
         $functions = array('COURSE'=>'_makeCourse','WITH_TEACHER_ID'=>'_makeTeacher','WITH_PERIOD_ID'=>'_makePeriod');
-	$requests_RET = DBGet(DBQuery("SELECT r.REQUEST_ID,c.TITLE as COURSE,r.COURSE_ID,r.COURSE_WEIGHT,r.MARKING_PERIOD_ID,r.WITH_TEACHER_ID,r.NOT_TEACHER_ID,r.WITH_PERIOD_ID,r.NOT_PERIOD_ID FROM schedule_requests r,courses c WHERE r.COURSE_ID=c.COURSE_ID AND r.SYEAR='".UserSyear()."' AND r.STUDENT_ID='".UserStudentID()."'"),$functions);
+	$requests_RET = DBGet(DBQuery('SELECT r.REQUEST_ID,c.TITLE as COURSE,r.COURSE_ID,r.COURSE_WEIGHT,r.MARKING_PERIOD_ID,r.WITH_TEACHER_ID,r.NOT_TEACHER_ID,r.WITH_PERIOD_ID,r.NOT_PERIOD_ID FROM schedule_requests r,courses c WHERE r.COURSE_ID=c.COURSE_ID AND r.SYEAR=\''.UserSyear().'\' AND r.STUDENT_ID=\''.UserStudentID().'\''),$functions);
 	$columns = array('COURSE'=>'Course','WITH_TEACHER_ID'=>'Teacher','WITH_PERIOD_ID'=>'Period');
 
 	//$link['add']['html'] = array('COURSE_ID'=>_makeCourse('','COURSE_ID'),'WITH_TEACHER_ID'=>_makeTeacher('','WITH_TEACHER_ID'),'WITH_PERIOD_ID'=>_makePeriod('','WITH_PERIOD_ID'),'MARKING_PERIOD_ID'=>_makeMP('','MARKING_PERIOD_ID'));
-	$subjects_RET = DBGet(DBQuery("SELECT SUBJECT_ID,TITLE FROM course_subjects WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+	$subjects_RET = DBGet(DBQuery('SELECT SUBJECT_ID,TITLE FROM course_subjects WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 	$subjects= CreateSelect($subjects_RET, 'subject_id', 'Select Subject', 'Modules.php?modname='.$_REQUEST['modname'].'&subject_id=');
 	
 	if($_REQUEST['subject_id'])
 	{
-
-	$courses_RET = DBGet(DBQuery("SELECT c.COURSE_ID,c.TITLE FROM courses c WHERE ".($_REQUEST['subject_id']?"c.SUBJECT_ID='".$_REQUEST['subject_id']."' AND ":'')."UPPER(c.TITLE) LIKE '".strtoupper($_REQUEST['course_title'])."%' AND c.SYEAR='".UserSyear()."' AND c.SCHOOL_ID='".UserSchool()."'"));
+	$courses_RET = DBGet(DBQuery('SELECT c.COURSE_ID,c.TITLE FROM courses c WHERE '.($_REQUEST['subject_id']?'c.SUBJECT_ID=\''.$_REQUEST['subject_id'].'\' AND ':'').'UPPER(c.TITLE) LIKE \''.strtoupper($_REQUEST['course_title']).'%'.'\' AND c.SYEAR=\''.UserSyear().'\' AND c.SCHOOL_ID=\''.UserSchool().'\''));        
 	$courses = CreateSelect($courses_RET, 'course_id', 'Select Course', 'Modules.php?modname='.$_REQUEST['modname'].'&subject_id='.$_REQUEST['subject_id'].'&course_id=');
 			
 	}
@@ -190,7 +198,7 @@ function _makeCourse($value,$column)
 function _makeTeacher($value,$column)
 {	global $THIS_RET;
 
-	$teachers_RET = DBGet(DBQuery("SELECT s.FIRST_NAME,s.LAST_NAME,s.STAFF_ID AS TEACHER_ID FROM staff s,course_periods cp WHERE s.STAFF_ID=cp.TEACHER_ID AND cp.COURSE_ID='".$THIS_RET['COURSE_ID']."'"));
+	$teachers_RET = DBGet(DBQuery('SELECT s.FIRST_NAME,s.LAST_NAME,s.STAFF_ID AS TEACHER_ID FROM staff s,course_periods cp WHERE s.STAFF_ID=cp.TEACHER_ID AND cp.COURSE_ID=\''.$THIS_RET['COURSE_ID'].'\''));
 	foreach($teachers_RET as $teacher)
 		$options[$teacher['TEACHER_ID']] = $teacher['FIRST_NAME'].' '.$teacher['LAST_NAME'];
 	
@@ -200,7 +208,7 @@ function _makeTeacher($value,$column)
 function _makePeriod($value,$column)
 {	global $THIS_RET;
 
-	$periods_RET = DBGet(DBQuery("SELECT p.TITLE,p.PERIOD_ID FROM school_periods p,course_periods cp WHERE p.PERIOD_ID=cp.PERIOD_ID AND cp.COURSE_ID='".$THIS_RET['COURSE_ID']."'"));
+	$periods_RET = DBGet(DBQuery('SELECT p.TITLE,p.PERIOD_ID FROM school_periods p,course_periods cp WHERE p.PERIOD_ID=cp.PERIOD_ID AND cp.COURSE_ID=\''.$THIS_RET['COURSE_ID'].'\''));
 	foreach($periods_RET as $period)
 		$options[$period['PERIOD_ID']] = $period['TITLE'];
 	

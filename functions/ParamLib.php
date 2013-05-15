@@ -1121,9 +1121,9 @@ function paramlib_validation($feild,$value)
       $val=clean_param($value,PARAM_PHONE);
    }
 
-    elseif($feild==PRIM_STUDENT_RELATION)
+    elseif($feild==PRIM_STUDENT_RELATION)   
    {
-      $val=clean_param($value,PARAM_ALPHASPACE);
+      $val=clean_param($value,PARAM_RAW);
    }
 
     elseif($feild==PRI_FIRST_NAME)
@@ -1183,7 +1183,7 @@ function paramlib_validation($feild,$value)
 
     elseif($feild==SEC_STUDENT_RELATION)
    {
-      $val=clean_param($value,PARAM_ALPHASPACE);
+      $val=clean_param($value,PARAM_RAW);
    }
 
     elseif($feild==SEC_FIRST_NAME)
@@ -1251,7 +1251,7 @@ function paramlib_validation($feild,$value)
       $val=clean_param($value,PARAM_ALPHA);
    }
 
-    elseif($feild==STUDENT_RELATION)
+    elseif($feild==STUDENT_RELATION)  
    {
       $val=clean_param($value,PARAM_RAW);
    }

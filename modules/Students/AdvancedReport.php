@@ -31,7 +31,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save')
 	if(count($_SESSION['st_arr']))
 	{
 		$st_list = '\''.implode('\',\'',$_SESSION['st_arr']).'\'';
-		$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
+		$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
 		if($_REQUEST['ADDRESS_ID'])
 		{
 			$extra['singular'] = 'Family';
@@ -88,7 +88,8 @@ if(!$_REQUEST['modfunc'])
 		#$extra['extra_header_left'] .= '<TABLE><TR><TD><INPUT type=checkbox name=ADDRESS_ID value=Y'.($_REQUEST['address_group']?' checked':'').'>Group by Family</TD></TR></TABLE>';
 
 		$extra['link'] = array('FULL_NAME'=>false);
-		$extra['SELECT'] = ",CONCAT('<INPUT type=checkbox name=st_arr[] value=',s.STUDENT_ID,' checked>') AS CHECKBOX";
+                $extra['SELECT'] = ",CONCAT('<INPUT type=checkbox name=st_arr[] value=',s.STUDENT_ID,' checked>') AS CHECKBOX";
+                #$extra['SELECT'] = ',CONCAT('.'\'<INPUT type=checkbox name=st_arr[] value='.',s.STUDENT_ID,'. 'checked>\''.') AS CHECKBOX';
 		$extra['columns_before'] = array('CHECKBOX'=>'</A><INPUT type=checkbox value=Y name=controller checked onclick="checkAll(this.form,this.form.controller.checked,\'st_arr\');"><A>');
 		$extra['options']['search'] = false;
 
@@ -114,7 +115,7 @@ echo "<FORM action=Modules.php?modname=$_REQUEST[modname]&modfunc=call method=PO
 /*		if($_REQUEST['modfunc']=='call')
 			include('modules/misc/Export.php');
 		else
-*/		    
+*/	
 	Search('student_id',$extra);
                 if( $_SESSION['count_stu']!='0')
                {

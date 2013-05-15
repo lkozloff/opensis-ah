@@ -45,8 +45,8 @@ include('../../Redirect_modules.php');
 			$ret = DBGet(DBQuery($sql));
                  * 
                  */
-                        $sql_subject="SELECT SUBJECT_ID,TITLE FROM  course_subjects WHERE
-                                        SCHOOL_ID=".UserSchool() ;
+                        $sql_subject='SELECT SUBJECT_ID,TITLE FROM  course_subjects WHERE
+                                        SCHOOL_ID='.UserSchool() ;
                         $sql_subject_ret = DBGet(DBQuery($sql_subject));
                         if(count($sql_subject_ret))
 
@@ -57,16 +57,16 @@ include('../../Redirect_modules.php');
 			echo "<tr><td width=105>".DrawLogo()."</td><td  style=\"font-size:15px; font-weight:bold; padding-top:20px;\">". GetSchool(UserSchool())."<div style=\"font-size:12px;\">Course Catalog</div></td><td align=right style=\"padding-top:20px;\">". ProperDate(DBDate()) ."<br />Powered by openSIS</td></tr><tr><td colspan=3 style=\"border-top:1px solid #333;\">&nbsp;</td></tr></table>";
                         echo '<table border="0" width="100%" align="center"><tr><td><font face=verdana size=-1><b>'.$subject['TITLE'].'</b></font></td></tr><tr>';
 
-                        $sql_course="SELECT COURSE_ID,TITLE FROM  courses WHERE
-                                        SCHOOL_ID=".UserSchool()." AND SUBJECT_ID=".$subject['SUBJECT_ID'] ;
+                        $sql_course='SELECT COURSE_ID,TITLE FROM  courses WHERE
+                                        SCHOOL_ID='.UserSchool().' AND SUBJECT_ID='.$subject['SUBJECT_ID'] ;
 
 			$sql_course_ret = DBGet(DBQuery($sql_course));
                         foreach($sql_course_ret as $course)
 			{
 			echo '<table border="0"><tr><td style=padding-left:40px;><font face=verdana size=-1><b>'.$course['TITLE'].'</b></font></td></tr></table>';
                         
-                        $sql_course_period="SELECT TITLE FROM  course_periods WHERE
-                                        SCHOOL_ID=".UserSchool()." AND COURSE_ID=".$course['COURSE_ID'] ;
+                        $sql_course_period='SELECT TITLE FROM  course_periods WHERE
+                                        SCHOOL_ID='.UserSchool().' AND COURSE_ID='.$course['COURSE_ID'] ;
 
 			$sql_course_period_ret = DBGet(DBQuery($sql_course_period));
                             foreach($sql_course_period_ret as $course_period)

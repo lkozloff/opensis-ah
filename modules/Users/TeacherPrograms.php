@@ -38,14 +38,14 @@ if(UserStaffID() || $_REQUEST['staff_id'])
 	//if(UserStudentID())
 	//	echo '<IMG SRC=assets/pixel_trans.gif height=2>';
         if($_REQUEST['staff_id'])
-                $RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME FROM staff WHERE STAFF_ID='".$_REQUEST['staff_id']."'"));
+                $RET = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME FROM staff WHERE STAFF_ID=\''.$_REQUEST['staff_id'].'\''));
         else
-            $RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME FROM staff WHERE STAFF_ID='".UserStaffID()."'"));
-            $count_staff_RET=DBGet(DBQuery("SELECT COUNT(*) AS NUM FROM staff"));
+            $RET = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME FROM staff WHERE STAFF_ID=\''.UserStaffID().'\''));
+            $count_staff_RET=DBGet(DBQuery('SELECT COUNT(*) AS NUM FROM staff'));
             if($count_staff_RET[1]['NUM']>1){
-                DrawHeaderHome( 'Selected User: '.$RET[1]['FIRST_NAME'].'&nbsp;'.$RET[1]['LAST_NAME'].' (<A HREF=Side.php?staff_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Users/User.php&ajax=true&bottom_back=true&return_session=true target=body>Back to User List</A>');
+                DrawHeaderHome( 'Selected User: '.$RET[1]['FIRST_NAME'].'&nbsp;'.$RET[1]['LAST_NAME'].' (<A HREF=Side.php?staff_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Deselect</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Users/User.php&ajax=true&bottom_back=true&return_session=true target=body>Back to User List</A>');
             }else{
-                DrawHeaderHome( 'Selected User: '.$RET[1]['FIRST_NAME'].'&nbsp;'.$RET[1]['LAST_NAME'].' (<A HREF=Side.php?staff_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>)');
+                DrawHeaderHome( 'Selected User: '.$RET[1]['FIRST_NAME'].'&nbsp;'.$RET[1]['LAST_NAME'].' (<A HREF=Side.php?staff_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Deselect</font></A>)');
             }
     }
 }
@@ -57,7 +57,7 @@ if($_REQUEST['include'] != 'Attendance/Missing_Attendance.php')
 		Search('staff_id','teacher');
 	else
 	{
-		$profile = DBGet(DBQuery("SELECT PROFILE FROM staff WHERE STAFF_ID='".UserStaffID()."'"));
+		$profile = DBGet(DBQuery('SELECT PROFILE FROM staff WHERE STAFF_ID=\''.UserStaffID().'\''));
 		if($profile[1]['PROFILE']!='teacher')
 		{
 			unset($_SESSION['staff_id']);
@@ -73,10 +73,10 @@ else
 
 if(UserStaffID())
 {
-	$QI = DBQuery("SELECT DISTINCT cp.PERIOD_ID,cp.COURSE_PERIOD_ID,sp.TITLE,sp.SHORT_NAME,cp.MARKING_PERIOD_ID,cp.DAYS,sp.SORT_ORDER,c.TITLE AS COURSE_TITLE FROM course_periods cp, school_periods sp,courses c WHERE c.COURSE_ID=cp.COURSE_ID AND cp.PERIOD_ID=sp.PERIOD_ID AND cp.SYEAR='".UserSyear()."' AND cp.SCHOOL_ID='".UserSchool()."' AND (cp.TEACHER_ID='".UserStaffID()."' OR cp.SECONDARY_TEACHER_ID='".UserStaffID()."') ORDER BY sp.SORT_ORDER ");
+	$QI = DBQuery('SELECT DISTINCT cp.PERIOD_ID,cp.COURSE_PERIOD_ID,sp.TITLE,sp.SHORT_NAME,cp.MARKING_PERIOD_ID,cp.DAYS,sp.SORT_ORDER,c.TITLE AS COURSE_TITLE FROM course_periods cp, school_periods sp,courses c WHERE c.COURSE_ID=cp.COURSE_ID AND cp.PERIOD_ID=sp.PERIOD_ID AND cp.SYEAR=\''.UserSyear().'\' AND cp.SCHOOL_ID=\''.UserSchool().'\' AND (cp.TEACHER_ID=\''.UserStaffID().'\' OR cp.SECONDARY_TEACHER_ID=\''.UserStaffID().'\') ORDER BY sp.SORT_ORDER ');
 	$RET = DBGet($QI);
 	// get the fy marking period id, there should be exactly one fy marking period
-	$fy_id = DBGet(DBQuery("SELECT MARKING_PERIOD_ID FROM school_years WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
+	$fy_id = DBGet(DBQuery('SELECT MARKING_PERIOD_ID FROM school_years WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
 	$fy_id = $fy_id[1]['MARKING_PERIOD_ID'];
 
 	if(isset($cp_id))

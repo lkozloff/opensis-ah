@@ -31,7 +31,7 @@ if($_REQUEST['modfunc']=='save')
 	if(count($_REQUEST['st_arr']))
 	{
 	$st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
-	$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
+	$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
 	$extra['FROM']=' ,student_contacts sc';
                   $extra['SELECT']=' ,sc.CONTACT_TYPE,sc.RELATION,CONCAT(Relation_Last_Name," " ,Relation_First_Name) AS RELATION_NAME,sc.ADDRESS1,sc.ADDRESS2,sc.CITY,sc.STATE,sc.ZIP,sc.WORK_PHONE,sc.HOME_PHONE,sc.CELL_PHONE,sc.EMAIL_ID';
                   $extra['WHERE'] .=' AND sc.student_id=ssm.student_id';
@@ -76,7 +76,7 @@ if(!$_REQUEST['modfunc'])
 	}
 
 	$extra['link'] = array('FULL_NAME'=>false);
-	$extra['SELECT'] = ",s.STUDENT_ID AS CHECKBOX";
+	$extra['SELECT'] = ',s.STUDENT_ID AS CHECKBOX';
 	$extra['functions'] = array('CHECKBOX'=>'_makeChooseCheckbox');
 	$extra['columns_before'] = array('CHECKBOX'=>'</A><INPUT type=checkbox value=Y name=controller checked onclick="checkAll(this.form,this.form.controller.checked,\'st_arr\');"><A>');
 	$extra['options']['search'] = false;

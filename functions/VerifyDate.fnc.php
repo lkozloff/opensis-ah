@@ -52,6 +52,13 @@ function VerifyDate($date)
 		$day = $vdate[0];
 		$month = MonthNWSwitch($vdate[1],'tonum');
 		$year = $vdate[2];
+                $e_date='01-'.$month.'-'.$year;
+                $num_days=date('t',strtotime($e_date));
+                if($num_days<$day)
+                {
+                 return false;
+                }
+                
 	}
 	else
 	return false;

@@ -31,7 +31,7 @@ if($_REQUEST['modfunc']=='save')
 	if(UserStudentID())
 	{
 
-	$extra['WHERE'] = " AND s.STUDENT_ID ='".UserStudentID()."'";
+	$extra['WHERE'] = ' AND s.STUDENT_ID =\''.UserStudentID().'\'';
 
 	if($_REQUEST['day_include_active_date'] && $_REQUEST['month_include_active_date'] && $_REQUEST['year_include_active_date'])
 	{
@@ -47,7 +47,7 @@ if($_REQUEST['modfunc']=='save')
 
 	$extra['SELECT'] .= ',c.TITLE AS COURSE_TITLE,p_cp.TITLE AS PERIOD_TITLE,sg.TITLE AS GRD_LVL,sr.MARKING_PERIOD_ID,p_cp.DAYS, CONCAT(sp.START_TIME, " to ", sp.END_TIME) AS DURATION,p_cp.ROOM';
 	$extra['FROM'] .= ' LEFT OUTER JOIN schedule sr ON (sr.STUDENT_ID=ssm.STUDENT_ID),courses c, school_gradelevels sg, course_periods p_cp,school_periods sp ';
-	$extra['WHERE'] .= " AND p_cp.PERIOD_ID=sp.PERIOD_ID AND ssm.SYEAR=sr.SYEAR AND sr.COURSE_ID=c.COURSE_ID AND sr.COURSE_PERIOD_ID=p_cp.COURSE_PERIOD_ID AND p_cp.PERIOD_ID=sp.PERIOD_ID AND ssm.GRADE_ID=sg.ID AND ('$date' BETWEEN sr.START_DATE AND sr.END_DATE $date_extra)";
+	$extra['WHERE'] .= ' AND p_cp.PERIOD_ID=sp.PERIOD_ID AND ssm.SYEAR=sr.SYEAR AND sr.COURSE_ID=c.COURSE_ID AND sr.COURSE_PERIOD_ID=p_cp.COURSE_PERIOD_ID AND p_cp.PERIOD_ID=sp.PERIOD_ID AND ssm.GRADE_ID=sg.ID AND (\''.$date.'\' BETWEEN sr.START_DATE AND sr.END_DATE \''.$date_extra.'\')';
 	if($_REQUEST['mp_id'])
 		$extra['WHERE'] .= ' AND sr.MARKING_PERIOD_ID IN ('.GetAllMP(GetMPTable(GetMP($_REQUEST['mp_id'],'TABLE')),$_REQUEST['mp_id']).')';
 
@@ -61,7 +61,7 @@ if($_REQUEST['modfunc']=='save')
 	$RET_stu = GetStuList($extra);
 
 	$sel_mp = $_REQUEST['sel_mp'];
-	$sql_mp_detail = "SELECT title, start_date, end_date, parent_id, grandparent_id from marking_periods WHERE marking_period_id = $sel_mp";
+	$sql_mp_detail = 'SELECT title, start_date, end_date, parent_id, grandparent_id from marking_periods WHERE marking_period_id = \''.$sel_mp.'\'';
 	$res_mp_detail = mysql_query($sql_mp_detail);
 	$row_mp_detail = mysql_fetch_array($res_mp_detail);
 
@@ -134,35 +134,35 @@ if($_REQUEST['modfunc']=='save')
 			$counter=0;
 
 
-                        $r_ch= DBGet(DBQuery("SELECT cp.title AS cp_title, cp.short_name, cp.room, sp.start_time, sp.end_time, mp.title,sp.sort_order
+                        $r_ch= DBGet(DBQuery('SELECT cp.title AS cp_title, cp.short_name, cp.room, sp.start_time, sp.end_time, mp.title,sp.sort_order
 			FROM school_periods sp, course_periods cp, schedule s, marking_periods mp
-			WHERE cp.syear=".UserSyear()."
-			AND s.syear=".UserSyear()."
-			AND s.student_id='".$courses[1]['STUDENT_ID']."'
+			WHERE cp.syear=\''.UserSyear().'\'
+			AND s.syear=\''.UserSyear().'\'
+			AND s.student_id=\''.$courses[1]['STUDENT_ID'].'\'
 			AND s.course_period_id=cp.course_period_id
 			AND sp.period_id=cp.period_id
-                        AND s.start_date<='".date('Y-m-d')."'
-                        AND (s.end_date IS NULL OR s.end_date>='".date('Y-m-d')."')
-			AND cp.days like '%".$value."%'
-			AND s.school_id=".UserSchool()."
+                        AND s.start_date<=\''.date('Y-m-d').'\'
+                        AND (s.end_date IS NULL OR s.end_date>=\''.date('Y-m-d').'\')
+			AND cp.days like \''.'%'.$value.'%'.'\'
+			AND s.school_id=\''.UserSchool().'\'
 			AND s.marking_period_id=mp.marking_period_id
-			AND ". $mp_string.") order by sp.sort_order"));
+			AND \''. $mp_string.'\') order by sp.sort_order'));
 
 
 
-			$rs=DBQuery("SELECT cp.title AS cp_title, cp.short_name, cp.room, sp.start_time, sp.end_time, mp.title,sp.sort_order
+			$rs=DBQuery('SELECT cp.title AS cp_title, cp.short_name, cp.room, sp.start_time, sp.end_time, mp.title,sp.sort_order
 			FROM school_periods sp, course_periods cp, schedule s, marking_periods mp
-			WHERE cp.syear=".UserSyear()."
-			AND s.syear=".UserSyear()."
-			AND s.student_id='".$courses[1]['STUDENT_ID']."'
+			WHERE cp.syear=\''.UserSyear().'\'
+			AND s.syear=\''.UserSyear().'\'
+			AND s.student_id=\''.$courses[1]['STUDENT_ID'].'\'
 			AND s.course_period_id=cp.course_period_id
 			AND sp.period_id=cp.period_id
-                        AND s.start_date<='".date('Y-m-d')."'
-                        AND (s.end_date IS NULL OR s.end_date>='".date('Y-m-d')."')
-			AND cp.days like '%".$value."%'
-			AND s.school_id=".UserSchool()."
+                        AND s.start_date<=\''.date('Y-m-d').'\'
+                        AND (s.end_date IS NULL OR s.end_date>=\''.date('Y-m-d').'\')
+			AND cp.days like \''.'%'.$value.'%'.'\'
+			AND s.school_id=\''.UserSchool().'\'
 			AND s.marking_period_id=mp.marking_period_id
-			AND ". $mp_string.") order by sp.sort_order");
+			AND \''. $mp_string.'\') order by sp.sort_order');
 
 
 
@@ -292,7 +292,7 @@ $date=date(Y."-".m."-".d);
  }
  else
        $sel_mp =$_REQUEST['sel_mp'];
-	 $sql_mp_detail = "SELECT title, start_date, end_date, parent_id, grandparent_id from marking_periods WHERE marking_period_id = $sel_mp";
+	 $sql_mp_detail = 'SELECT title, start_date, end_date, parent_id, grandparent_id from marking_periods WHERE marking_period_id = \''.$sel_mp.'\'';
 	$res_mp_detail = mysql_query($sql_mp_detail);
 	$row_mp_detail = mysql_fetch_array($res_mp_detail);
 
@@ -308,10 +308,10 @@ if(count($RET_show))
         foreach($RET_show as $student_id=>$courses)
 		{
 		
-					$sch_exist= DBGet(DBQuery("SELECT COUNT(s.id) AS SCH_COUNT FROM schedule s WHERE s.syear=".UserSyear()."
-					AND s.student_id='".$courses[1]['STUDENT_ID']."'
-					AND s.school_id=".UserSchool()."
-					AND $mp_string )"));
+					$sch_exist= DBGet(DBQuery('SELECT COUNT(s.id) AS SCH_COUNT FROM schedule s WHERE s.syear=\''.UserSyear().'\'
+					AND s.student_id=\''.$courses[1]['STUDENT_ID'].'\'
+					AND s.school_id=\''.UserSchool().'\'
+					AND '.$mp_string.' )'));
 
 
 					$sch_exist_yn = $sch_exist[1]['SCH_COUNT'];
@@ -332,35 +332,35 @@ if(count($RET_show))
 		{
 			$counter=0;
 
-                        $r_ch= DBGet(DBQuery("SELECT cp.title AS cp_title, cp.short_name, cp.room, sp.start_time, sp.end_time, mp.title,sp.sort_order
+                        $r_ch= DBGet(DBQuery('SELECT cp.title AS cp_title, cp.short_name, cp.room, sp.start_time, sp.end_time, mp.title,sp.sort_order
 			FROM school_periods sp, course_periods cp, schedule s, marking_periods mp
-			WHERE cp.syear=".UserSyear()."
-			AND s.syear=".UserSyear()."
-			AND s.student_id='".$courses[1]['STUDENT_ID']."'
+			WHERE cp.syear=\''.UserSyear().'\'
+			AND s.syear=\''.UserSyear().'\'
+			AND s.student_id=\''.$courses[1]['STUDENT_ID'].'\'
 			AND s.course_period_id=cp.course_period_id
 			AND sp.period_id=cp.period_id
-                        AND s.start_date<='".date('Y-m-d')."'
-                        AND (s.end_date IS NULL OR s.end_date>='".date('Y-m-d')."')
-			AND cp.days like '%".$value."%'
-			AND s.school_id=".UserSchool()."
+                        AND s.start_date<=\''.date('Y-m-d').'\'
+                        AND (s.end_date IS NULL OR s.end_date>=\''.date('Y-m-d').'\')
+			AND cp.days like \''.'%'.$value.'%'.'\'
+			AND s.school_id=\''.UserSchool().'\'
 			AND s.marking_period_id=mp.marking_period_id
-			AND ". $mp_string.") order by sp.sort_order"));
+			AND '. $mp_string.') order by sp.sort_order'));
 
 
 
-			$rs=DBQuery("SELECT cp.title AS cp_title, cp.short_name, cp.room, sp.start_time, sp.end_time, mp.title,sp.sort_order
+			$rs=DBQuery('SELECT cp.title AS cp_title, cp.short_name, cp.room, sp.start_time, sp.end_time, mp.title,sp.sort_order
 			FROM school_periods sp, course_periods cp, schedule s, marking_periods mp
-			WHERE cp.syear=".UserSyear()."
-			AND s.syear=".UserSyear()."
-			AND s.student_id='".$courses[1]['STUDENT_ID']."'
+			WHERE cp.syear=\''.UserSyear().'\'
+			AND s.syear=\''.UserSyear().'\'
+			AND s.student_id=\''.$courses[1]['STUDENT_ID'].'\'
 			AND s.course_period_id=cp.course_period_id
 			AND sp.period_id=cp.period_id
-                        AND s.start_date<='".date('Y-m-d')."'
-                        AND (s.end_date IS NULL OR s.end_date>='".date('Y-m-d')."')
-			AND cp.days like '%".$value."%'
-			AND s.school_id=".UserSchool()."
+                        AND s.start_date<=\''.date('Y-m-d').'\'
+                        AND (s.end_date IS NULL OR s.end_date>=\''.date('Y-m-d').'\')
+			AND cp.days like \''.'%'.$value.'%'.'\'
+			AND s.school_id=\''.UserSchool().'\'
 			AND s.marking_period_id=mp.marking_period_id
-			AND ". $mp_string.") order by sp.sort_order");
+			AND '. $mp_string.') order by sp.sort_order');
 
 
 

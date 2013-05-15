@@ -89,9 +89,9 @@ if(!$_REQUEST['modfunc'])
 
         $table = 'student_medical_notes';
 	$functions = array('DOCTORS_NOTE_DATE'=>'_makeDate','DOCTORS_NOTE_COMMENTS'=>'_makeAlertComments');
-	$med_RET = DBGet(DBQuery("SELECT ID,STUDENT_ID,DOCTORS_NOTE_DATE,DOCTORS_NOTE_COMMENTS
+	$med_RET = DBGet(DBQuery('SELECT ID,STUDENT_ID,DOCTORS_NOTE_DATE,DOCTORS_NOTE_COMMENTS
                     FROM student_medical_notes
-                    WHERE STUDENT_ID='".UserStudentID()."'"),$functions);
+                    WHERE STUDENT_ID=\''.UserStudentID().'\''),$functions);
 	$columns = array('DOCTORS_NOTE_DATE'=>'Date','DOCTORS_NOTE_COMMENTS'=>'Doctor\'s Note');
 	$link['add']['html'] = array('DOCTORS_NOTE_DATE'=>_makeDate('','DOCTORS_NOTE_DATE'),'DOCTORS_NOTE_COMMENTS'=>_makeAlertComments('','DOCTORS_NOTE_COMMENTS'));
 	$link['remove']['link'] = "Modules.php?modname=$_REQUEST[modname]&include=$_REQUEST[include]&modfunc=delete&table=student_medical_notes&title=".urlencode('Medical Note');
@@ -106,7 +106,7 @@ if(!$_REQUEST['modfunc'])
 	echo '<TABLE width=100%><TR><TD valign=top>';
 	$table = 'student_medical';
 	$functions = array('TYPE'=>'_makeType','MEDICAL_DATE'=>'_makeDate','COMMENTS'=>'_makeAlertComments');
-	$med_RET = DBGet(DBQuery("SELECT ID,TYPE,MEDICAL_DATE,COMMENTS FROM student_medical WHERE STUDENT_ID='".UserStudentID()."' ORDER BY MEDICAL_DATE,TYPE"),$functions);
+	$med_RET = DBGet(DBQuery('SELECT ID,TYPE,MEDICAL_DATE,COMMENTS FROM student_medical WHERE STUDENT_ID=\''.UserStudentID().'\' ORDER BY MEDICAL_DATE,TYPE'),$functions);
 	$columns = array('TYPE'=>'Type','MEDICAL_DATE'=>'Date','COMMENTS'=>'Comments');
 	$link['add']['html'] = array('TYPE'=>_makeType('',''),'MEDICAL_DATE'=>_makeDate('','MEDICAL_DATE'),'COMMENTS'=>_makeAlertComments('','COMMENTS'));
 	$link['remove']['link'] = "Modules.php?modname=$_REQUEST[modname]&include=$_REQUEST[include]&modfunc=delete&table=student_medical&title=".urlencode('immunization or physical');
@@ -122,7 +122,7 @@ if(!$_REQUEST['modfunc'])
 	echo '</TD></tr><TD valign=top>';
 	$table = 'student_medical_alerts';
 	$functions = array('ALERT_DATE'=>'_makeDate','TITLE'=>'_makeAlertComments');
-	$med_RET = DBGet(DBQuery("SELECT ID,TITLE,ALERT_DATE FROM student_medical_alerts WHERE STUDENT_ID='".UserStudentID()."' ORDER BY ID"),$functions);
+	$med_RET = DBGet(DBQuery('SELECT ID,TITLE,ALERT_DATE FROM student_medical_alerts WHERE STUDENT_ID=\''.UserStudentID().'\' ORDER BY ID'),$functions);
 	$columns = array('ALERT_DATE'=>'Alert Date','TITLE'=>'Medical Alert');
 	$link['add']['html'] = array('ALERT_DATE'=>_makeDate('','ALERT_DATE'),'TITLE'=>_makeAlertComments('','TITLE'));
 	$link['remove']['link'] = "Modules.php?modname=$_REQUEST[modname]&include=$_REQUEST[include]&modfunc=delete&table=student_medical_alerts&title=".urlencode('medical alert');
@@ -138,7 +138,7 @@ if(!$_REQUEST['modfunc'])
 	echo '<TR><TD valign=top>';
 	$table = 'student_medical_visits';
 	$functions = array('SCHOOL_DATE'=>'_makeDate','TIME_IN'=>'_makeComments','TIME_OUT'=>'_makeComments','REASON'=>'_makeComments','RESULT'=>'_makeComments','COMMENTS'=>'_makeLongComments');
-	$med_RET = DBGet(DBQuery("SELECT ID,SCHOOL_DATE,TIME_IN,TIME_OUT,REASON,RESULT,COMMENTS FROM student_medical_visits WHERE STUDENT_ID='".UserStudentID()."' ORDER BY SCHOOL_DATE"),$functions);
+	$med_RET = DBGet(DBQuery('SELECT ID,SCHOOL_DATE,TIME_IN,TIME_OUT,REASON,RESULT,COMMENTS FROM student_medical_visits WHERE STUDENT_ID=\''.UserStudentID().'\' ORDER BY SCHOOL_DATE'),$functions);
 	$columns = array('SCHOOL_DATE'=>'Date','TIME_IN'=>'Time In','TIME_OUT'=>'Time Out','REASON'=>'Reason','RESULT'=>'Result','COMMENTS'=>'Comments');
 	$link['add']['html'] = array('SCHOOL_DATE'=>_makeDate('','SCHOOL_DATE'),'TIME_IN'=>_makeComments('','TIME_IN'),'TIME_OUT'=>_makeComments('','TIME_OUT'),'REASON'=>_makeComments('','REASON'),'RESULT'=>_makeComments('','RESULT'),'COMMENTS'=>_makeLongComments('','COMMENTS'));
 	$link['remove']['link'] = "Modules.php?modname=$_REQUEST[modname]&include=$_REQUEST[include]&modfunc=delete&table=student_medical_visits&title=".urlencode('visit');

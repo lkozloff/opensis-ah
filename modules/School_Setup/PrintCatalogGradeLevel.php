@@ -37,10 +37,10 @@ include('../../Redirect_modules.php');
                                         $from=",courses c";
                                         $where = ' AND c.course_id=cp.course_id AND c.grade_level='.$_REQUEST['id'];
                                     }
-               $sql = "select distinct
+               $sql = 'select distinct
 				(select title from course_subjects where subject_id=(select subject_id from courses where course_id=cp.course_id)) as subject,
 				(select title from courses where course_id=cp.course_id) as COURSE_TITLE,cp.course_id
-				from course_periods cp".$from." where cp.school_id='".UserSchool()."' and cp.syear='".UserSyear()."' ".$where." order by subject,COURSE_TITLE";
+				from course_periods cp'.$from.' where cp.school_id=\''.UserSchool().'\' and cp.syear=\''.UserSyear().'\' '.$where.' order by subject,COURSE_TITLE';
 
 
                                     $ret = DBGet(DBQuery($sql));
@@ -51,7 +51,7 @@ include('../../Redirect_modules.php');
 			foreach($ret as $s_id)
 			{
 				echo "<table width=100%  style=\" font-family:Arial; font-size:12px;\" >";
-				$grade_level_RET=  DBGet(DBQuery("SELECT TITLE FROM school_gradelevels WHERE id='".$_REQUEST['id']."'"));
+				$grade_level_RET=  DBGet(DBQuery('SELECT TITLE FROM school_gradelevels WHERE id=\''.$_REQUEST['id'].'\''));
                                                                         $grade_title = $grade_level_RET[1]['TITLE'];
                     
 		if($grade_title!='')
@@ -68,7 +68,7 @@ include('../../Redirect_modules.php');
 			echo '<tr><td align="right"><table border="0" width="97%"><tr><td><font face=verdana size=-1><b>'.$s_id['COURSE_TITLE'].'</b></font></td></tr>';
 			
 			
-                                                      $sql_periods = "SELECT cp.SHORT_NAME,(SELECT TITLE FROM school_periods WHERE period_id=cp.period_id) AS PERIOD,cp.ROOM,cp.DAYS,(SELECT CONCAT(LAST_NAME,' ',FIRST_NAME,' ') from staff where staff_id=cp.TEACHER_ID) as TEACHER from course_periods cp where cp.course_id=".$s_id['COURSE_ID']." and cp.syear='".UserSyear()."' and cp.school_id='".UserSchool()."'";
+                        $sql_periods = 'SELECT cp.SHORT_NAME,(SELECT TITLE FROM school_periods WHERE period_id=cp.period_id) AS PERIOD,cp.ROOM,cp.DAYS,(SELECT CONCAT(LAST_NAME,\' \',FIRST_NAME,\' \') from staff where staff_id=cp.TEACHER_ID) as TEACHER from course_periods cp where cp.course_id='.$s_id['COURSE_ID'].' and cp.syear=\''.UserSyear().'\' and cp.school_id=\''.UserSchool().'\'';
 			$period_list = DBGet(DBQuery($sql_periods));
 			
 ##############################################List Output Generation##################################################
@@ -95,7 +95,7 @@ include('../../Redirect_modules.php');
 	PopTable('header','Print Catalog by Grade Level','width=700');
 	echo '<table width=100%><tr><td>';
 	echo "<FORM id='search' name='search' method=POST action=Modules.php?modname=$_REQUEST[modname]>";
-                  $grade_level_RET=  DBGet(DBQuery("SELECT ID,TITLE FROM school_gradelevels WHERE school_id='".UserSchool()."'"));
+                  $grade_level_RET=  DBGet(DBQuery('SELECT ID,TITLE FROM school_gradelevels WHERE school_id=\''.UserSchool().'\''));
                 if(count($grade_level_RET))
                 {
                         echo CreateSelect($grade_level_RET, 'id', 'All', 'Select Grade Level: ', 'Modules.php?modname='.$_REQUEST['modname'].'&id=');
@@ -103,7 +103,7 @@ include('../../Redirect_modules.php');
 	echo '</td></tr></table>';
 	if(clean_param($_REQUEST['id'],PARAM_ALPHANUM))
 	{
-                    $grade_level_RET=  DBGet(DBQuery("SELECT TITLE FROM school_gradelevels WHERE id='".$_REQUEST['id']."'"));
+                    $grade_level_RET=  DBGet(DBQuery('SELECT TITLE FROM school_gradelevels WHERE id=\''.$_REQUEST['id'].'\''));
                     $grade_title = $grade_level_RET[1]['TITLE'];
                     DrawHeader('<div align="center">Report generated for '.$grade_title.' Grade Level</div>');
 	}

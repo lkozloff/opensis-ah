@@ -146,41 +146,10 @@ echo "
                   <td align=\"right\"><div class=\"user_info\">".date('l F j, Y')." &nbsp;&nbsp;|&nbsp;&nbsp;".User('NAME')." &nbsp;&nbsp;|&nbsp;&nbsp; <a href='index.php?modfunc=logout' class='logout'>Log Out</a>";
 /****************************************************************************************/
 if(User('PROFILE')=='teacher')
-{
+{  
 	echo "<br /><br />
 	<table cellspacing=\"0\"><tr><td><FORM name=head_frm id=head_frm action=Side.php?modfunc=update&btnn=$btn&nsc=$ns&act=school method=POST><INPUT type=hidden name=modcat value='' id=modcat_input>";
-
-$schools = substr(str_replace(",","','",User('SCHOOLS')),2,-2);
-							
-$QI = DBQuery("SELECT ID,TITLE FROM schools ORDER BY ID DESC");
-
-
-$staff = $_SESSION['STAFF_ID'];
-$sid = DBGet(DBQuery("SELECT SCHOOLS FROM staff WHERE STAFF_ID = $staff"));
-$sch = $sid[1]['SCHOOLS'];
-$count = substr_count( $sch, ',' );
-$prv_count = $count - 1;
-$sids = explode(",", $sch);
-
-
-$schools = substr(str_replace(",","','",User('SCHOOLS')),2,-2);
-
-$sql_school = "SELECT ID,TITLE FROM schools WHERE ";
-for($i=1; $i<$prv_count; $i++)
-$sql_school.="ID=$sids[$i] or ";
-
-$sql_school.="ID=$sids[$prv_count] ORDER BY ID DESC";
-
-
-$QI = DBQuery($sql_school);
-$RET = DBGet($QI);
-
-//if(!UserSchool())
-//{
-//$_SESSION['UserSchool'] = $RET[1]['ID'];
-//DBQuery("UPDATE staff SET CURRENT_SCHOOL_ID='".UserSchool()."' WHERE STAFF_ID='".User('STAFF_ID')."'");
-//}
-
+$RET=  DBGet(DBQuery('SELECT s.ID,s.TITLE FROM schools s,staff st INNER JOIN staff_school_relationship ssr USING(staff_id) WHERE s.id=ssr.school_id AND ssr.syear=\''.UserSyear().'\' AND st.staff_id=\''.$_SESSION[STAFF_ID].'\' AND (ssr.END_DATE>=curdate() OR ssr.END_DATE=\'0000-00-00\')'));
 echo "<SELECT name=school onChange='this.form.submit();'>";
 foreach($RET as $school){
     echo "<OPTION style='padding-right:8px;' value=$school[ID]".((UserSchool()==$school['ID'])?' SELECTED':'').">".$school['TITLE']."</OPTION>";
@@ -188,45 +157,15 @@ foreach($RET as $school){
 echo "</SELECT>";
 					
 //===================================================================================================
-
 echo "</FORM></td><td></td>";
 echo "<td><FORM name=head_frm id=head_frm action=Side.php?modfunc=update&btnn=$btn&nsc=$ns&act=syear method=POST><INPUT type=hidden name=modcat value='' id=modcat_input>";
-$school_years_RET1=DBGet(DBQuery("SELECT START_DATE,END_DATE FROM school_years WHERE SCHOOL_ID=".UserSchool()));
-$school_years_RET1=$school_years_RET1[1];
-$school_years_RET1['START_DATE']=explode("-",$school_years_RET1['START_DATE']);
-$school_years_RET1['START_DATE']=$school_years_RET1['START_DATE'][0];
-$school_years_RET1['END_DATE']=explode("-",$school_years_RET1['END_DATE']);
-$school_years_RET1['END_DATE']=$school_years_RET1['END_DATE'][0];
+$school_years_RET=DBGet(DBQuery("SELECT YEAR(sy.START_DATE)AS START_DATE,YEAR(sy.END_DATE)AS END_DATE FROM school_years sy,staff st INNER JOIN staff_school_relationship ssr USING(staff_id) WHERE ssr.SYEAR=sy.SYEAR AND sy.school_id=ssr.school_id AND sy.school_id=".UserSchool()." AND st.staff_id=$_SESSION[STAFF_ID]"));
 						 
- echo "<SELECT name=syear onChange='this.form.submit();' style='width:80;'>";
-#foreach($years_RET as $year)
-# {
-if($school_years_RET1['END_DATE']==$school_years_RET1['START_DATE']+1)
-{
-    $school_years_RET=DBGet(DBQuery("SELECT START_DATE,END_DATE FROM school_years sy,staff s WHERE s.SYEAR=sy.SYEAR AND SCHOOL_ID=".UserSchool()." AND  s.USERNAME=(SELECT USERNAME FROM staff WHERE  STAFF_ID='$_SESSION[STAFF_ID]')"));
+echo "<SELECT name=syear onChange='this.form.submit();' style='width:80;'>";
 
-    foreach($school_years_RET as $school_years)
-    {
-        $school_years['START_DATE']=explode("-",$school_years['START_DATE']);
-        echo $school_years['START_DATE']=$school_years['START_DATE'][0];
-        echo $school_years['END_DATE']=explode("-",$school_years['END_DATE']);
-        echo $school_years['END_DATE']=$school_years['END_DATE'][0];
-        echo "<OPTION value=$school_years[START_DATE]".((UserSyear()==$school_years['START_DATE'])?' SELECTED':'')."> $school_years[START_DATE]-".($school_years['END_DATE'])."</OPTION>";
-    }
-}
-else if($school_years_RET1['END_DATE']==$school_years_RET1['START_DATE'])
+foreach($school_years_RET as $school_years)
 {
-    if(UserSchool())
-        $school_years_RET=DBGet(DBQuery("SELECT START_DATE,END_DATE FROM school_years sy ,staff s WHERE s.SYEAR=sy.SYEAR  and sy.SCHOOL_ID=".UserSchool()." AND s.USERNAME=(SELECT USERNAME FROM staff WHERE STAFF_ID='$_SESSION[STAFF_ID]')"));
-    else
-        $school_years_RET=DBGet(DBQuery("SELECT START_DATE,END_DATE FROM school_years sy ,staff s WHERE s.SYEAR=sy.SYEAR  AND s.USERNAME=(SELECT USERNAME FROM staff  WHERE STAFF_ID='$_SESSION[STAFF_ID]')"));
-
-    foreach($school_years_RET as $school_years)
-    {
-        $school_years['START_DATE']=explode("-",$school_years['START_DATE']);
-        $school_years_RET['START_DATE']=$school_years['START_DATE'][0];
-        echo "<OPTION value=$school_years_RET[START_DATE]".((UserSyear()==$school_years_RET['START_DATE'])?' SELECTED':'').">$school_years_RET[START_DATE]</OPTION>";
-    }
+    echo "<OPTION value=$school_years[START_DATE]".((UserSyear()==$school_years['START_DATE'])?' SELECTED':'').">$school_years[START_DATE]".($school_years[END_DATE]!=$school_years[START_DATE]? "-".$school_years['END_DATE']:'').'</OPTION>';
 }
 
 echo '</SELECT>';
@@ -364,35 +303,35 @@ echo "</td></tr></table></td></tr>";
 						
 }  ##################Only for Teacher End##################	
 if(User('PROFILE')!='teacher')
-{				
+{
 echo "<br><br><table cellpadding=2 cellspacing=0><tr><td><FORM name=head_frm id=head_frm action=Side.php?modfunc=update&btnn=$btn&nsc=$ns method=POST>
 <INPUT type=hidden name=modcat value='' id=modcat_input>
 ";
 	
 if(User('PROFILE')=='admin')
 {
-    $schools = substr(str_replace(",","','",User('SCHOOLS')),2,-2);
-    #$QI = DBQuery("SELECT ID,TITLE FROM schools ORDER BY ID DESC".($schools?" WHERE ID IN ($schools)":''));
-    $QI = DBQuery("SELECT ID,TITLE FROM schools ORDER BY ID DESC");
-
-    // ---------------------------- School id start ----------------------------------------------------------------- //
-    $staff = $_SESSION['STAFF_ID'];
-    $sid = DBGet(DBQuery("SELECT SCHOOLS FROM staff WHERE STAFF_ID = $staff"));
-    $sch = $sid[1]['SCHOOLS'];
-    $count = substr_count( $sch, ',' );
-    $prv_count = $count - 1;
-    $sids = explode(",", $sch);
-    // ----------------------------- School id end ------------------------------------------------------------------ //
-
-    $schools = substr(str_replace(",","','",User('SCHOOLS')),2,-2);
-    $sql_school = "SELECT ID,TITLE FROM schools WHERE ";
-    for($i=1; $i<$prv_count; $i++)
-        $sql_school.="ID=$sids[$i] or ";
-
-    $sql_school.="ID=$sids[$prv_count] ORDER BY ID DESC";
-
-    $QI = DBQuery($sql_school);
-    $RET = DBGet($QI);
+//    $schools = substr(str_replace(",","','",User('SCHOOLS')),2,-2);
+//    #$QI = DBQuery("SELECT ID,TITLE FROM schools ORDER BY ID DESC".($schools?" WHERE ID IN ($schools)":''));
+//    $QI = DBQuery("SELECT ID,TITLE FROM schools ORDER BY ID DESC");
+//
+//    // ---------------------------- School id start ----------------------------------------------------------------- //
+//    $staff = $_SESSION['STAFF_ID'];
+//    $sid = DBGet(DBQuery("SELECT SCHOOLS FROM staff WHERE STAFF_ID = $staff"));
+//    $sch = $sid[1]['SCHOOLS'];
+//    $count = substr_count( $sch, ',' );
+//    $prv_count = $count - 1;
+//    $sids = explode(",", $sch);
+//    // ----------------------------- School id end ------------------------------------------------------------------ //
+//
+//    $schools = substr(str_replace(",","','",User('SCHOOLS')),2,-2);
+//    $sql_school = "SELECT ID,TITLE FROM schools WHERE ";
+//    for($i=1; $i<$prv_count; $i++)
+//        $sql_school.="ID=$sids[$i] or ";
+//
+//    $sql_school.="ID=$sids[$prv_count] ORDER BY ID DESC";
+//
+//    $QI = DBQuery($sql_school);
+//    $RET = DBGet($QI);
 
 //    if(!UserSchool())
 //    {
@@ -406,6 +345,7 @@ if(User('PROFILE')=='admin')
     //                                        DBQuery("UPDATE staff SET CURRENT_SCHOOL_ID='".UserSchool()."' WHERE STAFF_ID='".User('STAFF_ID')."'");
     //                                }
 
+    $RET=  DBGet(DBQuery("SELECT DISTINCT s.ID,s.TITLE FROM schools s,staff st INNER JOIN staff_school_relationship ssr USING(staff_id) WHERE s.id=ssr.school_id AND st.staff_id=$_SESSION[STAFF_ID]"));
     echo "<SELECT name=school onChange='this.form.submit();'>";
     foreach($RET as $school)
         echo "<OPTION  style='padding-right:8px;' value=$school[ID]".((UserSchool()==$school['ID'])?' SELECTED':'').">".$school['TITLE']."</OPTION>";
@@ -464,7 +404,7 @@ if($school_years_RET1['END_DATE']==$school_years_RET1['START_DATE']+1)
         $school_years_RET=DBGet(DBQuery("SELECT DISTINCT sy.START_DATE,sy.END_DATE FROM school_years sy,student_enrollment se WHERE se.SYEAR=sy.SYEAR AND se.STUDENT_ID='$_SESSION[STUDENT_ID]' AND sy.SCHOOL_ID=".UserSchool()." "));
     }
     else{
-        $school_years_RET=DBGet(DBQuery("SELECT START_DATE,END_DATE FROM school_years sy,staff s WHERE s.SYEAR=sy.SYEAR AND SCHOOL_ID=".UserSchool()." AND  s.USERNAME=(SELECT USERNAME FROM staff WHERE STAFF_ID='$_SESSION[STAFF_ID]')"));
+        $school_years_RET=DBGet(DBQuery("SELECT sy.START_DATE,sy.END_DATE FROM school_years sy ,staff s INNER JOIN staff_school_relationship ssr ON s.staff_id=ssr.staff_id WHERE sy.school_id=ssr.school_id AND sy.syear=ssr.syear AND sy.SCHOOL_ID=".UserSchool()." AND s.staff_id='$_SESSION[STAFF_ID]'"));
     }
     foreach($school_years_RET as $school_years)
     {
@@ -482,9 +422,9 @@ else if($school_years_RET1['END_DATE']==$school_years_RET1['START_DATE'])
     else
     {
         if(UserSchool())
-            $school_years_RET=DBGet(DBQuery("SELECT START_DATE,END_DATE FROM school_years sy ,staff s WHERE s.SYEAR=sy.SYEAR  and sy.SCHOOL_ID=".UserSchool()." AND s.USERNAME=(SELECT USERNAME FROM staff WHERE STAFF_ID='$_SESSION[STAFF_ID]')"));
+            $school_years_RET=DBGet(DBQuery("SELECT sy.START_DATE,sy.END_DATE FROM school_years sy ,staff s INNER JOIN staff_school_relationship ssr ON s.staff_id=ssr.staff_id WHERE sy.school_id=ssr.school_id AND sy.syear=ssr.syear AND sy.SCHOOL_ID=".UserSchool()." AND s.staff_id='$_SESSION[STAFF_ID]'"));
         else
-            $school_years_RET=DBGet(DBQuery("SELECT START_DATE,END_DATE FROM school_years sy ,staff s WHERE s.SYEAR=sy.SYEAR  AND s.USERNAME=(SELECT USERNAME FROM staff  WHERE STAFF_ID='$_SESSION[STAFF_ID]')"));
+            $school_years_RET=DBGet(DBQuery("SELECT sy.START_DATE,sy.END_DATE FROM school_years sy ,staff s WHERE s.SYEAR=sy.SYEAR  AND s.USERNAME=(SELECT USERNAME FROM staff  WHERE STAFF_ID='$_SESSION[STAFF_ID]')"));
     }
     foreach($school_years_RET as $school_years)
     {
@@ -1106,7 +1046,7 @@ if(UserStudentID() && User('PROFILE')!='parent' && User('PROFILE')!='student')
         }else if($count_student_RET[1]['NUM']==1){
            // DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) ');
 			
-	 DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.optional_param('modcat','',PARAM_NOTAGS).'><font color=red>Remove</font></A>) ');
+	 DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.optional_param('modcat','',PARAM_NOTAGS).'><font color=red>Deselect</font></A>) ');
 			
         }
 }
@@ -1169,7 +1109,7 @@ if($_REQUEST['modname'])
 	$allowed = false;
 	include 'Menu.php';
 	foreach($_openSIS['Menu'] as $modcat=>$programs)
-	{
+	{  
 		//if($_REQUEST['modname']==$modcat.'/Search.php')
 		if(optional_param('modname','',PARAM_NOTAGS)==$modcat.'/Search.php')
 		{
@@ -1177,7 +1117,7 @@ if($_REQUEST['modname'])
 			break;
 		}
 		foreach($programs as $program=>$title)
-		{
+		{   
 			//if($_REQUEST['modname']==$program)
 			if(optional_param('modname','',PARAM_NOTAGS)==$program)
 			{
@@ -1185,13 +1125,14 @@ if($_REQUEST['modname'])
 				break;
 			}
 		}
-	}
+	}  
+        if(optional_param('modname','',PARAM_NOTAGS)=='Users/TeacherPrograms.php?include=Attendance/TakeAttendance.php')
+                $allowed=true;
 	//if(substr($_REQUEST['modname'],0,5)=='misc/')
-	if(substr(optional_param('modname','',PARAM_NOTAGS),0,5)=='misc/')
+	if(substr(optional_param('modname','',PARAM_NOTAGS),0,5)=='misc/' || substr(optional_param('modname','',PARAM_NOTAGS),0,7)=='Grades/')
 		$allowed = true;
-
 	if($allowed || $_SESSION['take_mssn_attn'])
-	{
+	{   
 		//unset($_SESSION['take_mssn_attn']);
 		if(Preferences('SEARCH')!='Y')
 			$_REQUEST['search_modfunc'] = 'list';

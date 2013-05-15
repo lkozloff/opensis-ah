@@ -37,7 +37,7 @@ function DrawPNG($src,$extra='')
 
 function DrawLogo()
 {	
-                        $logo_ret = DBGet(DBQuery("SELECT VALUE FROM program_config WHERE school_id='".  UserSchool()."' AND program='SchoolLogo'"));    
+                        $logo_ret = DBGet(DBQuery('SELECT VALUE FROM program_config WHERE school_id=\''.  UserSchool().'\' AND program=\'SchoolLogo\''));    
                         if($logo_ret && file_exists($logo_ret[1]['VALUE'])){
                             $logo=$logo_ret[1]['VALUE'];
                             $size = getimagesize($logo);

@@ -45,13 +45,13 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
                                         if($columns['CATEGORY_ID'] && $columns['CATEGORY_ID']!=$_REQUEST['category_id'])
                                         $_REQUEST['category_id'] = $columns['CATEGORY_ID'];
 
-                                        $sql = "UPDATE $table SET ";
+                                        $sql = 'UPDATE '.$table.' SET ';
 
                                         foreach($columns as $column=>$value){
                                             $value= paramlib_validation($column,$value);
-                                            $sql .= $column."='".str_replace("\'","''",$value)."',";
+                                            $sql .= $column.'=\''.str_replace("\'","''",$value).'\',';
                                         }
-                                        $sql = substr($sql,0,-1) . " WHERE ID='$id'";
+                                        $sql = substr($sql,0,-1) . ' WHERE ID=\''.$id.'\'';
                                         $go = true;
                                         if($table=='staff_fields')
                                         $custom_field_id=$id;
@@ -59,7 +59,7 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 		}
 		else
 		{
-			$sql = "INSERT INTO $table ";
+			$sql = 'INSERT INTO '.$table .'';
 
 			if($table=='staff_fields')
 			{
@@ -69,38 +69,38 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 					unset($columns['CATEGORY_ID']);
 				}
 				//$id = DBGet(DBQuery("SELECT ".db_seq_nextval('STAFF_FIELDS_SEQ').' AS ID '.FROM_DUAL));
-                                $id = DBGet(DBQuery("SHOW TABLE STATUS LIKE 'staff_fields'"));
+                                $id = DBGet(DBQuery('SHOW TABLE STATUS LIKE \''.'staff_fields'.'\''));
                                 $id[1]['ID']= $id[1]['AUTO_INCREMENT'];
 				$id = $id[1]['ID'];
-				$fields = "CATEGORY_ID,";
-				$values = "'".$_REQUEST['category_id']."',";
+				$fields = 'CATEGORY_ID,';
+				$values = '\''.$_REQUEST['category_id'].'\',';
 				$_REQUEST['id'] = $id;
 
 				switch($columns['TYPE'])
 				{
 					case 'radio':
-						$Sql_add_column="ALTER TABLE staff ADD CUSTOM_$id VARCHAR(1) ";
+						$Sql_add_column='ALTER TABLE staff ADD CUSTOM_'.$id.' VARCHAR(1) ';
 					break;
 
 					case 'text':
-                                                                                            $Sql_add_column="ALTER TABLE staff ADD CUSTOM_$id VARCHAR(255) ";
+                                                                                            $Sql_add_column='ALTER TABLE staff ADD CUSTOM_'.$id.' VARCHAR(255) ';
                                                                                             break;
 					case 'select':
 					case 'autos':
 					case 'edits':
-					$Sql_add_column="ALTER TABLE staff ADD CUSTOM_$id VARCHAR(100) ";
+					$Sql_add_column='ALTER TABLE staff ADD CUSTOM_'.$id.' VARCHAR(100) ';
 					break;
 
 					case 'codeds':
-						$Sql_add_column="ALTER TABLE staff ADD CUSTOM_$id VARCHAR(15)";
+						$Sql_add_column='ALTER TABLE staff ADD CUSTOM_'.$id.' VARCHAR(15)';
 					break;
 
 					case 'multiple':
-					$Sql_add_column="ALTER TABLE staff ADD CUSTOM_$id VARCHAR(255)";
+					$Sql_add_column='ALTER TABLE staff ADD CUSTOM_'.$id.' VARCHAR(255)';
 					break;
 
 					case 'numeric':
-				$Sql_add_column="ALTER TABLE staff ADD CUSTOM_$id NUMERIC(20,2) ";
+				$Sql_add_column='ALTER TABLE staff ADD CUSTOM_'.$id.' NUMERIC(20,2) ';
                                                                                if(!is_numeric($columns['DEFAULT_SELECTION'])){
                                                                                                                 $not_default=true;
                                                                                                                 $columns['DEFAULT_SELECTION']='';
@@ -108,7 +108,7 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 					break;
 
 					case 'date':
-						$Sql_add_column="ALTER TABLE staff ADD CUSTOM_$id DATE ";
+						$Sql_add_column='ALTER TABLE staff ADD CUSTOM_'.$id.' DATE ';
                                                                                         if(preg_match("/^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$/", $columns['DEFAULT_SELECTION']) === 0){
                                                                                                                             $not_default=true;
                                                                                                                             $columns['DEFAULT_SELECTION']='';
@@ -116,37 +116,37 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 					break;
 
 					case 'textarea':
-					$Sql_add_column="ALTER TABLE staff ADD CUSTOM_$id LONGTEXT ";
+					$Sql_add_column='ALTER TABLE staff ADD CUSTOM_'.$id.' LONGTEXT ';
                                                                                             $not_default=true;
 					break;
 				}
                                                                         if($columns['REQUIRED']){
-		$Sql_add_column.=" NOT NULL ";
+		$Sql_add_column.=' NOT NULL ';
                                                                         }else{
-                                                                            $Sql_add_column.=" NULL ";
+                                                                            $Sql_add_column.=' NULL ';
 				}
                                                                         if($columns['DEFAULT_SELECTION']  && $not_default==false){
-                                                                            $Sql_add_column.=" DEFAULT  '".$columns['DEFAULT_SELECTION']."' ";
+                                                                            $Sql_add_column.=' DEFAULT  \''.$columns['DEFAULT_SELECTION'].'\' ';
                                                                         }
 				DBQuery($Sql_add_column);
                                                                         if($columns['TYPE']!='textarea')
-				DBQuery("CREATE INDEX CUSTOM_IND$id ON staff (CUSTOM_$id)");
+				DBQuery('CREATE INDEX CUSTOM_IND'.$id.' ON staff (CUSTOM_'.$id.')');
 unset($table);
 			}
 			elseif($table=='staff_field_categories')
 			{
 				//$id = DBGet(DBQuery("SELECT ".db_seq_nextval('STAFF_FIELD_CATEGORIES_SEQ').' AS ID '.FROM_DUAL));
-                                $id = DBGet(DBQuery("SHOW TABLE STATUS LIKE 'staff_field_categories'"));
+                                $id = DBGet(DBQuery('SHOW TABLE STATUS LIKE \''.'staff_field_categories'.'\''));
                                 $id[1]['ID']= $id[1]['AUTO_INCREMENT'];
 				$id = $id[1]['ID'];
-				$fields = "";
-				$values ="";
+				$fields = '';
+				$values ='';
 				$_REQUEST['category_id'] = $id;
 				// add to profile or permissions of user creating it
 				if(User('PROFILE_ID'))
-					DBQuery("INSERT INTO profile_exceptions (PROFILE_ID,MODNAME,CAN_USE,CAN_EDIT) values('".User('PROFILE_ID')."','Users/User.php&category_id=$id','Y','Y')");
+					DBQuery('INSERT INTO profile_exceptions (PROFILE_ID,MODNAME,CAN_USE,CAN_EDIT) values(\''.User('PROFILE_ID').'\',\'Users/User.php&category_id='.$id.'\',\'Y\',\'Y\')');
 				else
-					DBQuery("INSERT INTO staff_exceptions (USER_ID,MODNAME,CAN_USE,CAN_EDIT) values('".User('STAFF_ID')."','Users/User.php&category_id=$id','Y','Y')");
+					DBQuery('INSERT INTO staff_exceptions (USER_ID,MODNAME,CAN_USE,CAN_EDIT) values(\''.User('STAFF_ID').'\',\'Users/User.php&category_id='.$id.'\',\'Y\',\'Y\')');
 			}
 
 			$go = false;
@@ -157,7 +157,7 @@ unset($table);
 				{
                                                                                           $value= paramlib_validation($column,$value);
 					$fields .= $column.',';
-					$values .= "'".str_replace("\'","''",$value)."',";
+					$values .= '\''.str_replace("\'","''",$value).'\',';
 					$go = true;
 				}
 			}
@@ -168,59 +168,59 @@ unset($table);
                                         DBQuery($sql);
                 if($custom_field_id)
                 {
-                    $custom_update=DBGet(DBQuery("SELECT TYPE,REQUIRED,DEFAULT_SELECTION FROM staff_fields WHERE ID=$custom_field_id"));
+                    $custom_update=DBGet(DBQuery('SELECT TYPE,REQUIRED,DEFAULT_SELECTION FROM staff_fields WHERE ID=\''.$custom_field_id.'\''));
                     $custom_update=$custom_update[1];
                     switch($custom_update['TYPE'])
                     {
                             case 'radio':
-                            $Sql_modify_column="ALTER TABLE staff MODIFY CUSTOM_$id VARCHAR(1) ";
+                            $Sql_modify_column='ALTER TABLE staff MODIFY CUSTOM_'.$id.' VARCHAR(1) ';
                             break;
 
                             case 'text':
-                            $Sql_modify_column="ALTER TABLE staff MODIFY CUSTOM_$id VARCHAR(255)";
+                            $Sql_modify_column='ALTER TABLE staff MODIFY CUSTOM_'.$id.' VARCHAR(255)';
                             break;
 
                             case 'select':
                             case 'autos':
                             case 'edits':
-                            $Sql_modify_column="ALTER TABLE staff MODIFY CUSTOM_$id VARCHAR(100)";
+                            $Sql_modify_column='ALTER TABLE staff MODIFY CUSTOM_'.$id.' VARCHAR(100)';
                             break;
                             
                             case 'codeds':
-                            $Sql_modify_column="ALTER TABLE staff MODIFY CUSTOM_$id VARCHAR(15)";
+                            $Sql_modify_column='ALTER TABLE staff MODIFY CUSTOM_'.$id.' VARCHAR(15)';
                             break;
 
                             case 'multiple':
-                            $Sql_modify_column="ALTER TABLE staff MODIFY CUSTOM_$id VARCHAR(255)";
+                            $Sql_modify_column='ALTER TABLE staff MODIFY CUSTOM_'.$id.' VARCHAR(255)';
                             break;
 
                             case 'numeric':
-                            $Sql_modify_column="ALTER TABLE staff MODIFY CUSTOM_$id NUMERIC(20,2)";
+                            $Sql_modify_column='ALTER TABLE staff MODIFY CUSTOM_'.$id.' NUMERIC(20,2)';
                             if(!is_numeric($columns['DEFAULT_SELECTION'])){
                                 $not_default=true;
                     }
                             break;
 
                             case 'date':
-                            $Sql_modify_column="ALTER TABLE staff MODIFY CUSTOM_$id  DATE";
+                            $Sql_modify_column='ALTER TABLE staff MODIFY CUSTOM_'.$id.'  DATE';
                             if(preg_match("/^[0-9]{4}-[0-9]{1,2}-[0-9]{1,2}$/", $columns['DEFAULT_SELECTION']) === 0){
                                 $not_default=true;
                     }
                             break;
 
                             case 'textarea':
-                                    $Sql_modify_column="ALTER TABLE staff MODIFY CUSTOM_$id LONGTEXT";
+                                    $Sql_modify_column='ALTER TABLE staff MODIFY CUSTOM_'.$id.' LONGTEXT';
                                     $not_default=true;
                             break;
                 }
                 
                 if($custom_update['REQUIRED']){
-                        $Sql_modify_column.=" NOT NULL ";
+                        $Sql_modify_column.=' NOT NULL ';
                 }else{
-                    $Sql_modify_column.=" NULL ";
+                    $Sql_modify_column.=' NULL ';
 	}
                 if($custom_update['DEFAULT_SELECTION'] && $not_default==false){
-                    $Sql_modify_column.=" DEFAULT  '".$custom_update['DEFAULT_SELECTION']."' ";
+                    $Sql_modify_column.=' DEFAULT  \''.$custom_update['DEFAULT_SELECTION'].'\' ';
                 }
                     DBQuery($Sql_modify_column);
             }
@@ -236,8 +236,8 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete')
 		if(DeletePromptCommon('user field'))
 		{
 			$id = clean_param($_REQUEST['id'],PARAM_INT);
-			DBQuery("DELETE FROM staff_fields WHERE ID='$id'");
-			DBQuery("ALTER TABLE staff DROP COLUMN CUSTOM_$id");
+			DBQuery('DELETE FROM staff_fields WHERE ID=\''.$id.'\'');
+			DBQuery('ALTER TABLE staff DROP COLUMN CUSTOM_'.$id.'');
 			$_REQUEST['modfunc'] = '';
 			unset($_REQUEST['id']);
 		}
@@ -246,16 +246,16 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete')
 	{
 		if(DeletePromptCommon('user field category and all fields in the category'))
 		{
-			$fields = DBGet(DBQuery("SELECT ID FROM staff_fields WHERE CATEGORY_ID='$_REQUEST[category_id]'"));
+			$fields = DBGet(DBQuery('SELECT ID FROM staff_fields WHERE CATEGORY_ID=\''.$_REQUEST[category_id].'\''));
 			foreach($fields as $field)
 			{
-				DBQuery("DELETE FROM staff_fields WHERE ID='$field[ID]'");
-				DBQuery("ALTER TABLE staff DROP COLUMN CUSTOM_$field[ID]");
+				DBQuery('DELETE FROM staff_fields WHERE ID=\''.$field[ID].'\'');
+				DBQuery('ALTER TABLE staff DROP COLUMN CUSTOM_'.$field[ID].'');
 			}
-			DBQuery("DELETE FROM staff_field_categories WHERE ID='$_REQUEST[category_id]'");
+			DBQuery('DELETE FROM staff_field_categories WHERE ID=\''.$_REQUEST[category_id].'\'');
 			// remove from profiles and permissions
-			DBQuery("DELETE FROM profile_exceptions WHERE MODNAME='Users/User/Student.php&category_id=$_REQUEST[category_id]'");
-			DBQuery("DELETE FROM staff_exceptions WHERE MODNAME='Users/User.php&category_id=$_REQUEST[category_id]'");
+			DBQuery('DELETE FROM profile_exceptions WHERE MODNAME=\'Users/User/Student.php&category_id='.$_REQUEST[category_id].'\'');
+			DBQuery('DELETE FROM staff_exceptions WHERE MODNAME=\'Users/User.php&category_id='.$_REQUEST[category_id].'\'');
 			$_REQUEST['modfunc'] = '';
 			unset($_REQUEST['category_id']);
 		}
@@ -265,7 +265,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete')
 if(!$_REQUEST['modfunc'])
 {
 	// CATEGORIES
-	$sql = "SELECT ID,TITLE,SORT_ORDER FROM staff_field_categories ORDER BY SORT_ORDER,TITLE";
+	$sql = 'SELECT ID,TITLE,SORT_ORDER FROM staff_field_categories ORDER BY SORT_ORDER,TITLE';
 	$QI = DBQuery($sql);
 	$categories_RET = DBGet($QI);
 
@@ -275,16 +275,16 @@ if(!$_REQUEST['modfunc'])
 	// ADDING & EDITING FORM
 	if($_REQUEST['id'] && $_REQUEST['id']!='new')
 	{
-		$sql = "SELECT CATEGORY_ID,TITLE,TYPE,SELECT_OPTIONS,DEFAULT_SELECTION,SORT_ORDER,REQUIRED,REQUIRED,(SELECT TITLE FROM staff_field_categories WHERE ID=CATEGORY_ID) AS CATEGORY_TITLE FROM staff_fields WHERE ID='$_REQUEST[id]'";
+		$sql = 'SELECT CATEGORY_ID,TITLE,TYPE,SELECT_OPTIONS,DEFAULT_SELECTION,SORT_ORDER,REQUIRED,REQUIRED,(SELECT TITLE FROM staff_field_categories WHERE ID=CATEGORY_ID) AS CATEGORY_TITLE FROM staff_fields WHERE ID=\''.$_REQUEST[id].'\'';
 		$RET = DBGet(DBQuery($sql));
 		$RET = $RET[1];
 		$title = $RET['CATEGORY_TITLE'].' - '.$RET['TITLE'];
 	}
 	elseif($_REQUEST['category_id'] && $_REQUEST['category_id']!='new' && $_REQUEST['id']!='new')
 	{
-		$sql = "SELECT TITLE,ADMIN,TEACHER,PARENT,NONE,SORT_ORDER,INCLUDE
+		$sql = 'SELECT TITLE,ADMIN,TEACHER,PARENT,NONE,SORT_ORDER,INCLUDE
 				FROM staff_field_categories
-				WHERE ID='$_REQUEST[category_id]'";
+				WHERE ID=\''.$_REQUEST[category_id].'\'';
 		$RET = DBGet(DBQuery($sql));
 		$RET = $RET[1];
 		$title = $RET['TITLE'];
@@ -433,7 +433,7 @@ if(!$_REQUEST['modfunc'])
 	// FIELDS
 	if($_REQUEST['category_id'] && $_REQUEST['category_id']!='new' && count($categories_RET))
 	{
-		$sql = "SELECT ID,TITLE,TYPE,SORT_ORDER FROM staff_fields WHERE CATEGORY_ID='".$_REQUEST['category_id']."' ORDER BY SORT_ORDER,TITLE";
+		$sql = 'SELECT ID,TITLE,TYPE,SORT_ORDER FROM staff_fields WHERE CATEGORY_ID=\''.$_REQUEST['category_id'].'\' ORDER BY SORT_ORDER,TITLE';
 		$fields_RET = DBGet(DBQuery($sql),array('TYPE'=>'_makeType'));
 
 		if(count($fields_RET))

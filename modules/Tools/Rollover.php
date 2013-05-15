@@ -37,8 +37,8 @@ $_SESSION['NY'] = $next_syear;
 echo"<div id='start_date' style='color:red'></div>";
 
 echo '<table width="80%" cellpadding="6" cellspacing="6"><tr><td width="50%" valign="top"><div id="calculating" style="display: none; padding-top:60px;" align="center"><img src="assets/rollover_anim.gif" /><br/><br/><strong>School year rolling over, please wait...</strong></div><div id="response" style="font-size:14px"></div></td>';
-$notice_roll_date=DBGet(DBQuery("SELECT SYEAR FROM school_years WHERE SYEAR>'".UserSyear()."' AND SCHOOL_ID='".UserSchool()."'"));
-$cur_session_RET=DBGet(DBQuery("SELECT YEAR(start_date) AS PRE,YEAR(end_date) AS POST FROM school_years WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
+$notice_roll_date=DBGet(DBQuery('SELECT SYEAR FROM school_years WHERE SYEAR>\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\''));
+$cur_session_RET=DBGet(DBQuery('SELECT YEAR(start_date) AS PRE,YEAR(end_date) AS POST FROM school_years WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\''));
 if($cur_session_RET[1]['PRE']==$cur_session_RET[1]['POST'])
 {
     $cur_session=$cur_session_RET[1]['PRE'];

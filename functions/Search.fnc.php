@@ -396,9 +396,9 @@ unset($_SESSION['student_id']);
 		break;
 
 		case 'student_fields':
-			$search_fields_RET = DBGet(DBQuery("SELECT CONCAT('CUSTOM_',cf.ID) AS COLUMN_NAME,cf.TYPE,cf.TITLE,cf.SELECT_OPTIONS FROM program_user_config puc,custom_fields cf WHERE puc.TITLE=cf.ID AND puc.PROGRAM='StudentFieldsSearch' AND puc.USER_ID='".User('STAFF_ID')."' AND puc.VALUE='Y' ORDER BY cf.SORT_ORDER,cf.TITLE"),array(),array('TYPE'));
+			$search_fields_RET = DBGet(DBQuery('SELECT CONCAT(\'CUSTOM_\',cf.ID) AS COLUMN_NAME,cf.TYPE,cf.TITLE,cf.SELECT_OPTIONS FROM program_user_config puc,custom_fields cf WHERE puc.TITLE=cf.ID AND puc.PROGRAM=\'StudentFieldsSearch\' AND puc.USER_ID=\''.User('STAFF_ID').'\' AND puc.VALUE=\'Y\' ORDER BY cf.SORT_ORDER,cf.TITLE'),array(),array('TYPE'));
 			if(!$search_fields_RET)
-				$search_fields_RET = DBGet(DBQuery("SELECT CONCAT('CUSTOM_',cf.ID) AS COLUMN_NAME,cf.TYPE,cf.TITLE,cf.SELECT_OPTIONS FROM custom_fields cf WHERE cf.ID IN ('200000000','200000001')"),array(),array('TYPE'));
+				$search_fields_RET = DBGet(DBQuery('SELECT CONCAT(\'CUSTOM_\',cf.ID) AS COLUMN_NAME,cf.TYPE,cf.TITLE,cf.SELECT_OPTIONS FROM custom_fields cf WHERE cf.ID IN (\'200000000\',\'200000001\')'),array(),array('TYPE'));
                                    // edit needed
 			if(count($search_fields_RET['text']))
 			{
@@ -468,7 +468,7 @@ unset($_SESSION['student_id']);
 					echo "<OPTION value=\"---\">---</OPTION>";
 					$options['---'] = true;
 					// add values found in current and previous year
-					$options_RET = DBGet(DBQuery("SELECT DISTINCT s.$column[COLUMN_NAME],upper(s.$column[COLUMN_NAME]) AS KEEY FROM students s,student_enrollment sse WHERE sse.STUDENT_ID=s.STUDENT_ID AND (sse.SYEAR='".UserSyear()."' OR sse.SYEAR='".(UserSyear()-1)."') AND $column[COLUMN_NAME] IS NOT NULL ORDER BY KEEY"));
+					$options_RET = DBGet(DBQuery('SELECT DISTINCT s.'.$column[COLUMN_NAME].',upper(s.'.$column[COLUMN_NAME].') AS KEEY FROM students s,student_enrollment sse WHERE sse.STUDENT_ID=s.STUDENT_ID AND (sse.SYEAR=\''.UserSyear().'\' OR sse.SYEAR=\''.(UserSyear()-1).'\') AND '.$column[COLUMN_NAME].' IS NOT NULL ORDER BY KEEY'));
 					foreach($options_RET as $option)
 						if($option[$column['COLUMN_NAME']]!='' && !$options[$option[$column['COLUMN_NAME']]])
 						{
@@ -633,7 +633,7 @@ function Search_absence_summary($type,$extra=array(),$search_from_grade='')
 		        echo '<tr><td align=right width=120>Alt ID</td><td><input type=text name="altid" size=30 class="cell_floating"></td></tr>';
                         echo '<tr><td align=right width=120>Address</td><td><input type=text name="addr" size=30 class="cell_floating"></td></tr>';
 
-			$list = DBGet(DBQuery("SELECT DISTINCT TITLE,ID,SORT_ORDER FROM school_gradelevels WHERE SCHOOL_ID='".UserSchool()."' ORDER BY SORT_ORDER"));
+			$list = DBGet(DBQuery('SELECT DISTINCT TITLE,ID,SORT_ORDER FROM school_gradelevels WHERE SCHOOL_ID=\''.UserSchool().'\' ORDER BY SORT_ORDER'));
 			echo '<TR><TD align=right width=120>Grade</TD><TD><SELECT name=grade><OPTION value="" class="cell_floating">Not Specified</OPTION>';
 			foreach($list as $value)
 				echo "<OPTION value=$value[ID]>$value[TITLE]</OPTION>";
@@ -641,9 +641,9 @@ function Search_absence_summary($type,$extra=array(),$search_from_grade='')
 		break;
 
 		case 'student_fields':
-			$search_fields_RET = DBGet(DBQuery("SELECT CONCAT('CUSTOM_',cf.ID) AS COLUMN_NAME,cf.TYPE,cf.TITLE,cf.SELECT_OPTIONS FROM program_user_config puc,custom_fields cf WHERE puc.TITLE=cf.ID AND puc.PROGRAM='StudentFieldsSearch' AND puc.USER_ID='".User('STAFF_ID')."' AND puc.VALUE='Y' ORDER BY cf.SORT_ORDER,cf.TITLE"),array(),array('TYPE'));
+			$search_fields_RET = DBGet(DBQuery('SELECT CONCAT(\'CUSTOM_\',cf.ID) AS COLUMN_NAME,cf.TYPE,cf.TITLE,cf.SELECT_OPTIONS FROM program_user_config puc,custom_fields cf WHERE puc.TITLE=cf.ID AND puc.PROGRAM=\'StudentFieldsSearch\' AND puc.USER_ID=\''.User('STAFF_ID').'\' AND puc.VALUE=\'Y\' ORDER BY cf.SORT_ORDER,cf.TITLE'),array(),array('TYPE'));
 			if(!$search_fields_RET)
-				$search_fields_RET = DBGet(DBQuery("SELECT CONCAT('CUSTOM_',cf.ID) AS COLUMN_NAME,cf.TYPE,cf.TITLE,cf.SELECT_OPTIONS FROM custom_fields cf WHERE cf.ID IN ('200000000','200000001')"),array(),array('TYPE'));
+				$search_fields_RET = DBGet(DBQuery('SELECT CONCAT(\'CUSTOM_\',cf.ID) AS COLUMN_NAME,cf.TYPE,cf.TITLE,cf.SELECT_OPTIONS FROM custom_fields cf WHERE cf.ID IN (\'200000000\',\'200000001\')'),array(),array('TYPE'));
                                 // edit needed
 			if(count($search_fields_RET['text']))
 			{
@@ -713,7 +713,7 @@ function Search_absence_summary($type,$extra=array(),$search_from_grade='')
 					echo "<OPTION value=\"---\">---</OPTION>";
 					$options['---'] = true;
 					// add values found in current and previous year
-					$options_RET = DBGet(DBQuery("SELECT DISTINCT s.$column[COLUMN_NAME],upper(s.$column[COLUMN_NAME]) AS KEEY FROM students s,student_enrollment sse WHERE sse.STUDENT_ID=s.STUDENT_ID AND (sse.SYEAR='".UserSyear()."' OR sse.SYEAR='".(UserSyear()-1)."') AND $column[COLUMN_NAME] IS NOT NULL ORDER BY KEEY"));
+					$options_RET = DBGet(DBQuery('SELECT DISTINCT s.'.$column[COLUMN_NAME].',upper(s.'.$column[COLUMN_NAME].') AS KEEY FROM students s,student_enrollment sse WHERE sse.STUDENT_ID=s.STUDENT_ID AND (sse.SYEAR=\''.UserSyear().'\' OR sse.SYEAR=\''.(UserSyear()-1).'\') AND '.$column[COLUMN_NAME].' IS NOT NULL ORDER BY KEEY'));
 					foreach($options_RET as $option)
 						if($option[$column['COLUMN_NAME']]!='' && !$options[$option[$column['COLUMN_NAME']]])
 						{

@@ -34,10 +34,10 @@ include('../../Redirect_modules.php');
 	
 		if(clean_param($_REQUEST['marking_period_id'],PARAM_ALPHANUM))
 			$where = ' AND MARKING_PERIOD_ID='.$_REQUEST['marking_period_id'];
-               $sql = "select distinct
-				(select title from course_subjects where subject_id=(select subject_id from courses where 						course_id=course_periods.course_id)) as subject,
+               $sql = 'select distinct
+				(select title from course_subjects where subject_id=(select subject_id from courses where course_id=course_periods.course_id)) as subject,
 				(select title from courses where course_id=course_periods.course_id) as COURSE_TITLE,course_id
-				from course_periods where school_id='".UserSchool()."' and syear='".UserSyear()."' ".$where." order by subject,COURSE_TITLE";
+				from course_periods where school_id=\''.UserSchool().'\' and syear=\''.UserSyear().'\' '.$where.' order by subject,COURSE_TITLE';
 
 		/*		 $sql = "select
 				(select title from course_subjects where subject_id=(select subject_id from courses where 						course_id=course_periods.course_id)) as subject,
@@ -58,7 +58,7 @@ include('../../Redirect_modules.php');
 			foreach($ret as $s_id)
 			{
 				echo "<table width=100%  style=\" font-family:Arial; font-size:12px;\" >";
-				$mark_name_rp = DBGet(DBQuery("SELECT TITLE,SHORT_NAME,'2'  FROM school_quarters WHERE MARKING_PERIOD_ID='".$_REQUEST['marking_period_id']."' AND SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' UNION SELECT TITLE,SHORT_NAME,'1'  FROM school_semesters WHERE MARKING_PERIOD_ID='".$_REQUEST['marking_period_id']."' AND SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' UNION SELECT TITLE,SHORT_NAME,'0'  FROM school_years WHERE MARKING_PERIOD_ID='".$_REQUEST['marking_period_id']."' AND SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY 3"));
+				$mark_name_rp = DBGet(DBQuery('SELECT TITLE,SHORT_NAME,\'2\'  FROM school_quarters WHERE MARKING_PERIOD_ID=\''.$_REQUEST['marking_period_id'].'\' AND SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' UNION SELECT TITLE,SHORT_NAME,\'1\'  FROM school_semesters WHERE MARKING_PERIOD_ID=\''.$_REQUEST['marking_period_id'].'\' AND SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' UNION SELECT TITLE,SHORT_NAME,\'0\'  FROM school_years WHERE MARKING_PERIOD_ID=\''.$_REQUEST['marking_period_id'].'\' AND SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY 3'));
 		$mark_name_rpt = $mark_name_rp[1]['TITLE'];
 		if($mark_name_rpt!='')
 		{
@@ -77,13 +77,13 @@ include('../../Redirect_modules.php');
 			if(!$_REQUEST['marking_period_id'])
 			{
 			 	#$sql_periods = "SELECT cp.SHORT_NAME,(SELECT TITLE FROM school_periods WHERE period_id=cp.period_id) AS PERIOD,cp.ROOM,cp.DAYS,(SELECT CONCAT(LAST_NAME,' ',FIRST_NAME,' ',MIDDLE_NAME,' ') from staff where staff_id=cp.TEACHER_ID) as TEACHER from course_periods cp where cp.course_id=".$s_id['COURSE_ID']." and cp.syear='".UserSyear()."' and cp.school_id='".UserSchool()."'";
-			 	$sql_periods = "SELECT cp.SHORT_NAME,(SELECT TITLE FROM school_periods WHERE period_id=cp.period_id) AS PERIOD,cp.ROOM,cp.DAYS,(SELECT CONCAT(LAST_NAME,' ',FIRST_NAME,' ') from staff where staff_id=cp.TEACHER_ID) as TEACHER from course_periods cp where cp.course_id=".$s_id['COURSE_ID']." and cp.syear='".UserSyear()."' and cp.school_id='".UserSchool()."'";
+			 	$sql_periods = 'SELECT cp.SHORT_NAME,(SELECT TITLE FROM school_periods WHERE period_id=cp.period_id) AS PERIOD,cp.ROOM,cp.DAYS,(SELECT CONCAT(LAST_NAME,\' \',FIRST_NAME,\' \') from staff where staff_id=cp.TEACHER_ID) as TEACHER from course_periods cp where cp.course_id='.$s_id['COURSE_ID'].' and cp.syear=\''.UserSyear().'\' and cp.school_id=\''.UserSchool().'\'';
 				
 			 }
 			 else
 			 {
 			 	#$sql_periods = "SELECT distinct cp.SHORT_NAME,(select CONCAT(START_TIME,' - ',END_TIME,' ') from school_periods where period_id=cp.period_id) as PERIOD,cp.ROOM,cp.DAYS,(select CONCAT(LAST_NAME,' ',FIRST_NAME,' ',MIDDLE_NAME,' ') from staff where staff_id=cp.TEACHER_ID) as TEACHER from course_periods cp where cp.course_id=".$s_id['COURSE_ID']." and cp.syear='".UserSyear()."' and cp.school_id='".UserSchool()."'";
-				 $sql_periods = "SELECT distinct cp.SHORT_NAME,(select CONCAT(START_TIME,' - ',END_TIME,' ') from school_periods where period_id=cp.period_id) as PERIOD,cp.ROOM,cp.DAYS,(select CONCAT(LAST_NAME,' ',FIRST_NAME,' ') from staff where staff_id=cp.TEACHER_ID) as TEACHER from course_periods cp where cp.course_id=".$s_id['COURSE_ID']." and cp.syear='".UserSyear()."' and cp.school_id='".UserSchool()."' and cp.marking_period_id='".$_REQUEST['marking_period_id']."'";
+				 $sql_periods = 'SELECT distinct cp.SHORT_NAME,(select CONCAT(START_TIME,\' - \',END_TIME,\' \') from school_periods where period_id=cp.period_id) as PERIOD,cp.ROOM,cp.DAYS,(select CONCAT(LAST_NAME,\' \',FIRST_NAME,\' \') from staff where staff_id=cp.TEACHER_ID) as TEACHER from course_periods cp where cp.course_id='.$s_id['COURSE_ID'].' and cp.syear=\''.UserSyear().'\' and cp.school_id=\''.UserSchool().'\' and cp.marking_period_id=\''.$_REQUEST['marking_period_id'].'\'';
 
 		}	
 			
@@ -115,7 +115,7 @@ include('../../Redirect_modules.php');
 	PopTable('header','Print Catalog by Term','width=700');
 	echo '<table width=100%><tr><td>';
 	echo "<FORM id='search' name='search' method=POST action=Modules.php?modname=$_REQUEST[modname]>";
-	$mp_RET = DBGet(DBQuery("SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'2'  FROM school_quarters WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'1'  FROM school_semesters WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,'0'  FROM school_years WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY 3"));
+	$mp_RET = DBGet(DBQuery('SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'2\'  FROM school_quarters WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'1\'  FROM school_semesters WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' UNION SELECT MARKING_PERIOD_ID,TITLE,SHORT_NAME,\'0\'  FROM school_years WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY 3'));
 				unset($options);
 		if(count($mp_RET))
 			{
@@ -136,7 +136,7 @@ include('../../Redirect_modules.php');
 	echo '</td></tr></table>';
 	if(clean_param($_REQUEST['marking_period_id'],PARAM_ALPHANUM))
 	{
-	$mark_name = DBGet(DBQuery("SELECT TITLE,SHORT_NAME,'2'  FROM school_quarters WHERE MARKING_PERIOD_ID='".$_REQUEST['marking_period_id']."' AND SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' UNION SELECT TITLE,SHORT_NAME,'1'  FROM school_semesters WHERE MARKING_PERIOD_ID='".$_REQUEST['marking_period_id']."' AND SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' UNION SELECT TITLE,SHORT_NAME,'0'  FROM school_years WHERE MARKING_PERIOD_ID='".$_REQUEST['marking_period_id']."' AND SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY 3"));
+	$mark_name = DBGet(DBQuery('SELECT TITLE,SHORT_NAME,\'2\'  FROM school_quarters WHERE MARKING_PERIOD_ID=\''.$_REQUEST['marking_period_id'].'\' AND SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' UNION SELECT TITLE,SHORT_NAME,\'1\'  FROM school_semesters WHERE MARKING_PERIOD_ID=\''.$_REQUEST['marking_period_id'].'\' AND SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' UNION SELECT TITLE,SHORT_NAME,\'0\'  FROM school_years WHERE MARKING_PERIOD_ID=\''.$_REQUEST['marking_period_id'].'\' AND SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY 3'));
 	$mark_name = $mark_name[1]['SHORT_NAME'];
 	DrawHeader('<div align="center">Report generated for '.$mark_name.' Term</div>');
 	}

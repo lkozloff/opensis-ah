@@ -33,14 +33,14 @@ $course_id = $course_id[1]['COURSE_ID'];
 */
 include('../../Redirect_modules.php');
 $course_period_id = UserCoursePeriod();
-$course_id = DBGet(DBQuery("SELECT COURSE_ID FROM course_periods WHERE COURSE_PERIOD_ID='".UserCoursePeriod()."'"));
+$course_id = DBGet(DBQuery('SELECT COURSE_ID FROM course_periods WHERE COURSE_PERIOD_ID=\''.UserCoursePeriod().'\''));
 $course_id = $course_id[1]['COURSE_ID'];
 
 $_openSIS['allow_edit'] = true;
 unset($_SESSION['_REQUEST_vars']['assignment_type_id']);
 unset($_SESSION['_REQUEST_vars']['assignment_id']);
 
-$config_RET = DBGet(DBQuery("SELECT TITLE,VALUE FROM program_user_config WHERE USER_ID='".User('STAFF_ID')."' AND PROGRAM='Gradebook'"),array(),array('TITLE'));
+$config_RET = DBGet(DBQuery('SELECT TITLE,VALUE FROM program_user_config WHERE USER_ID=\''.User('STAFF_ID').'\' AND PROGRAM=\'Gradebook\''),array(),array('TITLE'));
 if(count($config_RET))
 	foreach($config_RET as $title=>$value)
 		$programconfig[$title] = $value[1]['VALUE'];
@@ -67,7 +67,7 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
         $err=false;
 	foreach($_REQUEST['tables'] as $id=>$columns)
 	{
-		if($table=='gradebook_assignment_types' && $programconfig['WEIGHT']=='Y')
+		if($table=='gradebook_assignment_types' && $programconfig['WEIGHT']=='Y' && $columns['FINAL_GRADE_PERCENT']!='')
         		$columns['FINAL_GRADE_PERCENT'] = ereg_replace('[^0-9.]','',clean_param($columns['FINAL_GRADE_PERCENT'],PARAM_PERCENT)) / 100;
 
 		if($id!='new')
@@ -77,7 +77,7 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 			if($columns['ASSIGNMENT_TYPE_ID'] && $columns['ASSIGNMENT_TYPE_ID']!=$_REQUEST['assignment_type_id'])
 				$_REQUEST['assignment_type_id'] = $columns['ASSIGNMENT_TYPE_ID'];
 
-			$sql = "UPDATE $table SET ";
+			$sql = 'UPDATE '.$table.' SET ';
 
 			if(!$columns['COURSE_ID'] && $table=='gradebook_assignments')
 				$columns['COURSE_ID'] = 'N';
@@ -103,7 +103,7 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
                                 if($column=='DUE_DATE' || $column=='ASSIGNED_DATE')
                                 {
                                     
-                                    $due_date_sql = DBGet(DBQuery("SELECT ASSIGNED_DATE,DUE_DATE FROM gradebook_assignments WHERE ASSIGNMENT_ID='$_REQUEST[assignment_id]'"));
+                                    $due_date_sql = DBGet(DBQuery('SELECT ASSIGNED_DATE,DUE_DATE FROM gradebook_assignments WHERE ASSIGNMENT_ID=\''.$_REQUEST[assignment_id].'\''));
                                     if($columns['DUE_DATE'] && $columns['ASSIGNED_DATE'])
                                     {   
                                         if(strtotime($columns['DUE_DATE'])<strtotime($columns['ASSIGNED_DATE']))
@@ -148,9 +148,9 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
                                                  $value =  mysql_real_escape_string($value);
                                                  $value=str_replace('%u201D', "\"", $value);
         					}
-				$sql .= $column."='".$value." ',";
+				$sql .= $column.'=\''.$value.' \',';
 			}
-			$sql = substr($sql,0,-1) . " WHERE ".substr($table,10,-1)."_ID='$id'";
+			$sql = substr($sql,0,-1) . ' WHERE '.substr($table,10,-1).'_ID=\''.$id.'\'';
 			$go = true;
 		}
 		else
@@ -160,7 +160,7 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 		}
 		else
 		{
-			$sql = "INSERT INTO $table ";
+			$sql = 'INSERT INTO '.$table.' ';
 
 			if($table=='gradebook_assignments')
 			{
@@ -170,21 +170,21 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 					unset($columns['ASSIGNMENT_TYPE_ID']);
 				}
 				//$id = DBGet(DBQuery("SELECT ".db_seq_nextval('GRADEBOOK_ASSIGNMENTS_SEQ').' AS ID '.FROM_DUAL));
-				$id = DBGet(DBQuery("SHOW TABLE STATUS LIKE 'gradebook_assignments'"));
+				$id = DBGet(DBQuery('SHOW TABLE STATUS LIKE \'gradebook_assignments\''));
                                 $id[1]['ID']= $id[1]['AUTO_INCREMENT'];
                                 $id = $id[1]['ID'];
-				$fields = "ASSIGNMENT_TYPE_ID,STAFF_ID,MARKING_PERIOD_ID,";
+				$fields = 'ASSIGNMENT_TYPE_ID,STAFF_ID,MARKING_PERIOD_ID,';
 				$values = "'".$_REQUEST['assignment_type_id']."','".User('STAFF_ID')."','".UserMP()."',";
 				$_REQUEST['assignment_id'] = $id;
 			}
 			elseif($table=='gradebook_assignment_types')
 			{
 				//$id = DBGet(DBQuery("SELECT ".db_seq_nextval('GRADEBOOK_ASSIGNMENT_TYPES_SEQ').' AS ID '.FROM_DUAL));
-				$id = DBGet(DBQuery("SHOW TABLE STATUS LIKE 'gradebook_assignment_types'"));
+				$id = DBGet(DBQuery('SHOW TABLE STATUS LIKE \'gradebook_assignment_types\''));
                                 $id[1]['ID']= $id[1]['AUTO_INCREMENT'];
                                 $id = $id[1]['ID'];
-				$fields = "STAFF_ID,COURSE_ID,COURSE_PERIOD_ID,";
-				$values = "'".User('STAFF_ID')."','$course_id','$course_period_id',";
+				$fields = 'STAFF_ID,COURSE_ID,COURSE_PERIOD_ID,';
+				$values = '\''.User('STAFF_ID').'\',\''.$course_id.'\',\''.$course_period_id.'\',';
 				$_REQUEST['assignment_type_id'] = $id;
 			}
 
@@ -242,7 +242,7 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 
 		if($go){
 			DBQuery($sql);
-                        DBQuery("UPDATE gradebook_assignments SET UNGRADED=2 WHERE ASSIGNMENT_ID IN (SELECT ASSIGNMENT_ID FROM gradebook_grades WHERE POINTS IS NULL OR POINTS='') OR ASSIGNMENT_ID NOT IN (SELECT ASSIGNMENT_ID FROM gradebook_grades WHERE POINTS IS NOT NULL OR POINTS!='')");
+                        DBQuery('UPDATE gradebook_assignments SET UNGRADED=2 WHERE ASSIGNMENT_ID IN (SELECT ASSIGNMENT_ID FROM gradebook_grades WHERE POINTS IS NULL OR POINTS=\'\') OR ASSIGNMENT_ID NOT IN (SELECT ASSIGNMENT_ID FROM gradebook_grades WHERE POINTS IS NOT NULL OR POINTS!=\'\')');
                         }
 	}
 	unset($_REQUEST['tables']);
@@ -251,88 +251,127 @@ if(clean_param($_REQUEST['tables'],PARAM_NOTAGS) && ($_POST['tables'] || $_REQUE
 if($err)
     echo '<Font color=red>Due date must be greater than assigned date.</FONT>';
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='delete')
-{
-		if($_REQUEST['assignment_id'])
+{  
+//		if($_REQUEST['assignment_id'])
+//		{
+//			#$table = 'assignment';
+//			#$sql = "DELETE FROM gradebook_assignments WHERE ASSIGNMENT_ID='$_REQUEST[assignment_id]'";
+//			$table = 'assignment';
+//			$sql = 'DELETE FROM gradebook_assignments WHERE assignment_id=\''.$_REQUEST['assignment_id'].'\'';
+//		}
+//                else
+//                {
+//                    $table = 'assignment type';
+//                    $sql = 'DELETE FROM gradebook_assignment_types WHERE assignment_type_id=\''.$_REQUEST['assignment_type_id'].'\'';
+//                }
+		/*else
 		{
-			#$table = 'assignment';
-			#$sql = "DELETE FROM gradebook_assignments WHERE ASSIGNMENT_ID='$_REQUEST[assignment_id]'";
-			$table = 'assignment';
-			$sql = "DELETE FROM gradebook_assignments WHERE assignment_id='$_REQUEST[assignment_id]'";
-		}
-		else
-		{
-			$data=DBGet(DBQuery("SELECT assignment_id FROM gradebook_assignments WHERE assignment_type_id=$_REQUEST[assignment_type_id]"));
+			$data=DBGet(DBQuery('SELECT assignment_id FROM gradebook_assignments WHERE assignment_type_id='.$_REQUEST['assignment_type_id'].''));
 			if (count($data)<=0){
 			#	$table = 'assignment type';
 			#	$sql = "DELETE FROM gradebook_assignment_types WHERE ASSIGNMENT_TYPE_ID='$_REQUEST[assignment_type_id]'";
 				$table = 'assignment type';
-				$sql = "DELETE FROM gradebook_assignment_types WHERE assignment_type_id='$_REQUEST[assignment_type_id]'";		
+				$sql = 'DELETE FROM gradebook_assignment_types WHERE assignment_type_id=\''.$_REQUEST['assignment_type_id'].'\'';		
 			}
 			else {
 				PopTable('header','Unable to Delete');
-						DrawHeaderHome('<font color=red>Assignment Type cannot be deleted.</font>');
+						DrawHeaderHome('<font color=red>Assignment Type cannot be deleted a.</font>');
 						echo '<div align=right><a href=Modules.php?modname=Grades/Assignments.php&assignment_id='.$_REQUEST['assignment_id'].'&assignment_type_id='.$_REQUEST['assignment_type_id'].' style="text-decoration:none"><b>back to Assignment Type</b></a></div>';
 						PopTable('footer');
 			}
-		}
+		}*/
 		
-	$data=DBGet(DBQuery("select assignment_id from gradebook_assignments where assignment_type_id=$_REQUEST[assignment_type_id]"));
-	
-	if (count($data)<=0 && !$_REQUEST['assignment_id']) {
-	
-		if(DeletePromptAssignment($table))
-		{
-				DBQuery($sql);
-		
-			if(!$_REQUEST['assignment_id'] )
-			{
-				$assignments_RET = DBGet(DBQuery("SELECT ASSIGNMENT_ID FROM gradebook_assignments WHERE ASSIGNMENT_TYPE_ID='$_REQUEST[assignment_type_id]'"));
-				if(count($assignments_RET))
-				{
-					foreach($assignments_RET as $assignment_id)
-						DBQuery("DELETE FROM gradebook_grades WHERE assignment_id='".$assignment_id['ASSIGNMENT_ID']."'");
-				}
-				DBQuery("DELETE FROM gradebook_assignments WHERE assignment_type_id='$_REQUEST[assignment_type_id]'");
-				unset($_REQUEST['assignment_type_id']);
-			}
-			/*else
-			{
-				DBQuery("DELETE FROM gradebook_grades WHERE ASSIGNMENT_ID='$_REQUEST[assignment_id]'");
-				unset($_REQUEST['assignment_id']);
-			}*/
-			unset($_REQUEST['modfunc']);
-		}
-	}
-	
-	if ($_REQUEST['assignment_id']){
+//	$data=DBGet(DBQuery('select assignment_id from gradebook_assignments where assignment_type_id='.$_REQUEST['assignment_type_id'].''));
+//	
+//	if (count($data)<=0 && !$_REQUEST['assignment_id']) {
+//	
+//		if(DeletePromptAssignment($table))
+//		{
+//				#DBQuery($sql);
+//		
+//			if(!$_REQUEST['assignment_id'] )
+//			{
+//				$assignments_RET = DBGet(DBQuery('SELECT ASSIGNMENT_ID FROM gradebook_assignments WHERE ASSIGNMENT_TYPE_ID=\''.$_REQUEST['assignment_type_id'].'\''));
+//				if(count($assignments_RET))
+//				{
+//					foreach($assignments_RET as $assignment_id)
+//						DBQuery('DELETE FROM gradebook_grades WHERE assignment_id=\''.$assignment_id['ASSIGNMENT_ID'].'\'');
+//				}
+//				DBQuery('DELETE FROM gradebook_assignments WHERE assignment_type_id=\''.$_REQUEST['assignment_type_id'].'\'');
+//				unset($_REQUEST['assignment_type_id']);
+//			}
+//			/*else
+//			{
+//				DBQuery("DELETE FROM gradebook_grades WHERE ASSIGNMENT_ID='$_REQUEST[assignment_id]'");
+//				unset($_REQUEST['assignment_id']);
+//			}*/
+//			unset($_REQUEST['modfunc']);
+//		}
+//	}
+	if($_REQUEST['assignment_type_id'] || $_REQUEST['assignment_id'])
+        {
+         if($_REQUEST['assignment_type_id'] && !$_REQUEST['assignment_id'])
+        {   
+         $table ='assignment type';
+         $data=DBGet(DBQuery('select assignment_id from gradebook_assignments where assignment_type_id='.$_REQUEST['assignment_type_id'].''));
+         
+         if(DeletePromptAssignment($table, $_REQUEST['assignment_type_id']))
+            {
+
+            DBQuery('DELETE FROM gradebook_assignment_types  WHERE assignment_type_id=\''.$_REQUEST['assignment_type_id'].'\'');
+            DBQuery('DELETE FROM gradebook_assignments WHERE assignment_type_id=\''.$_REQUEST['assignment_type_id'].'\'');
+
+            DBQuery('DELETE FROM gradebook_grades WHERE assignment_id=\''.$data[1]['assignment_id'].'\'');
+            unset($_REQUEST['assignment_type_id']);
+            unset($_REQUEST['modfunc']);
+            }   
+        }
+        else
+        {
+        $table = 'assignment';
+//        }
+//	if ($_REQUEST['assignment_id']){
 	include("classes/db/db.mysqli.class.php");
-	$stmt = $mysqli->prepare("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM gradebook_grades WHERE assignment_id=".$_REQUEST['assignment_id']);
-					#$stmt->bind_param("i",$marking_period_id); //binding name as string
-					#$marking_period_id = $courses[$key]['MARKING_PERIOD_ID'];
-					$stmt->execute();
-					$has_assigned=0;
-					$stmt->bind_result($has_assigned);
-					$stmt->fetch();
-		if($has_assigned>0){
-		UnableDeletePrompt('Gradebook Assignment cannot be deleted because it has other associations.');
-		}else{
+//	$stmt = $mysqli->prepare("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM gradebook_grades WHERE assignment_id=".$_REQUEST['assignment_id']);
+//					#$stmt->bind_param("i",$marking_period_id); //binding name as string
+//					#$marking_period_id = $courses[$key]['MARKING_PERIOD_ID'];
+//					$stmt->execute();
+//					$has_assigned=0;
+//					$stmt->bind_result($has_assigned);
+//					$stmt->fetch();
+//		if($has_assigned>0){
+//		UnableDeletePrompt('Gradebook Assignment cannot be deleted because it has other associations.');
+//		}else{
 		if(DeletePromptAssignment($table, $_REQUEST['assignment_type_id']))
 			{
-						DBQuery($sql);
-				DBQuery("DELETE FROM gradebook_grades WHERE assignment_id='$_REQUEST[assignment_id]'");
-						unset($_REQUEST['assignment_id']);
-						unset($_REQUEST['modfunc']);
+
+                        DBQuery('DELETE FROM gradebook_grades WHERE assignment_id=\''.$_REQUEST['assignment_id'].'\'');
+                        DBQuery('DELETE FROM gradebook_assignments WHERE assignment_id=\''.$_REQUEST['assignment_id'].'\'');
+                        unset($_REQUEST['assignment_id']);
+                        unset($_REQUEST['modfunc']);
 			}
-		}
-	}
+                        
+        }
+//	}
+        }
         unset($_SESSION['_REQUEST_vars']['modfunc']);
 }
 
 if(!$_REQUEST['modfunc'] && $course_id)
 {
+
 	// ASSIGNMENT TYPES
-	$sql = " SELECT ASSIGNMENT_TYPE_ID,TITLE FROM gradebook_assignment_types where COURSE_PERIOD_ID='".$course_period_id."' ORDER BY TITLE";
-	$QI = DBQuery($sql);
+	$sql = ' SELECT ASSIGNMENT_TYPE_ID,TITLE 
+                 FROM (
+                    ( select gat.ASSIGNMENT_TYPE_ID,gat.TITLE  FROM gradebook_assignment_types gat where gat.COURSE_PERIOD_ID=\''.$course_period_id.'\' )
+                  UNION  
+                   (SELECT gat.ASSIGNMENT_TYPE_ID as ASSIGNMENT_TYPE_ID,concat(gat.TITLE,\' (\',cp.title,\')\') as TITLE FROM gradebook_assignment_types gat , gradebook_assignments ga, course_periods cp
+                    where cp.course_period_id =gat.course_period_id and gat.ASSIGNMENT_TYPE_ID=ga.ASSIGNMENT_TYPE_ID AND ga.COURSE_ID IS NOT NULL 
+                    AND ga.COURSE_PERIOD_ID IS NULL AND ga.COURSE_ID=\''.UserCourse().'\' AND ga.STAFF_ID=\''.UserID().'\' ) 
+                  )as t
+                  GROUP BY ASSIGNMENT_TYPE_ID';
+	
+        $QI = DBQuery($sql);
 	$types_RET = DBGet($QI);
 
 	if($_REQUEST['assignment_id']!='new' && $_REQUEST['assignment_type_id']!='new')
@@ -341,10 +380,10 @@ if(!$_REQUEST['modfunc'] && $course_id)
 	// ADDING & EDITING FORM
 	if($_REQUEST['assignment_id'] && $_REQUEST['assignment_id']!='new')
 	{
-		$sql = "SELECT ASSIGNMENT_TYPE_ID,TITLE,ASSIGNED_DATE,DUE_DATE,POINTS,COURSE_ID,DESCRIPTION,
-				CASE WHEN DUE_DATE<ASSIGNED_DATE THEN 'Y' ELSE NULL END AS DATE_ERROR
+		$sql = 'SELECT ASSIGNMENT_TYPE_ID,TITLE,ASSIGNED_DATE,DUE_DATE,POINTS,COURSE_ID,DESCRIPTION,
+				CASE WHEN DUE_DATE<ASSIGNED_DATE THEN \'Y\' ELSE NULL END AS DATE_ERROR
 				FROM gradebook_assignments
-				WHERE ASSIGNMENT_ID='$_REQUEST[assignment_id]'";
+				WHERE ASSIGNMENT_ID=\''.$_REQUEST['assignment_id'].'\'';
 		$QI = DBQuery($sql);
 		$RET = DBGet($QI);
 		$RET = $RET[1];
@@ -352,10 +391,10 @@ if(!$_REQUEST['modfunc'] && $course_id)
 	}
 	elseif($_REQUEST['assignment_type_id'] && $_REQUEST['assignment_type_id']!='new' && $_REQUEST['assignment_id']!='new')
 	{
-		$sql = "SELECT at.TITLE,at.FINAL_GRADE_PERCENT,
-				(SELECT sum(FINAL_GRADE_PERCENT) FROM gradebook_assignment_types WHERE COURSE_PERIOD_ID='".$course_period_id."') AS TOTAL_PERCENT
+		$sql = 'SELECT at.TITLE,at.FINAL_GRADE_PERCENT,
+				(SELECT sum(FINAL_GRADE_PERCENT) FROM gradebook_assignment_types WHERE COURSE_PERIOD_ID=\''.$course_period_id.'\') AS TOTAL_PERCENT
 				FROM gradebook_assignment_types at
-				WHERE at.ASSIGNMENT_TYPE_ID='$_REQUEST[assignment_type_id]'";
+				WHERE at.ASSIGNMENT_TYPE_ID=\''.$_REQUEST['assignment_type_id'].'\'';
 		$QI = DBQuery($sql);
 		$RET = DBGet($QI,array('FINAL_GRADE_PERCENT'=>'_makePercent'));
 		$RET = $RET[1];
@@ -368,7 +407,7 @@ if(!$_REQUEST['modfunc'] && $course_id)
 	}
 	elseif($_REQUEST['assignment_type_id']=='new')
 	{
-		$sql = "SELECT sum(FINAL_GRADE_PERCENT) AS TOTAL_PERCENT FROM gradebook_assignment_types WHERE COURSE_PERIOD_ID='".$course_period_id."'";
+		$sql = 'SELECT sum(FINAL_GRADE_PERCENT) AS TOTAL_PERCENT FROM gradebook_assignment_types WHERE COURSE_PERIOD_ID=\''.$course_period_id.'\'';
 		$QI = DBQuery($sql);
 		$RET = DBGet($QI,array('FINAL_GRADE_PERCENT'=>'_makePercent'));
 		$RET = $RET[1];
@@ -465,7 +504,7 @@ if(!$_REQUEST['modfunc'] && $course_id)
 	// ASSIGNMENTS
 	if($_REQUEST['assignment_type_id'] && $_REQUEST['assignment_type_id']!='new' && count($types_RET))
 	{
-		$sql = "SELECT ASSIGNMENT_ID,TITLE FROM gradebook_assignments WHERE (COURSE_ID='".$course_id."' OR COURSE_PERIOD_ID='".$course_period_id."') AND ASSIGNMENT_TYPE_ID='".$_REQUEST['assignment_type_id']."' AND MARKING_PERIOD_ID='".UserMP()."' ORDER BY ".Preferences('ASSIGNMENT_SORTING','Gradebook')." DESC";
+		$sql = 'SELECT ASSIGNMENT_ID,TITLE FROM gradebook_assignments WHERE (COURSE_ID=\''.$course_id.'\' OR COURSE_PERIOD_ID=\''.$course_period_id.'\') AND ASSIGNMENT_TYPE_ID=\''.$_REQUEST['assignment_type_id'].'\' AND MARKING_PERIOD_ID=\''.UserMP().'\' ORDER BY '.Preferences('ASSIGNMENT_SORTING','Gradebook').' DESC';
 		$QI = DBQuery($sql);
 		$assn_RET = DBGet($QI);
 

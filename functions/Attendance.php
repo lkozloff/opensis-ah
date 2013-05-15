@@ -42,32 +42,32 @@ function UpdateAttendanceDaily($student_id,$date='',$comment=false)
             $MP_TYPE='FY';
         }
         
-        $sql = "SELECT
+        $sql = 'SELECT
 				SUM(sp.LENGTH) AS TOTAL
 			FROM schedule s,course_periods cp,school_periods sp,attendance_calendar ac
 			WHERE
-				s.COURSE_PERIOD_ID = cp.COURSE_PERIOD_ID AND cp.DOES_ATTENDANCE='Y'
-				AND ac.SCHOOL_DATE='$date' AND (ac.BLOCK=sp.BLOCK OR sp.BLOCK IS NULL)
+				s.COURSE_PERIOD_ID = cp.COURSE_PERIOD_ID AND cp.DOES_ATTENDANCE=\'Y\'
+				AND ac.SCHOOL_DATE=\''.$date.'\' AND (ac.BLOCK=sp.BLOCK OR sp.BLOCK IS NULL)
 				AND ac.CALENDAR_ID=cp.CALENDAR_ID AND ac.SCHOOL_ID=s.SCHOOL_ID AND ac.SYEAR=s.SYEAR
 				AND s.SYEAR = cp.SYEAR AND sp.PERIOD_ID = cp.PERIOD_ID
-				AND position(substring('UMTWHFS' FROM DAYOFWEEK('$date')  FOR 1) IN cp.DAYS)>0
-				AND s.STUDENT_ID='$student_id'
-				AND s.SYEAR='".UserSyear()."'
-				AND ('$date' BETWEEN s.START_DATE AND s.END_DATE OR (s.END_DATE IS NULL AND '$date'>=s.START_DATE))
-				AND s.MARKING_PERIOD_ID IN (".GetAllMP($MP_TYPE,$current_mp).")
-			";
+				AND position(substring(\'UMTWHFS\' FROM DAYOFWEEK(\''.$date.'\')  FOR 1) IN cp.DAYS)>0
+				AND s.STUDENT_ID=\''.$student_id.'\'
+				AND s.SYEAR=\''.UserSyear().'\'
+				AND (\''.$date.'\' BETWEEN s.START_DATE AND s.END_DATE OR (s.END_DATE IS NULL AND \''.$date.'\'>=s.START_DATE))
+				AND s.MARKING_PERIOD_ID IN ('.GetAllMP($MP_TYPE,$current_mp).')
+			';
 	$RET = DBGet(DBQuery($sql));
 	$total = $RET[1]['TOTAL'];
 	if($total==0)
 		return;
 
-        $current_RET = DBGet(DBQuery("SELECT MINUTES_PRESENT,STATE_VALUE,COMMENT FROM attendance_day WHERE STUDENT_ID='$student_id' AND SCHOOL_DATE='$date'"));
+        $current_RET = DBGet(DBQuery('SELECT MINUTES_PRESENT,STATE_VALUE,COMMENT FROM attendance_day WHERE STUDENT_ID='.$student_id.' AND SCHOOL_DATE=\''.$date.'\''));
         $total=$current_RET['MINUTES_PRESENT'];
         
-        $sql = "SELECT SUM(sp.LENGTH) AS TOTAL
+        $sql = 'SELECT SUM(sp.LENGTH) AS TOTAL
 			FROM attendance_period ap,school_periods sp,attendance_codes ac
-			WHERE ap.STUDENT_ID='$student_id' AND ap.SCHOOL_DATE='$date' AND ap.PERIOD_ID=sp.PERIOD_ID AND ac.ID = ap.ATTENDANCE_CODE AND ac.STATE_CODE='P'
-			AND sp.SYEAR='".UserSyear()."'";
+			WHERE ap.STUDENT_ID=\''.$student_id.'\' AND ap.SCHOOL_DATE=\''.$date.'\' AND ap.PERIOD_ID=sp.PERIOD_ID AND ac.ID = ap.ATTENDANCE_CODE AND ac.STATE_CODE=\'P\'
+			AND sp.SYEAR=\''.UserSyear().'\'';
 	$RET = DBGet(DBQuery($sql));
 	$total += $RET[1]['TOTAL'];
 
@@ -78,10 +78,10 @@ function UpdateAttendanceDaily($student_id,$date='',$comment=false)
 //	$RET = DBGet(DBQuery($sql));
 //	$total -= $RET[1]['TOTAL'];
 
-	$sql = "SELECT SUM(sp.LENGTH) AS TOTAL
+	$sql = 'SELECT SUM(sp.LENGTH) AS TOTAL
 			FROM attendance_period ap,school_periods sp,attendance_codes ac
-			WHERE ap.STUDENT_ID='$student_id' AND ap.SCHOOL_DATE='$date' AND ap.PERIOD_ID=sp.PERIOD_ID AND ac.ID = ap.ATTENDANCE_CODE AND ac.STATE_CODE='H'
-			AND sp.SYEAR='".UserSyear()."'";
+			WHERE ap.STUDENT_ID=\''.$student_id.'\' AND ap.SCHOOL_DATE=\''.$date.'\' AND ap.PERIOD_ID=sp.PERIOD_ID AND ac.ID = ap.ATTENDANCE_CODE AND ac.STATE_CODE=\'H\'
+			AND sp.SYEAR=\''.UserSyear().'\'';
 	$RET = DBGet(DBQuery($sql));
 	$total += $RET[1]['TOTAL']*.5;
 
@@ -99,7 +99,7 @@ function UpdateAttendanceDaily($student_id,$date='',$comment=false)
         if(stripos($_SERVER['SERVER_SOFTWARE'], 'linux')){
           $comment=  str_replace("'","\'",$comment);
         }
-	$sys_pref = DBGet(DBQuery("SELECT * FROM system_preference WHERE SCHOOL_ID=".UserSchool()));
+	$sys_pref = DBGet(DBQuery('SELECT * FROM system_preference WHERE SCHOOL_ID='.UserSchool()));
 	$fdm = $sys_pref[1]['FULL_DAY_MINUTE'];
 	$hdm = $sys_pref[1]['HALF_DAY_MINUTE'];
 
@@ -110,13 +110,13 @@ function UpdateAttendanceDaily($student_id,$date='',$comment=false)
 	else
 		$length = '0.0';
 
-	$current_RET = DBGet(DBQuery("SELECT MINUTES_PRESENT,STATE_VALUE,COMMENT FROM attendance_day WHERE STUDENT_ID='$student_id' AND SCHOOL_DATE='$date'"));
+	$current_RET = DBGet(DBQuery('SELECT MINUTES_PRESENT,STATE_VALUE,COMMENT FROM attendance_day WHERE STUDENT_ID=\''.$student_id.'\' AND SCHOOL_DATE=\''.$date.'\''));
 	if(count($current_RET) && $current_RET[1]['MINUTES_PRESENT']!=$total)
-		DBQuery("UPDATE attendance_day SET MINUTES_PRESENT='$total',STATE_VALUE='$length'".($comment!=false?",COMMENT='".str_replace("","",$comment)."'":'')." WHERE STUDENT_ID='$student_id' AND SCHOOL_DATE='$date'");
+		DBQuery('UPDATE attendance_day SET MINUTES_PRESENT=\''.$total.'\',STATE_VALUE=\''.$length.'\''.($comment!=false?',COMMENT=\''.str_replace("","",$comment).'\'':'').' WHERE STUDENT_ID=\''.$student_id.'\' AND SCHOOL_DATE=\''.$date.'\'');
 	elseif(count($current_RET) && $comment!=false && $current_RET[1]['COMMENT']!=$comment)
-		DBQuery("UPDATE attendance_day SET COMMENT='".str_replace("","",$comment)."' WHERE STUDENT_ID='$student_id' AND SCHOOL_DATE='$date'");
+		DBQuery('UPDATE attendance_day SET COMMENT=\''.str_replace("","",$comment).'\' WHERE STUDENT_ID=\''.$student_id.'\' AND SCHOOL_DATE=\''.$date.'\'');
 	elseif(count($current_RET)==0)
-		DBQuery("INSERT INTO attendance_day (SYEAR,STUDENT_ID,SCHOOL_DATE,MINUTES_PRESENT,STATE_VALUE,MARKING_PERIOD_ID,COMMENT) values('".UserSyear()."','$student_id','$date','$total','$length','".$current_mp."','".str_replace("","",$comment)."')");
+		DBQuery('INSERT INTO attendance_day (SYEAR,STUDENT_ID,SCHOOL_DATE,MINUTES_PRESENT,STATE_VALUE,MARKING_PERIOD_ID,COMMENT) values(\''.UserSyear().'\',\''.$student_id.'\',\''.$date.'\',\''.$total.'\',\''.$length.'\',\''.$current_mp.'\',\''.str_replace("","",$comment).'\')');
 }
 
 ?>

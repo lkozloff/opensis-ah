@@ -34,32 +34,32 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save')
 	if(count($_REQUEST['st_arr']))
 	{
 		$st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
-		$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
-
-		$extra['SELECT'] .= ",coalesce(s.COMMON_NAME,s.FIRST_NAME) AS NICK_NAME";
+		$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
+                $qtr=GetAllMP('QTR',GetCurrentMP('QTR',DBDate(),false));
+		$extra['SELECT'] .= ',coalesce(s.COMMON_NAME,s.FIRST_NAME) AS NICK_NAME';
 		if(User('PROFILE')=='admin')
 		{
 			if($_REQUEST['w_course_period_id_which']=='course_period' && $_REQUEST['w_course_period_id'])
 			{
 				if($_REQUEST['teacher'])
-					$extra['SELECT'] .= ",(SELECT CONCAT(st.FIRST_NAME,' ',st.LAST_NAME) FROM staff st,course_periods cp WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.COURSE_PERIOD_ID='$_REQUEST[w_course_period_id]') AS TEACHER";
+					$extra['SELECT'] .= ',(SELECT CONCAT(st.FIRST_NAME,\''.' '.'\',st.LAST_NAME) FROM staff st,course_periods cp WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.COURSE_PERIOD_ID=\''.$_REQUEST[w_course_period_id].'\') AS TEACHER';
 				if($_REQUEST['room'])
-					$extra['SELECT'] .= ",(SELECT cp.ROOM FROM course_periods cp WHERE cp.COURSE_PERIOD_ID='$_REQUEST[w_course_period_id]') AS ROOM";
+					$extra['SELECT'] .= ',(SELECT cp.ROOM FROM course_periods cp WHERE cp.COURSE_PERIOD_ID=\''.$_REQUEST[w_course_period_id].'\') AS ROOM';
 			}
 			else
 			{
 				if($_REQUEST['teacher'])
-					$extra['SELECT'] .= ",(SELECT CONCAT(st.FIRST_NAME,' ',st.LAST_NAME) FROM staff st,course_periods cp,school_periods p,schedule ss WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE='Y' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR='".UserSyear()."' AND ss.MARKING_PERIOD_ID IN(".GetAllMP('QTR',GetCurrentMP('QTR',DBDate(),false)).") AND (ss.START_DATE<='".DBDate()."' AND (ss.END_DATE>='".DBDate()."' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS TEACHER";
+					$extra['SELECT'] .= ',(SELECT CONCAT(st.FIRST_NAME,\''.' '.'\',st.LAST_NAME) FROM staff st,course_periods cp,school_periods p,schedule ss WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE=\''.'Y'.'\' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR=\''.UserSyear().'\' AND ss.MARKING_PERIOD_ID IN('.$qtr.') AND (ss.START_DATE<=\''.DBDate().'\' AND (ss.END_DATE>=\''.DBDate().'\' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS TEACHER';
 				if($_REQUEST['room'])
-					$extra['SELECT'] .= ",(SELECT cp.ROOM FROM course_periods cp,school_periods p,schedule ss WHERE cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE='Y' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR='".UserSyear()."' AND ss.MARKING_PERIOD_ID IN(".GetAllMP('QTR',GetCurrentMP('QTR',DBDate(),false)).") AND (ss.START_DATE<='".DBDate()."' AND (ss.END_DATE>='".DBDate()."' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS ROOM";
+					$extra['SELECT'] .= ',(SELECT cp.ROOM FROM course_periods cp,school_periods p,schedule ss WHERE cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE=\''.'Y'.'\' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR=\''.UserSyear().'\' AND ss.MARKING_PERIOD_ID IN('.$qtr.') AND (ss.START_DATE<=\''.DBDate().'\' AND (ss.END_DATE>=\''.DBDate().'\' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS ROOM';
 			}
 		}
 		else
 		{
 			if($_REQUEST['teacher'])
-				$extra['SELECT'] .= ",(SELECT CONCAT(st.FIRST_NAME,' ',st.LAST_NAME) FROM staff st,course_periods cp WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.COURSE_PERIOD_ID='".UserCoursePeriod()."') AS TEACHER";
+				$extra['SELECT'] .= ',(SELECT CONCAT(st.FIRST_NAME,\''.' '.'\',st.LAST_NAME) FROM staff st,course_periods cp WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.COURSE_PERIOD_ID=\''.UserCoursePeriod().'\') AS TEACHER';
 			if($_REQUEST['room'])
-				$extra['SELECT'] .= ",(SELECT cp.ROOM FROM course_periods cp WHERE cp.COURSE_PERIOD_ID='".UserCoursePeriod()."') AS ROOM";
+				$extra['SELECT'] .= ',(SELECT cp.ROOM FROM course_periods cp WHERE cp.COURSE_PERIOD_ID=\''.UserCoursePeriod().'\') AS ROOM';
 		}
 		$RET = GetStuList($extra);
 
@@ -150,7 +150,7 @@ if(!$_REQUEST['modfunc'])
 		{
 			if($_REQUEST['w_course_period_id_which']=='course_period' && $_REQUEST['w_course_period_id'])
 			{
-				$course_RET = DBGet(DBQuery("SELECT CONCAT(s.FIRST_NAME,' ',s.LAST_NAME) AS TEACHER,cp.ROOM FROM staff s,course_periods cp WHERE s.STAFF_ID=cp.TEACHER_ID AND cp.COURSE_PERIOD_ID='$_REQUEST[w_course_period_id]'"));
+				$course_RET = DBGet(DBQuery('SELECT CONCAT(s.FIRST_NAME,'.' '. ',s.LAST_NAME) AS TEACHER,cp.ROOM FROM staff s,course_periods cp WHERE s.STAFF_ID=cp.TEACHER_ID AND cp.COURSE_PERIOD_ID=\''.$_REQUEST[w_course_period_id].'\''));
 				$extra['extra_header_left'] .= '<TR><TD><INPUT type=checkbox name=teacher value=Y>Teacher ('.$course_RET[1]['TEACHER'].')</TD></TR>';
 				$extra['extra_header_left'] .= '<TR><TD><INPUT type=checkbox name=room value=Y>Room ('.$course_RET[1]['ROOM'].')</TD></TR>';
 			}

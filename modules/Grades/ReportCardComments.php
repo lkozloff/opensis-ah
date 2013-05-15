@@ -40,13 +40,13 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
                         {
                             if($id!='new')
                             {
-                                $sql = "UPDATE report_card_comments SET ";
+                                $sql = 'UPDATE report_card_comments SET ';
 
                                 foreach($columns as $column=>$value){
                                 $value= paramlib_validation($column,$value);
                                 $sql .= $column."='".str_replace("\'","''",$value)."',";
                                 }
-                                $sql = substr($sql,0,-1) . " WHERE ID='$id'";
+                                $sql = substr($sql,0,-1) . ' WHERE ID=\''.$id.'\'';
                                 DBQuery($sql);
                             }
                             else
@@ -83,7 +83,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='update')
 
 if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='remove')
 {
-	$has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_report_card_comments WHERE REPORT_CARD_COMMENT_ID='$_REQUEST[id]'"));
+	$has_assigned_RET=DBGet(DBQuery('SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_report_card_comments WHERE REPORT_CARD_COMMENT_ID=\''.$_REQUEST['id'].'\''));
 	$has_assigned=$has_assigned_RET[1]['TOTAL_ASSIGNED'];
 	
 	if($has_assigned>0){
@@ -93,13 +93,13 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='remove')
 	{
 		if(DeletePromptX('Report Card Comment'))
 		{
-			DBQuery("DELETE FROM report_card_comments WHERE ID='$_REQUEST[id]'");
+			DBQuery('DELETE FROM report_card_comments WHERE ID=\''.$_REQUEST['id'].'\'');
 		}
 	}
 	else
 		if(DeletePromptX('Report Card Comment'))
 		{
-			DBQuery("DELETE FROM report_card_comments WHERE ID='$_REQUEST[id]'");
+			DBQuery('DELETE FROM report_card_comments WHERE ID=\''.$_REQUEST['id'].'\'');
 		}
 		}
 }
@@ -108,7 +108,7 @@ if(!$_REQUEST['modfunc'])
 {
 	if(User('PROFILE')=='admin')
 	{
-		$courses_RET = DBGet(DBQuery("SELECT TITLE,COURSE_ID FROM courses WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' AND COURSE_ID IN (SELECT DISTINCT COURSE_ID FROM course_periods WHERE GRADE_SCALE_ID IS NOT NULL) ORDER BY TITLE"));
+		$courses_RET = DBGet(DBQuery('SELECT TITLE,COURSE_ID FROM courses WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' AND COURSE_ID IN (SELECT DISTINCT COURSE_ID FROM course_periods WHERE GRADE_SCALE_ID IS NOT NULL) ORDER BY TITLE'));
 		if(!$_REQUEST['course_id'])
 			$_REQUEST['course_id'] = $courses_RET[1]['COURSE_ID'];
 
@@ -122,7 +122,7 @@ if(!$_REQUEST['modfunc'])
 		$course_period_RET = DBGet(DBQuery('SELECT GRADE_SCALE_ID,DOES_BREAKOFF,TEACHER_ID FROM course_periods WHERE COURSE_PERIOD_ID=\''.UserCoursePeriod().'\''));
 		if(!$course_period_RET[1]['GRADE_SCALE_ID'])
 			ErrorMessage(array('This course is not graded.'),'fatal');
-		$courses_RET = DBGet(DBQuery("SELECT TITLE,COURSE_ID FROM courses WHERE COURSE_ID=(SELECT COURSE_ID FROM course_periods WHERE COURSE_PERIOD_ID='".UserCoursePeriod()."')"));
+		$courses_RET = DBGet(DBQuery('SELECT TITLE,COURSE_ID FROM courses WHERE COURSE_ID=(SELECT COURSE_ID FROM course_periods WHERE COURSE_PERIOD_ID=\''.UserCoursePeriod().'\')'));
 		//$course_select = $courses_RET[1]['TITLE'];
 		$_REQUEST['course_id'] = $courses_RET[1]['COURSE_ID'];
 	}

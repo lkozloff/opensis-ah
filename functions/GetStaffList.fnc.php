@@ -31,58 +31,41 @@ function GetStaffList(& $extra)
 	switch(User('PROFILE'))
 	{
 		case 'admin':
-		$profiles_RET = DBGet(DBQuery("SELECT * FROM user_profiles"),array(),array('ID'));
-                  $sch=DBGet(DBQuery("SELECT SCHOOLS FROM staff WHERE STAFF_ID= '".$_SESSION['STAFF_ID']."'"));
-                  $schools=$sch[1][SCHOOLS];
-                  $schools=substr($schools,0,-1);
-                  $schools=substr($schools,1);
-                  $schools_count=explode(",",$schools);
-                  $school_value=count($schools_count);
-                 
-                //print_r($schools_count);
-		
-  	#$sql = "SELECT CONCAT(s.LAST_NAME,  ' ' ,s.FIRST_NAME, ' ' ,s.MIDDLE_NAME) AS FULL_NAME,
-	$sql = "SELECT CONCAT(s.LAST_NAME,  ' ' ,s.FIRST_NAME) AS FULL_NAME,
-					s.PROFILE,s.PROFILE_ID,s.STAFF_ID,s.SCHOOLS ".$extra['SELECT']."
+		$profiles_RET = DBGet(DBQuery('SELECT * FROM user_profiles'),array(),array('ID'));
+                  $sql = 'SELECT DISTINCT CONCAT(s.LAST_NAME,  \' \' ,s.FIRST_NAME) AS FULL_NAME,
+					s.PROFILE,s.PROFILE_ID,s.STAFF_ID '.$extra['SELECT'].'
                 FROM
-					staff s ".$extra['FROM']."
+					staff s INNER JOIN staff_school_relationship ssr USING(staff_id) '.$extra['FROM'].'
 				WHERE
-					s.SYEAR='".UserSyear()."'";
+					ssr.SYEAR=\''.UserSyear().'\'';
 		if($_REQUEST['_search_all_schools']!='Y')
-			$sql .= " AND (s.SCHOOLS LIKE '%,".UserSchool().",%' OR s.SCHOOLS IS NULL OR s.SCHOOLS='') ";
+			$sql .= ' AND school_id='.  UserSchool().' ';
                    else
-                   {
-                       $sql .= " AND (";
-                       for($i=0;$i<$school_value;$i++)
-                       {
-                        $sql .= "s.SCHOOLS LIKE '%,$schools_count[$i],%' OR ";
-                       }
-                       $sql.="s.SCHOOLS IS NULL OR s.SCHOOLS='') ";
-                   }
+                       $sql .= ' AND school_id IN('.  GetUserSchools(UserID(),true).') ';
 //		if($_REQUEST['_dis_user']=='Y')
 //		{
 //			$sql .= " OR s.IS_DISABLE='Y' ";
 //		#	$extra['columns_after'] = array('IS_DISABLE'=>'Disable');
 //		}
 		if($_REQUEST['_dis_user']!='Y')
-			$sql .= " AND s.IS_DISABLE IS NULL ";
+			$sql .= ' AND (s.IS_DISABLE<>\'Y\' OR  s.IS_DISABLE IS NULL) ';
 		if($_REQUEST['username'])
-			$sql .= "AND UPPER(s.USERNAME) LIKE '".str_replace("'","\'",strtoupper($_REQUEST['username']))."%' ";
+			$sql .= 'AND UPPER(s.USERNAME) LIKE \''.str_replace("'","\'",strtoupper($_REQUEST['username'])).'%\' ';
 		if($_REQUEST['last'])
-			$sql .= "AND UPPER(s.LAST_NAME) LIKE '".str_replace("'","\'",strtoupper($_REQUEST['last']))."%' ";
+			$sql .= 'AND UPPER(s.LAST_NAME) LIKE \''.str_replace("'","\'",strtoupper($_REQUEST['last'])).'%\' ';
 		if($_REQUEST['first'])
-			$sql .= "AND UPPER(s.FIRST_NAME) LIKE '".str_replace("'","\'",strtoupper($_REQUEST['first']))."%' ";
+			$sql .= 'AND UPPER(s.FIRST_NAME) LIKE \''.str_replace("'","\'",strtoupper($_REQUEST['first'])).'%\' ';
 		if($_REQUEST['profile'])
                 {
                     if(is_number($_REQUEST['profile'])==FALSE)
-                        $sql .= "AND s.PROFILE='".$_REQUEST['profile']."' AND s.PROFILE_ID IS NULL";
+                        $sql .= ' AND s.PROFILE=\''.$_REQUEST['profile'].'\' AND s.PROFILE_ID IS NULL ';
                      else 
-                        $sql .= "AND s.PROFILE_ID='".$_REQUEST['profile']."' ";
+                        $sql .= ' AND s.PROFILE_ID=\''.$_REQUEST['profile'].'\' ';
                 }
 
 		$sql .= $extra['WHERE'].' ';
-		$sql .= "ORDER BY FULL_NAME";
-	#	echo $sql;
+		$sql .= 'ORDER BY FULL_NAME';
+//		echo $sql;
 /**************************************for Back to User*************************************************************/
             if($_SESSION['staf_search']['sql'] && $_REQUEST['return_session']) {
                $sql= $_SESSION['staf_search']['sql'];
@@ -95,7 +78,7 @@ function GetStaffList(& $extra)
 /***************************************************************************************************/
 		if ($extra['functions'])
 			$functions += $extra['functions'];
-
+                
 		return DBGet(DBQuery($sql),$functions);
 		break;
 	}
@@ -131,26 +114,26 @@ function GetStaffList_Miss_Atn(& $extra)
 		switch(User('PROFILE'))
 		{
 			case 'admin':
-			$profiles_RET = mysql_query("SELECT * FROM user_profiles");
-			$sql = "SELECT CONCAT(s.LAST_NAME, ' ', s.FIRST_NAME) AS FULL_NAME,
-						s.PROFILE,s.PROFILE_ID,s.STAFF_ID,s.SCHOOLS ".$extra['SELECT']."
+			$profiles_RET = mysql_query('SELECT * FROM user_profiles');
+			$sql = 'SELECT CONCAT(s.LAST_NAME, \' \', s.FIRST_NAME) AS FULL_NAME,
+						s.PROFILE,s.PROFILE_ID,s.STAFF_ID '.$extra['SELECT'].'
 					FROM
-						staff s ".$extra['FROM']."
+						staff s INNER JOIN staff_school_relationship ssr USING(staff_id) '.$extra['FROM'].'
 					WHERE
-						s.SYEAR='".UserSyear()."'";
+						ssr.SYEAR=\''.UserSyear().'\'';
 			if($_REQUEST['_search_all_schools']!='Y')
-				$sql .= " AND (s.SCHOOLS LIKE '%,".UserSchool().",%' OR s.SCHOOLS IS NULL OR s.SCHOOLS='') ";
+				$sql .= ' AND ssr.school_id='.UserSchool().' ';
 			if($_REQUEST['username'])
-				$sql .= "AND UPPER(s.USERNAME) LIKE '".str_replace("'","\'",strtoupper($_REQUEST['username']))."%' ";
+				$sql .= 'AND UPPER(s.USERNAME) LIKE \''.str_replace("'","\'",strtoupper($_REQUEST['username'])).'%\' ';
 			if($_REQUEST['last'])
-				$sql .= "AND UPPER(s.LAST_NAME) LIKE '".str_replace("'","\'",strtoupper($_REQUEST['last']))."%' ";
+				$sql .= 'AND UPPER(s.LAST_NAME) LIKE \''.str_replace("'","\'",strtoupper($_REQUEST['last'])).'%\' ';
 			if($_REQUEST['first'])
-				$sql .= "AND UPPER(s.FIRST_NAME) LIKE '".str_replace("'","\'",strtoupper($_REQUEST['first']))."%' ";
+				$sql .= 'AND UPPER(s.FIRST_NAME) LIKE \''.str_replace("'","\'",strtoupper($_REQUEST['first'])).'%\' ';
 			if($_REQUEST['profile'])
-				$sql .= "AND s.PROFILE='".$_REQUEST['profile']."' ";
+				$sql .= 'AND s.PROFILE=\''.$_REQUEST['profile'].'\' ';
 
 
-$sql_st = "SELECT teacher_id FROM missing_attendance mi where school_id='".  UserSchool()."' AND syear='".  UserSyear()."'".$extra['WHERE2']." UNION SELECT secondary_teacher_id FROM missing_attendance mi where school_id='".  UserSchool()."' AND syear='".  UserSyear()."'".$extra['WHERE2'];
+$sql_st = 'SELECT teacher_id FROM missing_attendance mi where school_id=\''.  UserSchool().'\' AND syear=\''.  UserSyear().'\''.$extra['WHERE2'].' UNION SELECT secondary_teacher_id FROM missing_attendance mi where school_id=\''.  UserSchool().'\' AND syear=\''.  UserSyear().'\''.$extra['WHERE2'];
 $res_st = mysql_query($sql_st) or die(mysql_error());
 //echo count($res_st);
 $a = 0;
@@ -181,7 +164,7 @@ while($row_st = mysql_fetch_array($res_st))
 // echo $a;
  		if($a != 0){
                                         $teacher_str = substr($teacher_str, 0, -1);
-                                        $sql .= "AND s.STAFF_ID IN ($teacher_str)";
+                                        $sql .= 'AND s.STAFF_ID IN ('.$teacher_str.')';
                                         
  }
 //		else
@@ -192,7 +175,7 @@ while($row_st = mysql_fetch_array($res_st))
 
 
 			$sql .= $extra['WHERE'].' ';
-			$sql .= "ORDER BY FULL_NAME";
+			$sql .= 'ORDER BY FULL_NAME';
 
 
 			if ($extra['functions'])

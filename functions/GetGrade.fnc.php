@@ -33,7 +33,7 @@ function GetGrade($grade,$column='TITLE')
 
 	if(!$_openSIS['GetGrade'])
 	{
-		$QI=DBQuery("SELECT ID,TITLE,SORT_ORDER,SHORT_NAME FROM school_gradelevels");
+		$QI=DBQuery('SELECT ID,TITLE,SORT_ORDER,SHORT_NAME FROM school_gradelevels');
 		$_openSIS['GetGrade'] = DBGet($QI,array(),array('ID'));
 	}
 	if($column=='TITLE')

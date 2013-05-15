@@ -30,7 +30,8 @@ function GetTeacher($teacher_id,$title='',$column='FULL_NAME',$schools=true)
 	
 	if(!$_openSIS['GetTeacher'])
 	{
-		$QI=DBQuery("SELECT STAFF_ID,CONCAT(LAST_NAME,', ',FIRST_NAME) AS FULL_NAME,USERNAME,PROFILE FROM staff WHERE SYEAR='".UserSyear()."'".($schools?" AND SCHOOLS LIKE '%,".UserSchool().",%'":''));
+//		$QI=DBQuery("SELECT STAFF_ID,CONCAT(LAST_NAME,', ',FIRST_NAME) AS FULL_NAME,USERNAME,PROFILE FROM staff WHERE SYEAR='".UserSyear()."'".($schools?" AND SCHOOLS LIKE '%,".UserSchool().",%'":''));
+                $QI=DBQuery('SELECT STAFF_ID,CONCAT(LAST_NAME,\', \',FIRST_NAME) AS FULL_NAME,USERNAME,PROFILE FROM staff INNER JOIN staff_school_relationship USING(staff_id) WHERE syear='.  UserSyear());
 		$_openSIS['GetTeacher'] = DBGet($QI,array(),array('STAFF_ID'));
 	}
 	

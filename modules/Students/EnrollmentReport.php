@@ -30,7 +30,7 @@ include 'modules/Grades/config.inc.php';
 
 if($_REQUEST['modfunc']=='save')
 {
- $cur_session_RET=DBGet(DBQuery("SELECT YEAR(start_date) AS PRE,YEAR(end_date) AS POST FROM school_years WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
+ $cur_session_RET=DBGet(DBQuery('SELECT YEAR(start_date) AS PRE,YEAR(end_date) AS POST FROM school_years WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\''));
  if($cur_session_RET[1]['PRE']==$cur_session_RET[1]['POST'])
  {
     $cur_session=$cur_session_RET[1]['PRE'];
@@ -44,13 +44,12 @@ if($_REQUEST['modfunc']=='save')
 	{
 	
 	$st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
-        $RET=DBGet(DBQuery("SELECT CONCAT(s.LAST_NAME,', ',coalesce(s.COMMON_NAME,s.FIRST_NAME)) AS FULL_NAME,s.LAST_NAME,s.FIRST_NAME,s.MIDDLE_NAME,s.STUDENT_ID,s.PHONE,ssm.SCHOOL_ID,s.ALT_ID,ssm.SCHOOL_ID AS LIST_SCHOOL_ID,ssm.GRADE_ID,ssm.START_DATE,ssm.END_DATE,
+        $RET=DBGet(DBQuery('SELECT CONCAT(s.LAST_NAME,\''.',' .'\',coalesce(s.COMMON_NAME,s.FIRST_NAME)) AS FULL_NAME,s.LAST_NAME,s.FIRST_NAME,s.MIDDLE_NAME,s.STUDENT_ID,s.PHONE,ssm.SCHOOL_ID,s.ALT_ID,ssm.SCHOOL_ID AS LIST_SCHOOL_ID,ssm.GRADE_ID,ssm.START_DATE,ssm.END_DATE,
                 (SELECT sec.title FROM  student_enrollment_codes sec where ssm.enrollment_code=sec.id)AS ENROLLMENT_CODE,
                 (SELECT sec.title FROM  student_enrollment_codes sec where ssm.drop_code=sec.id) AS DROP_CODE,ssm.SCHOOL_ID 
                 FROM  students s , student_enrollment ssm
-                WHERE ssm.STUDENT_ID=s.STUDENT_ID AND s.STUDENT_ID IN ($st_list)  
-                ORDER BY FULL_NAME ASC,START_DATE DESC"),array('START_DATE'=>'ProperDate','END_DATE'=>'ProperDate','SCHOOL_ID'=>'GetSchool','GRADE_ID'=>'GetGrade'),array('STUDENT_ID'));
-
+                WHERE ssm.STUDENT_ID=s.STUDENT_ID AND s.STUDENT_ID IN ('.$st_list.')  
+                ORDER BY FULL_NAME ASC,START_DATE DESC'),array('START_DATE'=>'ProperDate','END_DATE'=>'ProperDate','SCHOOL_ID'=>'GetSchool','GRADE_ID'=>'GetGrade'),array('STUDENT_ID'));
         if(count($RET))
 	{
             $columns = array('START_DATE'=>'Start Date','ENROLLMENT_CODE'=>'Enrollment Code','END_DATE'=>'Drop Date','DROP_CODE'=>'Drop Code','SCHOOL_ID'=>'Last School');

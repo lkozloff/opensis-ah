@@ -38,7 +38,7 @@ if($_REQUEST['modfunc']=='save')
 	if(count($_REQUEST['st_arr']))
 	{
 	$st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
-	$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
+	$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
 	
 
 	//$extra['functions'] = array('GRADE_ID'=>'_grade_id');
@@ -55,8 +55,8 @@ if($_REQUEST['modfunc']=='save')
 		//$categories_RET = DBGet(DBQuery("SELECT ID,TITLE,INCLUDE FROM student_field_categories ORDER BY SORT_ORDER,TITLE"),array(),array('ID'));
 
 		// get the address and contacts custom fields, create the select lists and expand select and codeds options
-		$address_categories_RET = DBGet(DBQuery("SELECT c.ID AS CATEGORY_ID,c.TITLE AS CATEGORY_TITLE,c.RESIDENCE,c.MAILING,c.BUS,f.ID,f.TITLE,f.TYPE,f.SELECT_OPTIONS,f.DEFAULT_SELECTION,f.REQUIRED FROM address_field_categories c,address_fields f WHERE f.CATEGORY_ID=c.ID ORDER BY c.SORT_ORDER,c.TITLE,f.SORT_ORDER,f.TITLE"),array(),array('CATEGORY_ID'));
-		$people_categories_RET = DBGet(DBQuery("SELECT c.ID AS CATEGORY_ID,c.TITLE AS CATEGORY_TITLE,c.CUSTODY,c.EMERGENCY,f.ID,f.TITLE,f.TYPE,f.SELECT_OPTIONS,f.DEFAULT_SELECTION,f.REQUIRED FROM people_field_categories c,people_fields f WHERE f.CATEGORY_ID=c.ID ORDER BY c.SORT_ORDER,c.TITLE,f.SORT_ORDER,f.TITLE"),array(),array('CATEGORY_ID'));
+		$address_categories_RET = DBGet(DBQuery('SELECT c.ID AS CATEGORY_ID,c.TITLE AS CATEGORY_TITLE,c.RESIDENCE,c.MAILING,c.BUS,f.ID,f.TITLE,f.TYPE,f.SELECT_OPTIONS,f.DEFAULT_SELECTION,f.REQUIRED FROM address_field_categories c,address_fields f WHERE f.CATEGORY_ID=c.ID ORDER BY c.SORT_ORDER,c.TITLE,f.SORT_ORDER,f.TITLE'),array(),array('CATEGORY_ID'));
+		$people_categories_RET = DBGet(DBQuery('SELECT c.ID AS CATEGORY_ID,c.TITLE AS CATEGORY_TITLE,c.CUSTODY,c.EMERGENCY,f.ID,f.TITLE,f.TYPE,f.SELECT_OPTIONS,f.DEFAULT_SELECTION,f.REQUIRED FROM people_field_categories c,people_fields f WHERE f.CATEGORY_ID=c.ID ORDER BY c.SORT_ORDER,c.TITLE,f.SORT_ORDER,f.TITLE'),array(),array('CATEGORY_ID'));
 		explodeCustom($address_categories_RET, $address_custom, 'a');
 		explodeCustom($people_categories_RET, $people_custom, 'p');
 
@@ -71,7 +71,7 @@ if($_REQUEST['modfunc']=='save')
 
                                                         echo "<table cellspacing=0  border=\"0\" style=\"border-collapse:collapse\">";
                                                                                 echo "<tr><td colspan=3 style=\"height:18px\"></td></tr>";
-                                                        if($StudentPicturesPath && (($file = @fopen($picture_path=$StudentPicturesPath.UserSyear().'/'.UserStudentID().'.JPG','r')) || ($file = @fopen($picture_path=$StudentPicturesPath.(UserSyear()-1).'/'.UserStudentID().'.JPG','r'))))
+                                                        if($StudentPicturesPath && (($file = @fopen($picture_path=$StudentPicturesPath.'/'.UserStudentID().'.JPG','r')) || ($file = @fopen($picture_path=$StudentPicturesPath.'/'.UserStudentID().'.JPG','r'))))
                                                         {
                                                                                 echo '<tr><td width=300><IMG SRC="'.$picture_path.'?id='.rand(6,100000).'" width=150  style="padding:4px; background-color:#fff; border:1px solid #333" ></td><td width=12px></td>';
                                                         }
@@ -92,12 +92,12 @@ if($_REQUEST['modfunc']=='save')
                                                         #$sql=DBGet(DBQuery("SELECT s.CUSTOM_200000000 AS GENDER, s.CUSTOM_200000001 AS ETHNICITY, s.CUSTOM_200000002 AS COMMON_NAME,  s.CUSTOM_200000003 AS SOCIAL_SEC_NO, s.CUSTOM_200000004 AS BIRTHDAY, s.CUSTOM_200000005 AS LANGUAGE, s.CUSTOM_200000006 AS PHYSICIAN_NAME, s.CUSTOM_200000007 AS PHYSICIAN_PHONO,s.custom_200000008 AS HOSPITAL,s.custom_200000009 AS MCOMNT,s.custom_200000011 AS DNOTE,se.START_DATE AS START_DATE,sec.TITLE AS STATUS, se.NEXT_SCHOOL AS ROLLING, smc.comment AS COMMENT  FROM students s, student_enrollment se,student_enrollment_codes sec, student_mp_comments smc WHERE s.STUDENT_ID='".$_SESSION['student_id']."' AND s.STUDENT_ID=se.STUDENT_ID AND s.STUDENT_ID=smc.STUDENT_ID AND se.SYEAR=sec.SYEAR"));
 
                                                         
-                                                            $sql=DBGet(DBQuery("SELECT s.gender AS GENDER, s.ethnicity AS ETHNICITY, s.common_name AS COMMON_NAME,  s.social_security AS SOCIAL_SEC_NO, s.birthdate AS BIRTHDAY, s.email AS EMAIL, s.phone AS PHONE, s.language AS LANGUAGE, s.physician AS PHYSICIAN_NAME, s.physician_phone AS PHYSICIAN_PHONO,s.preferred_hospital AS HOSPITAL,se.START_DATE AS START_DATE,sec.TITLE AS STATUS, se.NEXT_SCHOOL AS ROLLING  FROM students s, student_enrollment se,student_enrollment_codes sec WHERE s.STUDENT_ID='".$_SESSION['student_id']."' AND s.STUDENT_ID=se.STUDENT_ID AND se.SYEAR=sec.SYEAR"),array('BIRTHDAY'=>'ProperDate'));
+                                                            $sql=DBGet(DBQuery('SELECT s.gender AS GENDER, s.ethnicity AS ETHNICITY, s.common_name AS COMMON_NAME,  s.social_security AS SOCIAL_SEC_NO, s.birthdate AS BIRTHDAY, s.email AS EMAIL, s.phone AS PHONE, s.language AS LANGUAGE, s.physician AS PHYSICIAN_NAME, s.physician_phone AS PHYSICIAN_PHONO,s.preferred_hospital AS HOSPITAL,se.START_DATE AS START_DATE,sec.TITLE AS STATUS, se.NEXT_SCHOOL AS ROLLING  FROM students s, student_enrollment se,student_enrollment_codes sec WHERE s.STUDENT_ID=\''.$_SESSION['student_id'].'\' AND s.STUDENT_ID=se.STUDENT_ID AND se.SYEAR=sec.SYEAR'),array('BIRTHDAY'=>'ProperDate'));
 
 
                                                         $sql = $sql[1];
 
-                                                        $medical_note=DBGet(DBQuery("SELECT doctors_note_date AS MCOMNT,doctors_note_comments AS DNOTE FROM student_medical_notes WHERE  STUDENT_ID='".$_SESSION['student_id']."' "),array('MCOMNT'=>'ProperDate'));
+                                                        $medical_note=DBGet(DBQuery('SELECT doctors_note_date AS MCOMNT,doctors_note_comments AS DNOTE FROM student_medical_notes WHERE  STUDENT_ID=\''.$_SESSION['student_id'].'\''),array('MCOMNT'=>'ProperDate'));
                                                         unset($_openSIS['DrawHeader']);
 
                                                         echo "<td valign=top width=300>";
@@ -159,7 +159,7 @@ if($_REQUEST['modfunc']=='save')
 
 			{
 
-			$rolling=DBGet(DBQuery("SELECT TITLE FROM schools WHERE ID='".$sql['ROLLING']."'"));
+			$rolling=DBGet(DBQuery('SELECT TITLE FROM schools WHERE ID=\''.$sql['ROLLING'].'\''));
 
 			$rolling=$rolling[1]['TITLE'];
 
@@ -190,8 +190,8 @@ if($_REQUEST['modfunc']=='save')
 			}
 			
                            ######################## PRINT MEDICAL CUSTOM FIELDS ################################################
-                                $fields_RET = DBGet(DBQuery("SELECT ID,TITLE,TYPE,SELECT_OPTIONS,DEFAULT_SELECTION,REQUIRED FROM custom_fields WHERE CATEGORY_ID='1' ORDER BY SORT_ORDER,TITLE"));
-                        	$custom_RET = DBGet(DBQuery("SELECT * FROM students WHERE STUDENT_ID='".UserStudentID()."'"));
+                                $fields_RET = DBGet(DBQuery('SELECT ID,TITLE,TYPE,SELECT_OPTIONS,DEFAULT_SELECTION,REQUIRED FROM custom_fields WHERE CATEGORY_ID=1 ORDER BY SORT_ORDER,TITLE'));
+                        	$custom_RET = DBGet(DBQuery('SELECT * FROM students WHERE STUDENT_ID=\''.UserStudentID().'\''));
 	                        $value = $custom_RET[1];
                                 if(count($fields_RET))
                                 {
@@ -204,7 +204,7 @@ if($_REQUEST['modfunc']=='save')
                                       echo '<TR>';
                                       echo '<td style="font-weight:bold">'.$field['TITLE'].':</td><td>';
                                       if($field['TYPE']=='date'){
-                                          $cust_date=DBGet(DBQuery("SELECT CUSTOM_$field[ID] AS C_DATE FROM students WHERE STUDENT_ID=".UserStudentID()),array('C_DATE'=>'ProperDate'));
+                                          $cust_date=DBGet(DBQuery('SELECT CUSTOM_\''.$field[ID].'\' AS C_DATE FROM students WHERE STUDENT_ID=\''.UserStudentID().'\''),array('C_DATE'=>'ProperDate'));
                                           echo $cust_date[1]['C_DATE'];
                                       }else{
                                           echo $value['CUSTOM_'.$field['ID']];
@@ -221,9 +221,9 @@ echo "<tr><td colspan=3 height=18px></td></tr>";
 echo "<tr><td valign=top width=300>";
   if($_REQUEST['category']['3'])
    {
-	  $addresses_RET = DBGet(DBQuery("SELECT a.ADDRESS_ID,             sjp.STUDENT_RELATION,a.ADDRESS,a.STREET,a.CITY,a.STATE,a.ZIPCODE,a.PHONE,a.MAIL_ADDRESS,a.MAIL_STREET,a.MAIL_CITY,a.MAIL_STATE,a.MAIL_ZIPCODE,    sjp.CUSTODY,sja.MAILING,sja.RESIDENCE$address_custom FROM address a,students_join_address sja,students_join_people sjp WHERE a.ADDRESS_ID=sja.ADDRESS_ID AND sja.STUDENT_ID='".UserStudentID()."' AND a.ADDRESS_ID=sjp.ADDRESS_ID AND sjp.STUDENT_ID=sja.STUDENT_ID
-				  UNION SELECT a.ADDRESS_ID,'No Contacts' AS STUDENT_RELATION,a.ADDRESS,a.STREET,a.CITY,a.STATE,a.ZIPCODE,a.PHONE,a.MAIL_ADDRESS,a.MAIL_STREET,a.MAIL_CITY,a.MAIL_STATE,a.MAIL_ZIPCODE,NULL AS CUSTODY,sja.MAILING,sja.RESIDENCE$address_custom FROM address a,students_join_address sja                          WHERE a.ADDRESS_ID=sja.ADDRESS_ID AND sja.STUDENT_ID='".UserStudentID()."' AND NOT EXISTS (SELECT '' FROM students_join_people sjp WHERE sjp.STUDENT_ID=sja.STUDENT_ID AND sjp.ADDRESS_ID=a.ADDRESS_ID) ORDER BY ADDRESS ASC,CUSTODY ASC,STUDENT_RELATION"));
-			$address_previous = "x";
+      $addresses_RET = DBGet(DBQuery('SELECT a.ADDRESS_ID,             sjp.STUDENT_RELATION,a.ADDRESS,a.STREET,a.CITY,a.STATE,a.ZIPCODE,a.PHONE,a.MAIL_ADDRESS,a.MAIL_STREET,a.MAIL_CITY,a.MAIL_STATE,a.MAIL_ZIPCODE,    sjp.CUSTODY,sja.MAILING,sja.RESIDENCE\''.$address_custom.'\' FROM address a,students_join_address sja,students_join_people sjp WHERE a.ADDRESS_ID=sja.ADDRESS_ID AND sja.STUDENT_ID=\''.UserStudentID().'\' AND a.ADDRESS_ID=sjp.ADDRESS_ID AND sjp.STUDENT_ID=sja.STUDENT_ID
+				  UNION SELECT a.ADDRESS_ID,\''.'No Contacts'.'\' AS STUDENT_RELATION,a.ADDRESS,a.STREET,a.CITY,a.STATE,a.ZIPCODE,a.PHONE,a.MAIL_ADDRESS,a.MAIL_STREET,a.MAIL_CITY,a.MAIL_STATE,a.MAIL_ZIPCODE,NULL AS CUSTODY,sja.MAILING,sja.RESIDENCE\''.$address_custom.'\' FROM address a,students_join_address sja                          WHERE a.ADDRESS_ID=sja.ADDRESS_ID AND sja.STUDENT_ID=\''.UserStudentID().'\' AND NOT EXISTS (SELECT \''.''.'\' FROM students_join_people sjp WHERE sjp.STUDENT_ID=sja.STUDENT_ID AND sjp.ADDRESS_ID=a.ADDRESS_ID) ORDER BY ADDRESS ASC,CUSTODY ASC,STUDENT_RELATION'));	
+                        $address_previous = "x";
 			foreach($addresses_RET as $address)
 			{
 				$address_current = $address['ADDRESS'];

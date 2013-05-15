@@ -35,10 +35,10 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save')
 	if(count($_REQUEST['st_arr']))
 	{
 		$st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
-		$extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
+		$extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
 		$_REQUEST['mailing_labels']='Y';
 		Widgets('mailing_labels');
-		$extra['SELECT'] .= ",coalesce(s.COMMON_NAME,s.FIRST_NAME) AS NICK_NAME";
+		$extra['SELECT'] .= ',coalesce(s.COMMON_NAME,s.FIRST_NAME) AS NICK_NAME';
 		$extra['group'] = array('ADDRESS_ID');
 		$RET = GetStuList($extra);
 
@@ -99,7 +99,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save')
 					
 						foreach($addresses as $key=>$address)
 						{ 
-						$Stu_address=DBGet(DBQuery("SELECT ADDRESS,STREET,CITY,STATE,ZIPCODE FROM address WHERE STUDENT_ID=".$address['STUDENT_ID']." LIMIT 1"));
+						$Stu_address=DBGet(DBQuery('SELECT ADDRESS,STREET,CITY,STATE,ZIPCODE FROM address WHERE STUDENT_ID=\''.$address['STUDENT_ID'].'\' LIMIT 1'));
 						$Stu_address=$Stu_address[1];
 						if($cols < 1)
 						echo '<tr>';
@@ -145,7 +145,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save')
 					
 						foreach($addresses as $key=>$address)
 						{ 
-						$Stu_address=DBGet(DBQuery("SELECT PRI_FIRST_NAME,PRI_LAST_NAME,PRIM_ADDRESS,PRIM_STREET,PRIM_CITY,PRIM_STATE,PRIM_ZIPCODE FROM address WHERE STUDENT_ID=".$address['STUDENT_ID']." LIMIT 1"));
+						$Stu_address=DBGet(DBQuery('SELECT PRI_FIRST_NAME,PRI_LAST_NAME,PRIM_ADDRESS,PRIM_STREET,PRIM_CITY,PRIM_STATE,PRIM_ZIPCODE FROM address WHERE STUDENT_ID=\''.$address['STUDENT_ID'].'\' LIMIT 1'));
 						$Stu_address=$Stu_address[1];
 						if($cols < 1)
 						echo '<tr>';
@@ -194,7 +194,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save')
 					
 						foreach($addresses as $key=>$address)
 						{ 
-						$Stu_address=DBGet(DBQuery("SELECT SEC_FIRST_NAME,SEC_LAST_NAME,SEC_ADDRESS,SEC_STREET,SEC_CITY,SEC_STATE,SEC_ZIPCODE FROM address WHERE STUDENT_ID=".$address['STUDENT_ID']." LIMIT 1"));
+						$Stu_address=DBGet(DBQuery('SELECT SEC_FIRST_NAME,SEC_LAST_NAME,SEC_ADDRESS,SEC_STREET,SEC_CITY,SEC_STATE,SEC_ZIPCODE FROM address WHERE STUDENT_ID=\''.$address['STUDENT_ID'].'\' LIMIT 1'));
 						$Stu_address=$Stu_address[1];
 						if($cols < 1)
 						echo '<tr>';
@@ -243,7 +243,7 @@ if(clean_param($_REQUEST['modfunc'],PARAM_ALPHAMOD)=='save')
 					
 						foreach($addresses as $key=>$address)
 						{ 
-						$Stu_address=DBGet(DBQuery("SELECT PRI_FIRST_NAME,PRI_LAST_NAME,PRIM_ADDRESS,PRIM_STREET,PRIM_CITY,PRIM_STATE,PRIM_ZIPCODE,SEC_FIRST_NAME,SEC_LAST_NAME,SEC_ADDRESS,SEC_STREET,SEC_CITY,SEC_STATE,SEC_ZIPCODE FROM address WHERE STUDENT_ID=".$address['STUDENT_ID']." LIMIT 1"));
+						$Stu_address=DBGet(DBQuery('SELECT PRI_FIRST_NAME,PRI_LAST_NAME,PRIM_ADDRESS,PRIM_STREET,PRIM_CITY,PRIM_STATE,PRIM_ZIPCODE,SEC_FIRST_NAME,SEC_LAST_NAME,SEC_ADDRESS,SEC_STREET,SEC_CITY,SEC_STATE,SEC_ZIPCODE FROM address WHERE STUDENT_ID=\''.$address['STUDENT_ID'].'\' LIMIT 1'));
 						$Stu_address=$Stu_address[1];
 						if($cols < 1)
 						echo '<tr>';

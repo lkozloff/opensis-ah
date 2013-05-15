@@ -44,8 +44,9 @@ $menu['Grades']['admin'] = array(
                         'Grades/HonorRollSetup.php'=>'Honor Roll Setup',
 						3=>'Utilities',
 						'Grades/FixGPA.php'=>'Recalculate GPA Numbers',
-                        'Grades/EditReportCardGrades.php'=>'Edit Report Card Grades',
-                        'Grades/EditHistoryMarkingPeriods.php'=>'Edit Historical Marking Periods'
+                                                'Grades/EditReportCardGrades.php'=>'Edit Report Card Grades',
+                                                'Grades/EditHistoryMarkingPeriods.php'=>'Add/Edit Historical Marking Periods',
+                                                'Grades/HistoricalReportCardGrades.php'=>'Add/Edit Historical Report Card Grades'
 					);
 
 $menu['Grades']['teacher'] = array(

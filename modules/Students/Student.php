@@ -27,6 +27,8 @@
 #***************************************************************************************
 include('../../Redirect_modules.php');
 
+ini_set('memory_limit', '1200000000M');
+ini_set('max_execution_time','500000');
 
 
 # ----------------------------- DELETE Goal & Progress -------------------------------------------- #
@@ -100,7 +102,7 @@ if($_REQUEST['action']=='delete' || $_REQUEST['action']=='delete_can' || $_REQUE
 	}
 	elseif(isset($_REQUEST['ans']) && $_REQUEST['ans']=='yes')
 	{
-		DBQuery("DELETE FROM progress WHERE PROGRESS_ID = '".$_REQUEST['pid']."'");
+		DBQuery('DELETE FROM progress WHERE PROGRESS_ID = \''.$_REQUEST['pid'].'\'');
 		$_REQUEST['action'] = 'delete';
 		$_REQUEST['goal_id'] = $goal_id;
 		$_REQUEST['action'] = 'delete_ok';
@@ -140,13 +142,13 @@ if($_REQUEST['action']!='delete' && $_REQUEST['action']!='delete_goal')
     ####################
 if(isset($_REQUEST['student_id']) && $_REQUEST['student_id']!='new' && $_REQUEST['modfunc']!='detail')
 {
-	$RET = DBGet(DBQuery("SELECT FIRST_NAME,LAST_NAME,MIDDLE_NAME,NAME_SUFFIX,SCHOOL_ID FROM students,student_enrollment WHERE students.STUDENT_ID='".$_REQUEST['student_id']."' AND student_enrollment.STUDENT_ID = students.STUDENT_ID "));
+	$RET = DBGet(DBQuery('SELECT FIRST_NAME,LAST_NAME,MIDDLE_NAME,NAME_SUFFIX,SCHOOL_ID FROM students,student_enrollment WHERE students.STUDENT_ID=\''.$_REQUEST['student_id'].'\' AND student_enrollment.STUDENT_ID = students.STUDENT_ID '));
 	//$_SESSION['UserSchool'] = $RET[1]['SCHOOL_ID'];
         $count_student_RET=DBGet(DBQuery("SELECT COUNT(*) AS NUM FROM students"));
         if($count_student_RET[1]['NUM']>1){
-	DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Students/Student.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
+	DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Deselect</font></A>) | <A HREF=Modules.php?modname='.$_REQUEST['modname'].'&search_modfunc=list&next_modname=Students/Student.php&ajax=true&bottom_back=true&return_session=true target=body>Back to Student List</A>');
         }else if($count_student_RET[1]['NUM']==1){
-        DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Remove</font></A>) ');
+        DrawHeaderHome( 'Selected Student: '.$RET[1]['FIRST_NAME'].'&nbsp;'.($RET[1]['MIDDLE_NAME']?$RET[1]['MIDDLE_NAME'].' ':'').$RET[1]['LAST_NAME'].'&nbsp;'.$RET[1]['NAME_SUFFIX'].' (<A HREF=Side.php?student_id=new&modcat='.$_REQUEST['modcat'].'><font color=red>Deselect</font></A>) ');
         }
 }
 ####################
@@ -167,26 +169,27 @@ if(User('PROFILE')=='admin')
     }
 }
 //////////////////////////////////////////////////////////////////////////////////
-
+if($_REQUEST['err_msg']==true)
+    echo "<center><font color=red><b>Birthdate is invalid, data could not be saved.</b><font></center>";
 if($_REQUEST['modfunc']=='detail' && $_REQUEST['student_id'] && $_REQUEST['student_id']!='new')
 {
 	if($_POST['button']=='Save' && AllowEdit())
-	{
+	{   
                         if($_REQUEST['TRANSFER']['SCHOOL']){
                             $drop_code=$_REQUEST['drop_code'];
                             $_REQUEST['TRANSFER']['STUDENT_ENROLLMENT_END_DATE']=date("Y-m-d",strtotime($_REQUEST['year_TRANSFER']['STUDENT_ENROLLMENT_END_DATE'].'-'.$_REQUEST['month_TRANSFER']['STUDENT_ENROLLMENT_END_DATE'].'-'.$_REQUEST['day_TRANSFER']['STUDENT_ENROLLMENT_END_DATE']));
 
-                            $gread_exists = DBGet(DBQuery("SELECT COUNT(TITLE) AS PRESENT,ID FROM school_gradelevels WHERE SCHOOL_ID=".$_REQUEST['TRANSFER']['SCHOOL']." AND TITLE=(SELECT TITLE FROM
+                            $gread_exists = DBGet(DBQuery('SELECT COUNT(TITLE) AS PRESENT,ID FROM school_gradelevels WHERE SCHOOL_ID=\''.$_REQUEST['TRANSFER']['SCHOOL'].'\' AND TITLE=(SELECT TITLE FROM
                             school_gradelevels WHERE ID=(SELECT GRADE_ID FROM student_enrollment WHERE
-                            STUDENT_ID=".$_REQUEST['student_id']." AND SCHOOL_ID=".UserSchool()."  AND SYEAR=".UserSyear()."))"));
+                            STUDENT_ID=\''.$_REQUEST['student_id'].'\' AND SCHOOL_ID=\''.UserSchool().'\'  AND SYEAR=\''.UserSyear().'\'))'));  //pinki
 
-                            DBQuery("UPDATE student_enrollment SET DROP_CODE=$drop_code,END_DATE='".$_REQUEST['TRANSFER']['STUDENT_ENROLLMENT_END_DATE']."' WHERE STUDENT_ID=".$_REQUEST['student_id']." AND SCHOOL_ID=".UserSchool()."  AND SYEAR=".UserSyear());
+                            DBQuery('UPDATE student_enrollment SET DROP_CODE=\''.$drop_code.'\',END_DATE=\''.$_REQUEST['TRANSFER']['STUDENT_ENROLLMENT_END_DATE'].'\' WHERE STUDENT_ID=\''.$_REQUEST['student_id'].'\' AND SCHOOL_ID=\''.UserSchool().'\'  AND SYEAR=\''.UserSyear().'\'');  //pinki
 
                             $_REQUEST['TRANSFER']['STUDENT_ENROLLMENT_START']=date("Y-m-d",strtotime($_REQUEST['year_TRANSFER']['STUDENT_ENROLLMENT_START'].'-'.$_REQUEST['month_TRANSFER']['STUDENT_ENROLLMENT_START'].'-'.$_REQUEST['day_TRANSFER']['STUDENT_ENROLLMENT_START']));
                             $syear_RET= DBGet(DBQuery("SELECT MAX(SYEAR) AS SYEAR,TITLE FROM school_years WHERE SCHOOL_ID=".$_REQUEST['TRANSFER']['SCHOOL']));
                             $syear=$syear_RET[1]['SYEAR'];
-                            $enroll_code=  DBGet(DBQuery("SELECT id FROM student_enrollment_codes WHERE syear=$syear AND type='TrnE'"));
-                            $last_school_RET= DBGet(DBQuery("SELECT SCHOOL_ID FROM student_enrollment WHERE STUDENT_ID=".$_REQUEST['student_id']." AND SYEAR=".UserSyear()));
+                            $enroll_code=  DBGet(DBQuery('SELECT id FROM student_enrollment_codes WHERE syear=\''.$syear.'\' AND type=\''.TrnE.'\''));  //pinki
+                            $last_school_RET= DBGet(DBQuery('SELECT SCHOOL_ID FROM student_enrollment WHERE STUDENT_ID=\''.$_REQUEST['student_id'].'\' AND SYEAR=\''.UserSyear().'\'')); //pinki
                             $last_school=$last_school_RET[1]['SCHOOL_ID'];
                             if($gread_exists[1]['PRESENT']==1 && $gread_exists[1]['ID']){
                                 DBQuery("INSERT INTO student_enrollment (SYEAR ,SCHOOL_ID ,STUDENT_ID ,GRADE_ID ,START_DATE ,END_DATE ,ENROLLMENT_CODE ,DROP_CODE ,NEXT_SCHOOL ,CALENDAR_ID ,LAST_SCHOOL) VALUES (".  $syear.",".$_REQUEST['TRANSFER']['SCHOOL'].",".$_REQUEST['student_id'].",".$gread_exists[1]['ID'].",'".$_REQUEST['TRANSFER']['STUDENT_ENROLLMENT_START']."','',".$enroll_code[1]['ID'].",'','".$_REQUEST['TRANSFER']['SCHOOL']."',NULL,$last_school)");
@@ -200,9 +203,10 @@ if($_REQUEST['modfunc']=='detail' && $_REQUEST['student_id'] && $_REQUEST['stude
                             $trans_student=$trans_student_RET[1]['LAST_NAME'].' '.$trans_student_RET[1]['FIRST_NAME'];
 
                             unset($_REQUEST['modfunc']);
-                            unset($_SESSION['student_id']);
+                          //  unset($_SESSION['student_id']);  //pinki
                             unset($_SESSION['_REQUEST_vars']['student_id']);
-                            echo '<SCRIPT language=javascript>opener.document.location = "Modules.php?modname='.$_REQUEST['modname'].'&student_id='.$_SESSION['student_id'].'&school_id='.UserSchool().'&transffer=done&trans_school='.$trans_school.'&trans_student='.$trans_student.'"; window.close();</script>';
+     // echo '<SCRIPT language=javascript>opener.document.location = "Modules.php?modname='.$_REQUEST['modname'].'&student_id='.$_SESSION['student_id'].'&school_id='.UserSchool().'&transffer=done&trans_school='.$trans_school.'&trans_student='.$trans_student.'"; window.close();</script>';
+    echo '<SCRIPT language=javascript>opener.document.location = "Modules.php?modname='.$_REQUEST['modname'].'&student_id='.$_SESSION['student_id'].'&school_id='.UserSchool().'"; window.close();</script>';
                         }
                         else
                         {
@@ -305,23 +309,75 @@ if(User('PROFILE')!='admin')
 }
 
 if($_REQUEST['modfunc']=='update' && AllowEdit())
-{
+{ 
     if(count($_REQUEST['month_students']))
     {
         foreach($_REQUEST['month_students'] as $column=>$value)
         {
             $_REQUEST['students'][$column] = $_REQUEST['day_students'][$column].'-'.$_REQUEST['month_students'][$column].'-'.$_REQUEST['year_students'][$column];
+//            $date=$_REQUEST['students'][$column];
             if($_REQUEST['students'][$column]=='--')
             $_REQUEST['students'][$column] = '';
             elseif(!VerifyDate($_REQUEST['students'][$column]))
             {
-                unset($_REQUEST['students'][$column]);
-                $note = "The invalid date could not be saved.";
+                $day_valid=false;
+                unset($_REQUEST['students']);
+                $_REQUEST['students_id']='new';
+                $_REQUEST['include']='General_Info';
+                echo "<script>window.location.href='Modules.php?modname=Students/Student.php&include=General_Info&student_id=new&err_msg=true'</script>";
+                
             }
+            else
+                $day_valid=true;
         }
     }
     unset($_REQUEST['day_students']); unset($_REQUEST['month_students']); unset($_REQUEST['year_students']);
-
+    if($_REQUEST['student_id'] && $_REQUEST['student_id']!='new')
+    {
+    $stud_rec=DBGet(DBQuery("SELECT BIRTHDATE,FIRST_NAME,MIDDLE_NAME,LAST_NAME FROM students WHERE 
+                            STUDENT_ID=".UserStudentID()));
+    if(isset($_REQUEST['students']['BIRTHDATE']))
+    {
+    $stud_rec[1]['BIRTHDATE']=date('Y-m-d',strtotime($_REQUEST['students']['BIRTHDATE']));
+    }
+    if(isset($_REQUEST['students']['FIRST_NAME']))
+    {
+    $stud_rec[1]['FIRST_NAME']=str_replace("'","''",$_REQUEST['students']['FIRST_NAME']);     
+    }
+    if(isset($_REQUEST['students']['LAST_NAME']))
+    {
+    $stud_rec[1]['LAST_NAME']=str_replace("'","''",$_REQUEST['students']['LAST_NAME']);
+    }
+    $qry="SELECT COUNT(1) AS COUNT FROM students WHERE BIRTHDATE='".$stud_rec[1]['BIRTHDATE']."'
+            AND FIRST_NAME='".$stud_rec[1]['FIRST_NAME']."'
+            AND LAST_NAME='".$stud_rec[1]['LAST_NAME']."' AND STUDENT_ID!='".UserStudentID()."'";
+    
+    if(isset($_REQUEST['students']['MIDDLE_NAME']))
+    {
+    $stud_rec[1]['MIDDLE_NAME']=str_replace("'","''",$_REQUEST['students']['MIDDLE_NAME']);
+    if($_REQUEST['students']['MIDDLE_NAME']!='')
+    $qry.=" AND MIDDLE_NAME='".$stud_rec[1]['MIDDLE_NAME']."'";
+    }    
+    $qry_exec=DBGet(DBQuery($qry));
+    unset($qry);
+        if($qry_exec[1]['COUNT']>0)
+        {   
+           $flag=true;
+           $n=DuplicateStudent("duplicate records","update");
+        }
+        else
+        {
+            $flag=false;
+            $n=1;
+        }
+    }
+    else
+    {
+    $n=1;    
+    $flag=true;    
+    }
+    if($n==1)
+    {$flag=false;
     if((count($_REQUEST['students']) || count($_REQUEST['values'])) && AllowEdit())
     {
 		if($_REQUEST['student_id'] && $_REQUEST['student_id']!='new')
@@ -378,17 +434,17 @@ if($_REQUEST['modfunc']=='update' && AllowEdit())
 					
 				}  ###Custom Ends#####
                       
-                    $value=paramlib_validation($column_name,$value);
+                    $value=paramlib_validation($column_name,trim($value));
                     if($column_name=='PASSWORD' && $value!=''){
                     if(stripos($_SERVER['SERVER_SOFTWARE'], 'linux')){
-					$sql .= "$column_name='".str_replace("'","\'",str_replace("`","''",md5($value)))."',";
+					$sql .= "$column_name='".str_replace("'","\'",str_replace("`","''",md5(trim($value))))."',";
 					}else
-					$sql .= "$column_name='".str_replace("\'","''",str_replace("`","''",md5($value)))."',";
+					$sql .= "$column_name='".str_replace("\'","''",str_replace("`","''",md5(trim($value))))."',";
                     }else{
 					if(stripos($_SERVER['SERVER_SOFTWARE'], 'linux')){
-					$sql .= "$column_name='".str_replace("'","\'",str_replace("`","''",$value))."',";
+					$sql .= "$column_name='".str_replace("'","\'",str_replace("`","''",trim($value)))."',";
 					}else
-                    $sql .= "$column_name='".str_replace("'","''",str_replace("'`","''",$value))."',";
+                    $sql .= "$column_name='".str_replace("'","''",str_replace("'`","''",trim($value)))."',";
 					}
 					if($column_name=='IS_DISABLE' && $value!='Y' ){
 					DBQuery("UPDATE students SET FAILED_LOGIN=NULL,LAST_LOGIN=NOW() WHERE STUDENT_ID=$_REQUEST[student_id]");
@@ -479,19 +535,19 @@ if($_REQUEST['modfunc']=='update' && AllowEdit())
                                                                 }
                 if($value)
                 {
-                  $value= paramlib_validation($column,$value);
+                  $value= paramlib_validation($column,trim($value));
                    $fields .= $column.',';
                     if($column=='PASSWORD'){
 
                     if(stripos($_SERVER['SERVER_SOFTWARE'], 'linux')){
-                        $values .= "'".str_replace("'","\'",md5($value))."',";
+                        $values .= "'".str_replace("'","\'",md5(trim($value)))."',";
                     }else
-                    $values .= "'".str_replace("\'","''",md5($value))."',";
+                    $values .= "'".str_replace("\'","''",md5(trim($value)))."',";
                     }else{
                    if(stripos($_SERVER['SERVER_SOFTWARE'], 'linux')){
-                        $values .= "'".str_replace("'","\'",$value)."',";
+                        $values .= "'".str_replace("'","\'",trim($value))."',";
                     }else
-                    $values .= "'".str_replace("'","''",$value)."',";
+                    $values .= "'".str_replace("'","''",trim($value))."',";
                     }
                 }
             }
@@ -519,8 +575,9 @@ if($_REQUEST['modfunc']=='update' && AllowEdit())
 				
 			if(!$error){
 				
-				if($un_chl_res != 'exist')
-				{	
+				if($un_chl_res != 'exist' &&  $day_valid!=false)
+				{
+                                    
 				DBQuery($sql);
 				$max_stId=DBGet(DBQuery('SELECT MAX(STUDENT_ID) AS STU_ID FROM students'));
 				$query='INSERT INTO address(STUDENT_ID) VALUES('.$max_stId[1]['STU_ID'].') ';
@@ -554,16 +611,26 @@ if($_REQUEST['modfunc']=='update' && AllowEdit())
 					if($value)
 					{
                                                 $value= paramlib_validation($column,$value);
-						$fields .= $column.',';
-						if($column=='START_DATE' || $column=='END_DATE')
-						$values .= "'".date('Y-m-d',strtotime($value))."',";
+						
+						if($column=='START_DATE' || $column=='END_DATE') 
+                                                {
+                                                    if(VerifyDate($value))
+                                                        $values .= "'".date('Y-m-d',strtotime($value))."',";
+                                                    else
+                                                    {
+                                                        $err="Invalid Enrollment date could not be saved";
+                                                        continue;
+                                                    }
+                                                        
+                                                }
 						else
 						$values .= "'".str_replace("\'","''",str_replace('&#39;',"''",$value))."',";
+                                                $fields .= $column.',';
 					}
 				}
 				$sql .= '(' . substr($fields,0,-1) . ') values(' . substr($values,0,-1) . ')';
 				if(!$error){
-				if($un_chl_res != 'exist'){
+				if($un_chl_res != 'exist' && $day_valid!=false){
 				DBQuery($sql);
 				}
 			}
@@ -622,6 +689,11 @@ if($_REQUEST['modfunc']=='update' && AllowEdit())
     unset($_SESSION['_REQUEST_vars']['values']);
 }
 
+}
+if($flag!=true)
+{
+if($err)
+    echo '<center><font color=red><b>'.$err.'</b></font></center>';
 if($_REQUEST['student_id']=='new')
 DrawBC('Students > Add a Student');
 else
@@ -798,8 +870,8 @@ $nv_date=$_REQUEST['nv_year'].'-'.$_REQUEST['nv_month'].'-'.$_REQUEST['nv_day'];
 	   $admin_COMMON_FROM=" FROM students s, address a,student_enrollment ssm ";
            if($_REQUEST['_search_all_schools']=='Y' || $_SESSION['_search_all']==1)
            {
-               if(User('SCHOOLS'))
-			$admin_COMMON_WHERE=" WHERE s.STUDENT_ID=ssm.STUDENT_ID  AND a.STUDENT_ID=s.STUDENT_ID AND ssm.SYEAR=".UserSyear()." AND ssm.SCHOOL_ID IN (".substr(str_replace(',',"','",User('SCHOOLS')),2,-2).") ";
+//               if(User('SCHOOLS'))
+			$admin_COMMON_WHERE=" WHERE s.STUDENT_ID=ssm.STUDENT_ID  AND a.STUDENT_ID=s.STUDENT_ID AND ssm.SYEAR=".UserSyear()." AND ssm.SCHOOL_ID IN (".GetUserSchools(UserID(),true).") ";
                 $_SESSION['_search_all']=1;
            }
            else 
@@ -863,8 +935,8 @@ $nv_date=$_REQUEST['nv_year'].'-'.$_REQUEST['nv_month'].'-'.$_REQUEST['nv_day'];
 		
            if($_REQUEST['_search_all_schools']=='Y' || $_SESSION['_search_all']==1)
            {
-               if(User('SCHOOLS'))
-			$teacher_COMMON_WHERE=" WHERE s.STUDENT_ID=ssm.STUDENT_ID  AND a.STUDENT_ID=s.STUDENT_ID AND ssm.SYEAR=".UserSyear()." AND ssm.SCHOOL_ID IN (".substr(str_replace(',',"','",User('SCHOOLS')),2,-2).") ";
+//               if(User('SCHOOLS'))
+			$teacher_COMMON_WHERE=" WHERE s.STUDENT_ID=ssm.STUDENT_ID  AND a.STUDENT_ID=s.STUDENT_ID AND ssm.SYEAR=".UserSyear()." AND ssm.SCHOOL_ID IN (".GetUserSchools(UserID(),true).") ";
                 $_SESSION['_search_all']=1;
            }
            else 
@@ -1120,7 +1192,7 @@ schedule ss
             echo "<FORM name=student action=Modules.php?modname=$_REQUEST[modname]&include=$_REQUEST[include]&category_id=$_REQUEST[category_id]&student_id=".UserStudentID()."&modfunc=update method=POST>";
         }
         else
-        echo "<FORM name=student action=Modules.php?modname=$_REQUEST[modname]&include=$_REQUEST[include]&modfunc=update method=POST>";
+        echo "<FORM id=student_isertion name=student action=Modules.php?modname=$_REQUEST[modname]&include=$_REQUEST[include]&modfunc=update method=POST>";
 		
         $name = $student['FIRST_NAME'].' '.$student['MIDDLE_NAME'].' '.$student['LAST_NAME'].' '.$student['NAME_SUFFIX'];
 
@@ -1182,7 +1254,9 @@ schedule ss
       if(isset($_REQUEST['goal_id']) && $_REQUEST['goal_id'] != 'new' && !isset($_REQUEST['progress_id']))
        echo '<CENTER>'.SubmitButton('Save','','class=btn_medium').'</CENTER>';
    else
-        echo '<CENTER>'.SubmitButton('Save','','class=btn_medium onclick="formcheck_student_student();"').'</CENTER>';
+   {
+            echo '<CENTER>'.SubmitButton('Save','','class=btn_medium onclick="formcheck_student_student();"').'</CENTER>';
+   }
         echo '</FORM>';
     }
     else
@@ -1198,5 +1272,6 @@ schedule ss
 }
 }
 
+}
 }
 ?>

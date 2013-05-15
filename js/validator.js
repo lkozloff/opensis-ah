@@ -179,6 +179,7 @@ function V2validateData(strValidateStr,objValue,strError)
         case "req": 
         case "required": 
          { 
+             objValue.value=objValue.value.trim();
            if(eval(objValue.value.length) == 0) 
            { 
               if(!strError || strError.length ==0) 
@@ -622,7 +623,7 @@ return true;
 function doDateCheckMar(from, to) {
 
 if (Date.parse(from) > Date.parse(to)) {
-document.getElementById('divErr').innerHTML="<b><font color=red>"+"Grade Posting Begins date can not be occur before the Begins date."+"</font></b>";
+document.getElementById('divErr').innerHTML="<b><font color=red>"+"Grade Posting Begins date can not occur before the Marking Period Begins date."+"</font></b>";
 return false;
 }
 else

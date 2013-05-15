@@ -30,7 +30,7 @@ function GetPeriod($period_id,$title='')
 
 	if(!$_openSIS['GetPeriod'])
 	{
-		$sql = "SELECT TITLE, PERIOD_ID FROM school_periods WHERE SYEAR='".UserSyear()."'";
+		$sql = 'SELECT TITLE, PERIOD_ID FROM school_periods WHERE SYEAR=\''.UserSyear().'\'';
 		$_openSIS['GetPeriod'] = DBGet(DBQuery($sql),array(),array('PERIOD_ID'));
 	}
 	

@@ -26,7 +26,7 @@
 #
 #***************************************************************************************
 include('../../Redirect_modules.php');
-$start_end_RET = DBGet(DBQuery("SELECT TITLE,VALUE FROM program_config WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' AND PROGRAM='eligibility' AND TITLE IN ('START_DAY','END_DAY')"));
+$start_end_RET = DBGet(DBQuery('SELECT TITLE,VALUE FROM program_config WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' AND PROGRAM=\'eligibility\' AND TITLE IN (\''.'START_DAY'.'\',\''.'END_DAY'.'\')'));
 if(count($start_end_RET))
 {
 	foreach($start_end_RET as $value)
@@ -81,7 +81,7 @@ if($_REQUEST['search_modfunc'] || User('PROFILE')=='parent' || User('PROFILE')==
 	$tmp_PHP_SELF = PreparePHP_SELF();
 	echo "<FORM name=stud_list id=stud_list action=$tmp_PHP_SELF method=POST>";
 
-	$begin_year = DBGet(DBQuery("SELECT min(unix_timestamp(SCHOOL_DATE)) as SCHOOL_DATE FROM attendance_calendar WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
+	$begin_year = DBGet(DBQuery('SELECT min(unix_timestamp(SCHOOL_DATE)) as SCHOOL_DATE FROM attendance_calendar WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\''));
 	$begin_year = $begin_year[1]['SCHOOL_DATE'];
 	
 	$date_select = "<OPTION value=$start>".date('M d, Y',$start).' - '.date('M d, Y',$end).'</OPTION>';
@@ -96,9 +96,9 @@ if($_REQUEST['search_modfunc'] || User('PROFILE')=='parent' || User('PROFILE')==
 	echo '</FORM>';
 }
 
-$extra['SELECT'] = ",e.ELIGIBILITY_CODE,c.TITLE as COURSE_TITLE";
-$extra['FROM'] = ",eligibility e,courses c,course_periods cp";
-$extra['WHERE'] = " AND e.STUDENT_ID=ssm.STUDENT_ID AND e.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND e.SCHOOL_DATE BETWEEN '$start_date' AND '$end_date'";
+$extra['SELECT'] = ',e.ELIGIBILITY_CODE,c.TITLE as COURSE_TITLE';
+$extra['FROM'] = ',eligibility e,courses c,course_periods cp';
+$extra['WHERE'] = ' AND e.STUDENT_ID=ssm.STUDENT_ID AND e.COURSE_PERIOD_ID=cp.COURSE_PERIOD_ID AND cp.COURSE_ID=c.COURSE_ID AND e.SCHOOL_DATE BETWEEN \''.$start_date.'\' AND \''.$end_date.'\'';
 
 $extra['functions'] = array('ELIGIBILITY_CODE'=>'_makeLower');
 $extra['group']	= array('STUDENT_ID');

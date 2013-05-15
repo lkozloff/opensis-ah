@@ -30,7 +30,7 @@ $schoolinfo = DBGET(DBQUERY('SELECT * FROM schools WHERE ID = '.UserSchool()));
 $schoolinfo = $schoolinfo[1];
 $tsyear = UserSyear();
 $tpicturepath = $openSISPath.$StudentPicturesPath;
-$studataquery = "select 
+$studataquery = 'select 
 s.first_name
 , s.last_name
 , s.middle_name
@@ -50,30 +50,30 @@ s.first_name
 , sg.short_name as grade_short
 , (select start_date from student_enrollment where student_id = s.student_id order by syear, start_date limit 1) as init_enroll
 , CASE 
-    WHEN sg.short_name = '12' THEN e.syear + 1
-    WHEN sg.short_name = '11' THEN e.syear + 2
-    WHEN sg.short_name = '10' THEN e.syear + 3
-    WHEN sg.short_name = '09' THEN e.syear + 4
+    WHEN sg.short_name = \'12\' THEN e.syear + 1
+    WHEN sg.short_name = \'11\' THEN e.syear + 2
+    WHEN sg.short_name = \'10\' THEN e.syear + 3
+    WHEN sg.short_name = \'09\' THEN e.syear + 4
   END AS gradyear
 from students s
-inner join student_enrollment e on e.student_id=s.student_id and (e.start_date <= e.end_date or e.end_date is null) and e.syear = $tsyear
+inner join student_enrollment e on e.student_id=s.student_id and (e.start_date <= e.end_date or e.end_date is null) and e.syear = '.$tsyear.'
 inner join school_gradelevels sg on sg.id=e.grade_id
 inner join schools sch on sch.id=e.school_id
 left join students_join_address sja on sja.student_id=s.student_id
 left join address a on a.address_id=sja.address_id
-where  s.student_id = ";
-$creditquery = "SELECT divisor AS credit_attempted,credit_earned AS credit_earned
+where  s.student_id = ';
+$creditquery = 'SELECT divisor AS credit_attempted,credit_earned AS credit_earned
 FROM student_gpa_running sgr
-WHERE  sgr.student_id = ";
-$gpaquery = "select s.cum_unweighted_factor*sc.reporting_gp_scale as unweighted_gpa,s.cum_weighted_factor*sc.reporting_gp_scale as weighted_gpa
+WHERE  sgr.student_id = ';
+$gpaquery = 'select s.cum_unweighted_factor*sc.reporting_gp_scale as unweighted_gpa,s.cum_weighted_factor*sc.reporting_gp_scale as weighted_gpa
 from student_mp_stats s
 inner join marking_periods p on p.marking_period_id=s.marking_period_id
 inner join schools sc on sc.id=p.school_id
-where s.student_id= ";
+where s.student_id= ';
 
-$cgpaquery = "select *
+$cgpaquery = 'select *
 from student_gpa_running sgr
-where sgr.student_id= ";
+where sgr.student_id= ';
 if($_REQUEST['modfunc']=='save')
 {
    
@@ -211,15 +211,15 @@ if($_REQUEST['modfunc']=='save')
         }
         $picturehtml = '';
 		if($_REQUEST['show_photo']){
-        if (file_exists($StudentPicturesPath.$tsyear.'/'.$student_id.'.JPG')){
-				$picturehtml = '<td valign="top" align="left" width=30%><img style="padding:4px; width:144px; border:1px solid #333333; background-color:#fff;" src="'.$StudentPicturesPath.$tsyear.'/'.$student_id.'.JPG"></td>';
+        if (file_exists($StudentPicturesPath.'/'.$student_id.'.JPG')){
+				$picturehtml = '<td valign="top" align="left" width=30%><img style="padding:4px; width:144px; border:1px solid #333333; background-color:#fff;" src="'.$StudentPicturesPath.'/'.$student_id.'.JPG"></td>';
         }     else {
 		$picturehtml = '<td valign="top" align="left" width=30%><img style="padding:4px; border:1px solid #333333; background-color:#fff;" src="assets/noimage.jpg"></td>';
 		}    
 	}
 
-    $grade_scale = DBGet(DBQuery("SELECT rcg.TITLE,rcg.GPA_VALUE, rcg.UNWEIGHTED_GP,rcg.COMMENT,rcgs.GP_SCALE FROM report_card_grade_scales rcgs,report_card_grades rcg
-                                        WHERE rcg.grade_scale_id =rcgs.id and rcg.syear='".$tsyear."' and rcg.school_id='".UserSchool()."' "));
+    $grade_scale = DBGet(DBQuery('SELECT rcg.TITLE,rcg.GPA_VALUE, rcg.UNWEIGHTED_GP,rcg.COMMENT,rcgs.GP_SCALE FROM report_card_grade_scales rcgs,report_card_grades rcg
+                                        WHERE rcg.grade_scale_id =rcgs.id and rcg.syear=\''.$tsyear.'\' and rcg.school_id=\''.UserSchool().'\' '));
 
         $grade_scale_value = $grade_scale[1];
         

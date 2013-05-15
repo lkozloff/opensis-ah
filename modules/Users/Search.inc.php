@@ -45,7 +45,7 @@ if(User('PROFILE')=='admin')
 		echo '<TR><TD align=right>Last Name</TD><TD><INPUT type=text class=cell_floating name=last></TD></TR>';
 		echo '<TR><TD align=right>First Name</TD><TD><INPUT type=text class=cell_floating name=first></TD></TR>';
 		echo '<TR><TD align=right>Username</TD><TD><INPUT type=text class=cell_floating name=username></TD></TR>';
-                $profiles=  DBGet(DBQuery("SELECT * FROM user_profiles WHERE profile <> 'student'"));
+                $profiles=  DBGet(DBQuery('SELECT * FROM user_profiles WHERE profile <> \''.'student'.'\''));
                 $options['']='N/A';
                 $options['none']='No Access';
                 foreach($profiles as $key=>$value)

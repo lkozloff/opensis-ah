@@ -52,7 +52,7 @@ if($_REQUEST['values'] && ($_POST['values'] || $_REQUEST['ajax']))
                        $check=$_REQUEST['values'][$id]['START_DATE'];
                    }
                      else {
-                         $check_date=DBGet(DBQuery("SELECT * FROM eligibility_activities WHERE ID='".$id."'"));
+                         $check_date=DBGet(DBQuery('SELECT * FROM eligibility_activities WHERE ID=\''.$id.'\''));
                          $check_date=$check_date[1];
                          $check=$check_date['START_DATE'];
                     }
@@ -61,28 +61,28 @@ if($_REQUEST['values'] && ($_POST['values'] || $_REQUEST['ajax']))
                        $check1=$_REQUEST['values'][$id]['END_DATE'];
                    }
                      else {
-                         $check_date1=DBGet(DBQuery("SELECT * FROM eligibility_activities WHERE ID='".$id."'"));
+                         $check_date1=DBGet(DBQuery('SELECT * FROM eligibility_activities WHERE ID=\''.$id.'\''));
                          $check_date1=$check_date1[1];
                          $check1=$check_date1['END_DATE'];
                     }
                    $days=floor((strtotime($check1,0)-strtotime($check,0))/86400); 
                     if($days>0)				
                         {
-			$sql = "UPDATE eligibility_activities SET ";
+			$sql = 'UPDATE eligibility_activities SET ';
 							
 			foreach($columns as $column=>$value)
 			{
                               if($column=='TITLE')
                                 {
-                                    $value=str_replace("'","\'",clean_param($value,PARAM_SPCL));
+                                    $value=str_replace("'","\'",clean_param(trim($value),PARAM_SPCL));
                                 }
                                 else
                                 {
                                     $value=clean_param($value,PARAM_SPCL);
                                 }
-				$sql .= $column."='".str_replace("\'","''",$value)."',";
+				$sql .= $column.'=\''.str_replace("\'","''",trim($value)).'\',';
 			}
-			$sql = substr($sql,0,-1) . " WHERE ID='$id'";
+			$sql = substr($sql,0,-1) . ' WHERE ID=\''.$id.'\'';
 			DBQuery($sql);
 		}
                      else {
@@ -91,10 +91,10 @@ if($_REQUEST['values'] && ($_POST['values'] || $_REQUEST['ajax']))
 		}
 		else
 		{
-			$sql = "INSERT INTO eligibility_activities ";
+			$sql = 'INSERT INTO eligibility_activities ';
 
 			$fields = 'SCHOOL_ID,SYEAR,';
-			$values = "'".UserSchool()."','".UserSyear()."',";
+			$values = '\''.UserSchool().'\',\''.UserSyear().'\',';
 
 			$go = 0;
 			foreach($columns as $column=>$value)
@@ -106,7 +106,7 @@ if($_REQUEST['values'] && ($_POST['values'] || $_REQUEST['ajax']))
 				if(trim($value))
 				{       
 					$fields .= $column.',';
-					$values .= "'".str_replace("\'","''",$value)."',";
+					$values .= '\''.str_replace("\'","''",trim($value)).'\',';
 					$go = true;
 				}
 			}
@@ -123,14 +123,14 @@ DrawBC("Eligibility > ".ProgramTitle());
 //if($_REQUEST['modfunc']=='remove')
 if(optional_param('modfunc','',PARAM_NOTAGS)=='remove')
 {	
-	$has_assigned_RET=DBGet(DBQuery("SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_eligibility_activities WHERE ACTIVITY_ID='$_REQUEST[id]'"));
+	$has_assigned_RET=DBGet(DBQuery('SELECT COUNT(*) AS TOTAL_ASSIGNED FROM student_eligibility_activities WHERE ACTIVITY_ID=\''.$_REQUEST[id].'\''));
 	$has_assigned=$has_assigned_RET[1]['TOTAL_ASSIGNED'];
 	if($has_assigned>0){
 	UnableDeletePrompt('Cannot delete because eligibility activities are associated.');
 	}else{
 	if(DeletePrompt('activity'))
 	{
-		DBQuery("DELETE FROM eligibility_activities WHERE ID='$_REQUEST[id]'");
+		DBQuery('DELETE FROM eligibility_activities WHERE ID=\''.$_REQUEST[id].'\'');
 		unset($_REQUEST['modfunc']);
 	}
 	}
@@ -138,7 +138,7 @@ if(optional_param('modfunc','',PARAM_NOTAGS)=='remove')
 
 if($_REQUEST['modfunc']!='remove')
 {
-	$sql = "SELECT ID,TITLE,START_DATE,END_DATE FROM eligibility_activities WHERE SYEAR='".UserSyear()."' AND SCHOOL_ID='".UserSchool()."' ORDER BY TITLE";
+	$sql = 'SELECT ID,TITLE,START_DATE,END_DATE FROM eligibility_activities WHERE SYEAR=\''.UserSyear().'\' AND SCHOOL_ID=\''.UserSchool().'\' ORDER BY TITLE';
 	$QI = DBQuery($sql);
 	$activities_RET = DBGet($QI,array('TITLE'=>'makeTextInput','START_DATE'=>'makeDateInput','END_DATE'=>'makeDateInput'));
 	

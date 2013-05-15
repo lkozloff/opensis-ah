@@ -29,7 +29,7 @@
 function GetSyear($date)
 {	global $_openSIS;
 	
-	$RET = DBGet(DBQuery("SELECT SYEAR FROM attendance_calendar WHERE SCHOOL_DATE = '$date' AND DEFAULT_CALENDAR='Y'"));
+	$RET = DBGet(DBQuery('SELECT SYEAR FROM attendance_calendar WHERE SCHOOL_DATE = \''.$date.'\' AND DEFAULT_CALENDAR=\'Y\''));
 
 	return $RET[1]['SYEAR'];
 }

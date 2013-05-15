@@ -159,6 +159,7 @@ CREATE TABLE attendance_completed (
     staff_id numeric NOT NULL,
     school_date date NOT NULL,
     period_id numeric NOT NULL,
+    course_period_id INT(11) NOT NULL,
     substitute_staff_id numeric NULL DEFAULT NULL,
     is_taken_by_substitute_staff char(1) NULL DEFAULT NULL
 )ENGINE=MyISAM;
@@ -824,7 +825,6 @@ half_day_minute INT( 8 )
 
 CREATE TABLE staff (
     staff_id int(8) not null auto_increment primary key,
-    syear numeric(4,0),
     current_school_id numeric,
     title character varying(5),
     first_name character varying(100),
@@ -836,15 +836,10 @@ CREATE TABLE staff (
     email character varying(100),
     profile character varying(30),
     homeroom character varying(5),
-    schools character varying(255),
     last_login date,
-    failed_login numeric,
+    failed_login int(3) not null default 0,
     profile_id numeric,
-    rollover_id numeric,
-    is_disable varchar(10) default NULL,
-`CUSTOM_1` varchar(100) DEFAULT NULL,
-  `CUSTOM_2` varchar(255) DEFAULT NULL,
-  `CUSTOM_3` varchar(255) DEFAULT NULL
+    is_disable varchar(10) default NULL
 )ENGINE=MyISAM;
 
 
@@ -1054,7 +1049,7 @@ CREATE TABLE students (
     username character varying(100),
     password character varying(100),
     last_login date,
-    failed_login numeric,
+    failed_login int(3) not null default 0,
     gender character varying(255),
     ethnicity character varying(255),
     common_name character varying(255),
@@ -1191,8 +1186,8 @@ ALTER TABLE attendance_calendar
     ADD CONSTRAINT attendance_calendar_pkey PRIMARY KEY (syear, school_id, school_date, calendar_id);
 
 
-ALTER TABLE attendance_completed
-    ADD CONSTRAINT attendance_completed_pkey PRIMARY KEY (staff_id, school_date, period_id);
+--ALTER TABLE attendance_completed
+  -- ADD CONSTRAINT attendance_completed_pkey PRIMARY KEY (staff_id, school_date, period_id);
 
 
 ALTER TABLE attendance_day
@@ -1200,7 +1195,7 @@ ALTER TABLE attendance_day
 
 
 ALTER TABLE attendance_period
-    ADD CONSTRAINT attendance_period_pkey PRIMARY KEY (student_id, school_date, period_id);
+    ADD CONSTRAINT attendance_period_pkey PRIMARY KEY (student_id, school_date, course_period_id);
 
 
 -- ALTER TABLE calendar_events
@@ -1385,7 +1380,8 @@ ALTER TABLE students_join_users
 
 -- ALTER TABLE students
  --   ADD CONSTRAINT students_pkey PRIMARY KEY (student_id);
-
+ALTER TABLE `staff_school_relationship` ADD `start_date` DATE NOT NULL ,
+ADD `end_date` DATE NOT NULL ;
 --
 --
 --
@@ -1602,12 +1598,6 @@ CREATE INDEX school_years_ind2  USING btree ON school_years(syear, school_id, st
 
 CREATE INDEX schools_ind1  USING btree ON schools(syear);
 
-CREATE INDEX CUSTOM_IND1 ON staff(CUSTOM_1);
-
-CREATE INDEX CUSTOM_IND2 ON staff(CUSTOM_2);
-
-CREATE INDEX CUSTOM_IND3 ON staff(CUSTOM_3);
-
 CREATE INDEX staff_desc_ind1  USING btree ON staff_fields(id);
 
 
@@ -1617,16 +1607,7 @@ CREATE INDEX staff_desc_ind2  USING btree ON staff_fields(type);
 CREATE INDEX staff_fields_ind3  USING btree ON staff_fields(category_id);
 
 
-CREATE INDEX staff_ind1  USING btree ON staff(staff_id, syear);
-
-
 CREATE INDEX staff_ind2  USING btree ON staff(last_name, first_name);
-
-
-CREATE INDEX staff_ind3  USING btree ON staff(schools);
-
-
-CREATE UNIQUE INDEX staff_ind4  USING btree ON staff (username, syear);
 
 
 CREATE INDEX stu_addr_meets_2  USING btree ON students_join_address(address_id);
@@ -1650,7 +1631,7 @@ CREATE INDEX student_enrollment_2  USING btree ON student_enrollment(grade_id);
 CREATE INDEX student_enrollment_3  USING btree ON student_enrollment(syear, student_id, school_id, grade_id);
 
 
-CREATE INDEX student_enrollment_6  USING btree ON student_enrollment(start_date, end_date);
+CREATE INDEX student_enrollment_6  USING btree ON student_enrollment(syear, student_id,start_date, end_date);
 
 
 CREATE INDEX student_enrollment_7  USING btree ON student_enrollment(school_id);
@@ -1695,6 +1676,18 @@ CREATE INDEX students_join_people_ind1  USING btree ON students_join_people(stud
 CREATE INDEX sys_c007322  USING btree ON students_join_address(id, student_id, address_id);
 
 --
+-- TABLE STRUCTURE FOR TABLE history_school
+--
+CREATE TABLE IF NOT EXISTS `history_school` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `student_id` int(11) NOT NULL,
+  `marking_period_id` int(11) NOT NULL,
+  `school_name` varchar(100) NOT NULL,
+   PRIMARY KEY (`id`),
+  KEY `id` (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
+
+--
 --
 --
 
@@ -1709,7 +1702,7 @@ CREATE VIEW enroll_grade AS
   FROM student_enrollment e, school_gradelevels sg WHERE (e.grade_id = sg.id);
 
 CREATE VIEW transcript_grades AS
-    SELECT s.id AS school_id, s.title AS school_name, rcg.course_period_id as mp_source, mp.marking_period_id AS mp_id,
+    SELECT s.id AS school_id, IF(mp.mp_source='history',(SELECT school_name FROM history_school WHERE student_id=rcg.student_id and marking_period_id=mp.marking_period_id),s.title) AS school_name,mp_source, mp.marking_period_id AS mp_id,
 	mp.title AS mp_name, mp.syear, mp.end_date AS posted, rcg.student_id,
 	sgc.grade_level_short AS gradelevel, rcg.grade_letter, rcg.unweighted_gp AS gp_value,
 	rcg.weighted_gp AS weighting, rcg.gp_scale, rcg.credit_attempted, rcg.credit_earned,

@@ -31,11 +31,13 @@ if($_REQUEST['modfunc']=='save' && $_REQUEST['honor_roll'])
 {
 	if(count($_REQUEST['st_arr']))
 	{
+            $mp=$_REQUEST['mp'];
             if($_REQUEST['honor_roll']!=986)
                {
-                                    $SCHOOL_RET = DBGet(DBQuery("SELECT * from schools where ID = '".UserSchool()."'"));
+                                     
+                                     $SCHOOL_RET = DBGet(DBQuery('SELECT * from schools where ID = \''.UserSchool().'\''));
                                     $scale=$SCHOOL_RET[1]['REPORTING_GP_SCALE'];
-                                    $honor=DBGet(DBQuery("SELECT VALUE  FROM honor_roll WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY VALUE DESC"));
+                                    $honor=DBGet(DBQuery('SELECT VALUE  FROM honor_roll WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY VALUE DESC'));
                                     $honor_gpa1=$_REQUEST['honor_roll'];
                                     foreach($honor as $gp_val)
                                     {
@@ -67,59 +69,97 @@ if($_REQUEST['modfunc']=='save' && $_REQUEST['honor_roll'])
                                             $st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
                                             $extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
 
-                                            $mp_RET = DBGet(DBQuery("SELECT TITLE,END_DATE FROM school_quarters WHERE MARKING_PERIOD_ID='".UserMP()."'"));
-                                            $school_info_RET = DBGet(DBQuery("SELECT TITLE,PRINCIPAL FROM schools WHERE ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
-                                            $extra['SELECT'] = ",coalesce(s.COMMON_NAME,s.FIRST_NAME) AS NICK_NAME";
-                                            $extra['SELECT'] .= ",(SELECT SORT_ORDER FROM school_gradelevels WHERE ID=ssm.GRADE_ID) AS SORT_ORDER";
+                                            $mp_RET = DBGet(DBQuery('SELECT TITLE,END_DATE FROM marking_periods WHERE MARKING_PERIOD_ID = '.UserMP().' '));
+                                            $school_info_RET = DBGet(DBQuery('SELECT TITLE,PRINCIPAL FROM schools WHERE ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\''));
+                                            $extra['SELECT'] = ',coalesce(s.COMMON_NAME,s.FIRST_NAME) AS NICK_NAME';
+                                            $extra['SELECT'] .= ',(SELECT SORT_ORDER FROM school_gradelevels WHERE ID=ssm.GRADE_ID) AS SORT_ORDER';
                                              $extra['FROM'] .= ',student_report_card_grades srg';
-                                             $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE  hr.VALUE=(SELECT if((ROUND(AVG(grade_percent))>='.$honor_gpa1.' and ROUND(AVG(grade_percent))<'.$honor_gpa2.'),'.$honor_gpa1.',"")  FROM
-                                                `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                and `STUDENT_ID`=ssm.STUDENT_ID) )AS HONOR_ROLL';
-                                            $extra['WHERE'] .= 'AND ((SELECT ROUND(AVG(grade_percent)) FROM
-                                                `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                and `STUDENT_ID`=ssm.STUDENT_ID)>='.$honor_gpa1.' ) AND ((SELECT ROUND(AVG(grade_percent)) FROM
-                                                `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                and `STUDENT_ID`=ssm.STUDENT_ID)<'.$honor_gpa2.' )  GROUP BY s.STUDENT_ID';
-                                          #  $extra['SELECT'] .= ",(SELECT rg.HONOR_ROLL  FROM student_report_card_grades sg,course_periods cp,report_card_grades rg WHERE sg.STUDENT_ID=s.STUDENT_ID AND cp.SYEAR=ssm.SYEAR AND sg.SYEAR=ssm.SYEAR AND sg.MARKING_PERIOD_ID='".UserMP()."' AND cp.COURSE_PERIOD_ID=sg.COURSE_PERIOD_ID AND cp.DOES_HONOR_ROLL='Y' AND rg.GRADE_SCALE_ID=cp.GRADE_SCALE_ID AND sg.REPORT_CARD_GRADE_ID=rg.ID AND  rg.HONOR_ROLL IS NOT NULL)  AS HONOR_ROLL";
-                                            $extra['SELECT'] .= ",(SELECT CONCAT(st.LAST_NAME,', ',coalesce(st.FIRST_NAME)) FROM staff st,course_periods cp,school_periods p,schedule ss WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE='Y' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR='".UserSyear()."' AND ss.MARKING_PERIOD_ID IN(".GetAllMP('QTR',GetCurrentMP('QTR',DBDate(),false)).") AND (ss.START_DATE<='".DBDate()."' AND (ss.END_DATE>='".DBDate()."' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS TEACHER";
-                                            $extra['SELECT'] .= ",(SELECT cp.ROOM FROM course_periods cp,school_periods p,schedule ss WHERE cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE='Y' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR='".UserSyear()."' AND ss.MARKING_PERIOD_ID IN(".GetAllMP('QTR',GetCurrentMP('QTR',DBDate(),false)).") AND (ss.START_DATE<='".DBDate()."' AND (ss.END_DATE>='".DBDate()."' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS ROOM";
+                                             if($_REQUEST['w_course_period_id'])
+                                             {
+                                                $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE  hr.VALUE=(SELECT if((ROUND(AVG(srcg.grade_percent))>='.$honor_gpa1.' and ROUND(AVG(srcg.grade_percent))<'.$honor_gpa2.'),'.$honor_gpa1.',"")  FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll="Y"
+                                                   and srcg.`STUDENT_ID`=ssm.STUDENT_ID) )AS HONOR_ROLL';
+                                               $extra['WHERE'] .= 'AND ((SELECT ROUND(AVG(srcg.grade_percent)) FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll="Y"
+                                                   and srcg.`STUDENT_ID`=ssm.STUDENT_ID)>='.$honor_gpa1.' ) AND ((SELECT ROUND(AVG(grade_percent)) FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll="Y"
+                                                   and srcg.`STUDENT_ID`=ssm.STUDENT_ID)<'.$honor_gpa2.' )  GROUP BY s.STUDENT_ID';
+                                             #  $extra['SELECT'] .= ",(SELECT rg.HONOR_ROLL  FROM student_report_card_grades sg,course_periods cp,report_card_grades rg WHERE sg.STUDENT_ID=s.STUDENT_ID AND cp.SYEAR=ssm.SYEAR AND sg.SYEAR=ssm.SYEAR AND sg.MARKING_PERIOD_ID='".UserMP()."' AND cp.COURSE_PERIOD_ID=sg.COURSE_PERIOD_ID AND cp.DOES_HONOR_ROLL='Y' AND rg.GRADE_SCALE_ID=cp.GRADE_SCALE_ID AND sg.REPORT_CARD_GRADE_ID=rg.ID AND  rg.HONOR_ROLL IS NOT NULL)  AS HONOR_ROLL";
+                                               $extra['SELECT'] .= ',(SELECT CONCAT(st.LAST_NAME,", ",coalesce(st.FIRST_NAME)) FROM staff st,course_periods cp,school_periods p,schedule ss WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE="Y" AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND  cp.COURSE_PERIOD_ID=\''.$_REQUEST['w_course_period_id'].'\' AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR='.UserSyear().' AND ss.MARKING_PERIOD_ID = '.UserMp().' AND (ss.START_DATE<='.date('Y-m-d',strtotime(DBDate())).' AND (ss.END_DATE>='.date('Y-m-d',strtotime(DBDate())).' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS TEACHER';
+                                               $extra['SELECT'] .= ',(SELECT cp.ROOM FROM course_periods cp,school_periods p,schedule ss WHERE cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE="Y" AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND  cp.COURSE_PERIOD_ID=\''.$_REQUEST['w_course_period_id'].'\' AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR='.UserSyear().' AND ss.MARKING_PERIOD_ID = '.UserMp().' AND (ss.START_DATE<='.date('Y-m-d',strtotime(DBDate())).' AND (ss.END_DATE>='.date("Y-m-d",strtotime(DBDate())).' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS ROOM';
+                                             }
+                                             else
+                                             {
+                                                 $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE  hr.VALUE=(SELECT if((ROUND(AVG(srcg.grade_percent))>='.$honor_gpa1.' and ROUND(AVG(srcg.grade_percent))<'.$honor_gpa2.'),'.$honor_gpa1.',"")  FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y"
+                                                   and srcg.`STUDENT_ID`=ssm.STUDENT_ID) )AS HONOR_ROLL';
+                                               $extra['WHERE'] .= 'AND ((SELECT ROUND(AVG(srcg.grade_percent)) FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y"
+                                                   and srcg.`STUDENT_ID`=ssm.STUDENT_ID)>='.$honor_gpa1.' ) AND ((SELECT ROUND(AVG(grade_percent)) FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y"
+                                                   and srcg.`STUDENT_ID`=ssm.STUDENT_ID)<'.$honor_gpa2.' )  GROUP BY s.STUDENT_ID';
+                                             #  $extra['SELECT'] .= ",(SELECT rg.HONOR_ROLL  FROM student_report_card_grades sg,course_periods cp,report_card_grades rg WHERE sg.STUDENT_ID=s.STUDENT_ID AND cp.SYEAR=ssm.SYEAR AND sg.SYEAR=ssm.SYEAR AND sg.MARKING_PERIOD_ID='".UserMP()."' AND cp.COURSE_PERIOD_ID=sg.COURSE_PERIOD_ID AND cp.DOES_HONOR_ROLL='Y' AND rg.GRADE_SCALE_ID=cp.GRADE_SCALE_ID AND sg.REPORT_CARD_GRADE_ID=rg.ID AND  rg.HONOR_ROLL IS NOT NULL)  AS HONOR_ROLL";
+                                               $extra['SELECT'] .= ',(SELECT CONCAT(st.LAST_NAME,", ",coalesce(st.FIRST_NAME)) FROM staff st,course_periods cp,school_periods p,schedule ss WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE="Y" AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR='.UserSyear().' AND ss.MARKING_PERIOD_ID = '.UserMp().' AND (ss.START_DATE<='.date('Y-m-d',strtotime(DBDate())).' AND (ss.END_DATE>='.date('Y-m-d',strtotime(DBDate())).' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS TEACHER';
+                                               $extra['SELECT'] .= ',(SELECT cp.ROOM FROM course_periods cp,school_periods p,schedule ss WHERE cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE="Y" AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR='.UserSyear().' AND ss.MARKING_PERIOD_ID = '.UserMp().' AND (ss.START_DATE<='.date('Y-m-d',strtotime(DBDate())).' AND (ss.END_DATE>='.date("Y-m-d",strtotime(DBDate())).' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS ROOM';
+                                             }
                                             $extra['ORDER_BY'] = 'HONOR_ROLL,SORT_ORDER DESC,ROOM,FULL_NAME';
                }
                elseif($_REQUEST['honor_roll']==986)
                                 {
-                                            $SCHOOL_RET = DBGet(DBQuery("SELECT * from schools where ID = '".UserSchool()."'"));
+                                            $SCHOOL_RET = DBGet(DBQuery('SELECT * from schools where ID = \''.UserSchool().'\''));
                                             $scale=$SCHOOL_RET[1]['REPORTING_GP_SCALE'];
                                             $st_list = '\''.implode('\',\'',$_REQUEST['st_arr']).'\'';
-                                            $extra['WHERE'] = " AND s.STUDENT_ID IN ($st_list)";
-                                            $mp_RET = DBGet(DBQuery("SELECT TITLE,END_DATE FROM school_quarters WHERE MARKING_PERIOD_ID='".UserMP()."'"));
-                                            $school_info_RET = DBGet(DBQuery("SELECT TITLE,PRINCIPAL FROM schools WHERE ID='".UserSchool()."' AND SYEAR='".UserSyear()."'"));
-                                             $extra['SELECT'] = ",coalesce(s.COMMON_NAME,s.FIRST_NAME) AS NICK_NAME";
-                                            $extra['SELECT'] .= ",(SELECT SORT_ORDER FROM school_gradelevels WHERE ID=ssm.GRADE_ID) AS SORT_ORDER";
+                                            $extra['WHERE'] = ' AND s.STUDENT_ID IN ('.$st_list.')';
+                                            $mp_RET = DBGet(DBQuery('SELECT TITLE,END_DATE FROM marking_periods WHERE MARKING_PERIOD_ID =\''.UserMP().'\' '));
+                                            $school_info_RET = DBGet(DBQuery('SELECT TITLE,PRINCIPAL FROM schools WHERE ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\''));
+                                             $extra['SELECT'] = ',coalesce(s.COMMON_NAME,s.FIRST_NAME) AS NICK_NAME';
+                                            $extra['SELECT'] .= ',(SELECT SORT_ORDER FROM school_gradelevels WHERE ID=ssm.GRADE_ID) AS SORT_ORDER';
+                                            if($_REQUEST['w_course_period_id'])
+                                             {
                                             $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE hr.VALUE=
-                                                                (SELECT if((ROUND(AVG(grade_percent))>=
-                                                                (SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE<=
-                                                                (SELECT ROUND(AVG(grade_percent)) FROM `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().' and `STUDENT_ID`=ssm.STUDENT_ID) order by hr.value desc limit 1)
-                                                                and ROUND(AVG(grade_percent))<
+                                                                (SELECT if((ROUND(AVG(srcg.grade_percent))>=
+                                                                (SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE>=
+                                                                (SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll="Y" and srcg.`STUDENT_ID`=ssm.STUDENT_ID) order by hr.value desc limit 1)
+                                                                and ROUND(AVG(srcg.grade_percent))<
                                                                 (SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE
-                                                                >(SELECT ROUND(AVG(grade_percent)) FROM `student_report_card_grades` WHERE `MARKING_PERIOD_ID`= '.UserMP().'
-                                                                and `STUDENT_ID`=ssm.STUDENT_ID) order by hr.value asc limit 1)),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE>(SELECT ROUND(AVG(grade_percent)) FROM `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                                and `STUDENT_ID`=ssm.STUDENT_ID) order by hr.value asc limit 1),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE<=(SELECT ROUND(AVG(grade_percent)) FROM `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                                and `STUDENT_ID`=ssm.STUDENT_ID) order by hr.value desc limit 1))
-                                                                FROM `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().' and `STUDENT_ID`=ssm.STUDENT_ID) )AS HONOR_ROLL';
-                                              $extra['SELECT'] .= ",(SELECT CONCAT(st.LAST_NAME,', ',coalesce(st.FIRST_NAME)) FROM staff st,course_periods cp,school_periods p,schedule ss WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE='Y' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR='".UserSyear()."' AND ss.MARKING_PERIOD_ID IN(".GetAllMP('QTR',GetCurrentMP('QTR',DBDate(),false)).") AND (ss.START_DATE<='".DBDate()."' AND (ss.END_DATE>='".DBDate()."' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS TEACHER";
-                                            $extra['SELECT'] .= ",(SELECT cp.ROOM FROM course_periods cp,school_periods p,schedule ss WHERE cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE='Y' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR='".UserSyear()."' AND ss.MARKING_PERIOD_ID IN(".GetAllMP('QTR',GetCurrentMP('QTR',DBDate(),false)).") AND (ss.START_DATE<='".DBDate()."' AND (ss.END_DATE>='".DBDate()."' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS ROOM";
+                                                                >(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll="Y"
+                                                                and srcg.STUDENT_ID=ssm.STUDENT_ID) order by hr.value asc limit 1)),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE>(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll="Y"
+                                                                and srcg.STUDENT_ID=ssm.STUDENT_ID) order by hr.value asc limit 1),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE<=(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll="Y"
+                                                                and srcg.STUDENT_ID=ssm.STUDENT_ID) order by hr.value desc limit 1))
+                                                                FROM `student_report_card_grades`srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll="Y" and `STUDENT_ID`=ssm.STUDENT_ID) )AS HONOR_ROLL';
+                                              $extra['SELECT'] .= ',(SELECT CONCAT(st.LAST_NAME,\', \',coalesce(st.FIRST_NAME)) FROM staff st,course_periods cp,school_periods p,schedule ss WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE=\'Y\' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND cp.COURSE_PERIOD_ID=\''.$_REQUEST['w_course_period_id'].'\' AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR=\''.UserSyear().'\' AND ss.MARKING_PERIOD_ID = \''.UserMp().'\' AND (ss.START_DATE<=\''.DBDate().'\' AND (ss.END_DATE>=\''.DBDate().'\' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS TEACHER';
+                                            $extra['SELECT'] .= ',(SELECT cp.ROOM FROM course_periods cp,school_periods p,schedule ss WHERE cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE=\'Y\' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND cp.COURSE_PERIOD_ID=\''.$_REQUEST['w_course_period_id'].'\' AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR=\''.UserSyear().'\' AND ss.MARKING_PERIOD_ID = \''.UserMp().'\' AND (ss.START_DATE<=\''.DBDate().'\' AND (ss.END_DATE>=\''.DBDate().'\' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS ROOM';
+                                             }
+                                             else
+                                             {
+                                                 $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE hr.VALUE=
+                                                                (SELECT if((ROUND(AVG(srcg.grade_percent))>=
+                                                                (SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE>=
+                                                                (SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y" and srcg.`STUDENT_ID`=ssm.STUDENT_ID) order by hr.value desc limit 1)
+                                                                and ROUND(AVG(srcg.grade_percent))<
+                                                                (SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE
+                                                                >(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y"
+                                                                and srcg.STUDENT_ID=ssm.STUDENT_ID) order by hr.value asc limit 1)),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE>(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y"
+                                                                and srcg.STUDENT_ID=ssm.STUDENT_ID) order by hr.value asc limit 1),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE<=(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y"
+                                                                and srcg.STUDENT_ID=ssm.STUDENT_ID) order by hr.value desc limit 1))
+                                                                FROM `student_report_card_grades`srcg,course_periods cpp  WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y" and `STUDENT_ID`=ssm.STUDENT_ID) )AS HONOR_ROLL';
+                                              $extra['SELECT'] .= ',(SELECT CONCAT(st.LAST_NAME,\', \',coalesce(st.FIRST_NAME)) FROM staff st,course_periods cp,school_periods p,schedule ss WHERE st.STAFF_ID=cp.TEACHER_ID AND cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE=\'Y\' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR=\''.UserSyear().'\' AND ss.MARKING_PERIOD_ID = \''.UserMp().'\' AND (ss.START_DATE<=\''.DBDate().'\' AND (ss.END_DATE>=\''.DBDate().'\' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS TEACHER';
+                                            $extra['SELECT'] .= ',(SELECT cp.ROOM FROM course_periods cp,school_periods p,schedule ss WHERE cp.PERIOD_id=p.PERIOD_ID AND p.ATTENDANCE=\'Y\' AND cp.COURSE_PERIOD_ID=ss.COURSE_PERIOD_ID AND ss.STUDENT_ID=s.STUDENT_ID AND ss.SYEAR=\''.UserSyear().'\' AND ss.MARKING_PERIOD_ID = \''.UserMp().'\' AND (ss.START_DATE<=\''.DBDate().'\' AND (ss.END_DATE>=\''.DBDate().'\' OR ss.END_DATE IS NULL)) ORDER BY p.SORT_ORDER LIMIT 1) AS ROOM';
+                                             }
                                             $extra['ORDER_BY'] = 'HONOR_ROLL,SORT_ORDER DESC,ROOM,FULL_NAME';
+                                            
+                                            
                                 }
                 $RET = GetStuList($extra);
                 if($_REQUEST['list'])
 		{
                                         
-                            echo '<CENTER>';
+                        echo '<CENTER>';
 			echo '<TABLE width=80%>';
 			echo '<TR align=center><TD colspan=6><B>'.sprintf(('%s Honor Roll'),$school_info_RET[1]['TITLE']).' </B></TD></TR>';
 			echo '<TR align=center><TD colspan=6>&nbsp;</TD></TR>';
-                           $columns = array('FULL_NAME'=>'Student','STUDENT_ID'=>'Student ID','ALT_ID'=>'Alternate ID','GRADE_ID'=>'Grade','PHONE'=>'Phone','HONOR_ROLL'=>'Honor Roll');
-                            ListOutputPrint_Report($RET,$columns);
+                        $columns = array('FULL_NAME'=>'Student','STUDENT_ID'=>'Student ID','ALT_ID'=>'Alternate ID','GRADE_ID'=>'Grade','PHONE'=>'Phone','HONOR_ROLL'=>'Honor Roll');
+                         ListOutputPrint_Report($RET,$columns);
 		}
                 else
                 {
@@ -166,7 +206,28 @@ if(!$_REQUEST['modfunc'])
 {   
 if($_REQUEST['search_modfunc']=='list')
 	{
-            echo "<FORM action=for_export.php?modname=$_REQUEST[modname]&modfunc=save&include_inactive=$_REQUEST[include_inactive]&honor_roll=$_REQUEST[honor_roll]&_openSIS_PDF=true method=POST target=_blank>";
+            $sem  = GetParentMP('SEM',UserMP());
+            $fy   = GetParentMP('FY',$sem);
+            $pros = GetChildrenMP('PRO',UserMP());
+            $gradedmp = DBGet(DBQuery('SELECT count(*) as GRADES from student_report_card_grades where marking_period_id='.$fy.'' )); 
+            if(!$gradedmp[1]['GRADES'])
+            {
+                $gradedmp = DBGet(DBQuery('SELECT count(*) as GRADES from student_report_card_grades where marking_period_id='.$sem.'' ));
+                $mp = $sem;
+            }
+            else if(!$gradedmp[1]['GRADES'])
+            {
+                $gradedmp = DBGet(DBQuery('SELECT count(*) as GRADES from student_report_card_grades where marking_period_id=\''.UserMP().'\' ' ));
+                    $mp = UserMP();
+            }
+            else
+            {
+                    $mp = $fy;
+            }
+            if($_REQUEST['w_course_period_id'])
+                echo "<FORM action=for_export.php?modname=$_REQUEST[modname]&modfunc=save&include_inactive=$_REQUEST[include_inactive]&honor_roll=$_REQUEST[honor_roll]&mp=$mp&w_course_period_id=$_REQUEST[w_course_period_id]&_openSIS_PDF=true method=POST target=_blank>";
+            else
+                echo "<FORM action=for_export.php?modname=$_REQUEST[modname]&modfunc=save&include_inactive=$_REQUEST[include_inactive]&honor_roll=$_REQUEST[honor_roll]&mp=$mp&_openSIS_PDF=true method=POST target=_blank>";
             $extra['header_right'] = SubmitButton('Create Honor Roll for Selected Students','','class=btn_xlarge');
 
             $extra['extra_header_left'] = '<TABLE>';
@@ -187,12 +248,17 @@ if($_REQUEST['search_modfunc']=='list')
 	$extra['options']['search'] = false;
 	$extra['force_search'] = true;
         Widgets('course');
-       MyWidgets('honor_roll');
-      Search('student_id',$extra);
+        MyWidgets('honor_roll',$mp);
+        
+        Search('student_id',$extra);
         if($_REQUEST['search_modfunc']=='list')
 	{
+            
+
 	if($_SESSION['count_stu']!=0)	
+        {
             echo '<BR><CENTER>'.SubmitButton('Create Honor Roll for Selected Students','','class=btn_xlarge').'</CENTER>';
+        }
 		echo "</FORM>";
 	}
 }
@@ -201,15 +267,18 @@ function _makeChooseCheckbox($value,$title)
 {
 	return '<INPUT type=checkbox name=st_arr[] value='.$value.' checked>';
 }
-function MyWidgets($item)
+function MyWidgets($item,$mp)
 {	global $extra,$THIS_RET;
 
 	switch($item)
 	{
 		case 'honor_roll':
-                                if($_REQUEST['honor_roll']!=986 && $_REQUEST['honor_roll'])
+                       
+                            
+                        
+                        if($_REQUEST['honor_roll']!=986 && $_REQUEST['honor_roll'])
                                 {
-                                   $honor=DBGet(DBQuery("SELECT VALUE  FROM honor_roll WHERE SCHOOL_ID='".UserSchool()."' AND SYEAR='".UserSyear()."' ORDER BY VALUE DESC"));
+                                   $honor=DBGet(DBQuery('SELECT VALUE  FROM honor_roll WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\' ORDER BY VALUE DESC'));
                                     $honor_gpa1=$_REQUEST['honor_roll'];
                                     foreach($honor as $gp_val)
                                     {
@@ -234,53 +303,102 @@ function MyWidgets($item)
                                                     $honor_gpa2=$gpa_value[$key-1];
                                                 }
                                         }
+                                      
                                         if($honor_gpa2)
                                         {
-
+                                            
                                              $extra['FROM'] .= ',student_report_card_grades srg';
-                                             $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE  hr.VALUE=(SELECT if((ROUND(AVG(grade_percent))>='.$honor_gpa1.' and ROUND(AVG(grade_percent))<'.$honor_gpa2.'),'.$honor_gpa1.',"")  FROM
-                                                `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                and `STUDENT_ID`=ssm.STUDENT_ID) )AS HONOR_ROLL';
-                                            $extra['WHERE'] .= 'AND ((SELECT ROUND(AVG(grade_percent)) FROM
-                                                `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                and `STUDENT_ID`=ssm.STUDENT_ID)>='.$honor_gpa1.' ) AND ((SELECT ROUND(AVG(grade_percent)) FROM
-                                                `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                and `STUDENT_ID`=ssm.STUDENT_ID)<'.$honor_gpa2.' )  GROUP BY s.STUDENT_ID';
+                                             if($_REQUEST['w_course_period_id'])
+                                             {
+                                                $extra['SELECT'] .= ',( SELECT hr.TITLE FROM honor_roll hr WHERE  hr.VALUE=(SELECT if((ROUND(AVG(srcg.grade_percent))>='.$honor_gpa1.' and ROUND(AVG(srcg.grade_percent))<'.$honor_gpa2.'),'.$honor_gpa1.',"")  FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll=\'Y\'
+                                                   and srcg.STUDENT_ID=ssm.STUDENT_ID) )AS HONOR_ROLL';
+                                               $extra['WHERE'] .= 'AND ((SELECT ROUND(AVG(srcg.grade_percent)) FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll=\'Y\'
+                                                   and srcg.STUDENT_ID=ssm.STUDENT_ID)>='.$honor_gpa1.' ) AND ((SELECT ROUND(AVG(srcg.grade_percent)) FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll=\'Y\'
+                                                   and srcg.STUDENT_ID=ssm.STUDENT_ID)<'.$honor_gpa2.' )  ';
+                                             }
+                                             else
+                                             {
+                                                 $extra['SELECT'] .= ',( SELECT hr.TITLE FROM honor_roll hr WHERE  hr.VALUE=(SELECT if((ROUND(AVG(srcg.grade_percent))>='.$honor_gpa1.' and ROUND(AVG(srcg.grade_percent))<'.$honor_gpa2.'),'.$honor_gpa1.',"")  FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll=\'Y\'
+                                                   and srcg.STUDENT_ID=ssm.STUDENT_ID) )AS HONOR_ROLL';
+                                               $extra['WHERE'] .= 'AND ((SELECT ROUND(AVG(srcg.grade_percent)) FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll=\'Y\'
+                                                   and srcg.STUDENT_ID=ssm.STUDENT_ID)>='.$honor_gpa1.' ) AND ((SELECT ROUND(AVG(srcg.grade_percent)) FROM
+                                                   `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll=\'Y\'
+                                                   and srcg.STUDENT_ID=ssm.STUDENT_ID)<'.$honor_gpa2.' )  ';
+                                             }
+                                              $extra['GROUP'] .= ' s.STUDENT_ID';
                                       }
                                       else
                                       {         $honor_gpa2=100;
-                                               $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE  hr.VALUE=(SELECT if((ROUND(AVG(grade_percent))>='.$honor_gpa1.' and ROUND(AVG(grade_percent))<'.$honor_gpa2.'),'.$honor_gpa1.',"") FROM
-                                                `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                and `STUDENT_ID`=ssm.STUDENT_ID))AS HONOR_ROLL';
-                                                $extra['FROM'] .= ',student_report_card_grades srg';
-                                                 $extra['WHERE'] .= 'AND ((SELECT ROUND(AVG(grade_percent)) FROM
-                                                `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                and `STUDENT_ID`=ssm.STUDENT_ID)>='.$honor_gpa1.' ) AND ((SELECT ROUND(AVG(grade_percent)) FROM
-                                                `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                and `STUDENT_ID`=ssm.STUDENT_ID)<'.$honor_gpa2.' )  GROUP BY s.STUDENT_ID';
+                                            $extra['FROM']   .= ',student_report_card_grades srg';
+                                              if($_REQUEST['w_course_period_id'])
+                                             {
+                                               $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE  hr.VALUE=(SELECT if((ROUND(AVG(srcg.grade_percent))>='.$honor_gpa1.' and ROUND(AVG(srcg.grade_percent))<'.$honor_gpa2.'),'.$honor_gpa1.',"") FROM
+                                                `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll=\'Y\'
+                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID))AS HONOR_ROLL';
+                                                
+                                                $extra['WHERE']  .= 'AND ((SELECT ROUND(AVG(srcg.grade_percent)) FROM
+                                                `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll=\'Y\'
+                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID)>='.$honor_gpa1.' ) AND ((SELECT ROUND(AVG(srcg.grade_percent)) FROM
+                                                `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll=\'Y\'
+                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID)<'.$honor_gpa2.' )  ';
+                                             }
+                                             else
+                                             {
+                                                 $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE  hr.VALUE=(SELECT if((ROUND(AVG(srcg.grade_percent))>='.$honor_gpa1.' and ROUND(AVG(srcg.grade_percent))<'.$honor_gpa2.'),'.$honor_gpa1.',"") FROM
+                                                `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll=\'Y\'
+                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID))AS HONOR_ROLL';
+                                                
+                                                $extra['WHERE']  .= 'AND ((SELECT ROUND(AVG(srcg.grade_percent)) FROM
+                                                `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll=\'Y\'
+                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID)>='.$honor_gpa1.' ) AND ((SELECT ROUND(AVG(srcg.grade_percent)) FROM
+                                                `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll=\'Y\'
+                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID)<'.$honor_gpa2.' )  ';
+                                             }
+                                                 $extra['GROUP'] .= ' s.STUDENT_ID';
                                       }
                                        $extra['columns_after'] =array('HONOR_ROLL'=>'Honor Roll');
                                }
                                elseif($_REQUEST['honor_roll']==986)
                                 {
+                                   if($_REQUEST['w_course_period_id'])
                                      $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE hr.VALUE=
-                                                                (SELECT if((ROUND(AVG(grade_percent))>=
-                                                                (SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE<=
-                                                                (SELECT ROUND(AVG(grade_percent)) FROM `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().' and `STUDENT_ID`=ssm.STUDENT_ID) order by hr.value desc limit 1)
-                                                                and ROUND(AVG(grade_percent))<
+                                                                (SELECT if(
+                                                                            (ROUND(AVG(srcg.grade_percent))>=(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE>=
+                                                                             (SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll="Y" and srcg.`STUDENT_ID`=ssm.STUDENT_ID) order by hr.value desc limit 1)
+                                                                and ROUND(AVG(srcg.grade_percent))<
                                                                 (SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE
-                                                                >(SELECT ROUND(AVG(grade_percent)) FROM `student_report_card_grades` WHERE `MARKING_PERIOD_ID`= '.UserMP().'
-                                                                and `STUDENT_ID`=ssm.STUDENT_ID) order by hr.value asc limit 1)),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE>(SELECT ROUND(AVG(grade_percent)) FROM `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                                and `STUDENT_ID`=ssm.STUDENT_ID) order by hr.value asc limit 1),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE<=(SELECT ROUND(AVG(grade_percent)) FROM `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
-                                                                and `STUDENT_ID`=ssm.STUDENT_ID) order by hr.value desc limit 1))
-                                                                FROM `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().' and `STUDENT_ID`=ssm.STUDENT_ID) )AS HONOR_ROLL';
+                                                                >(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll="Y"
+                                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID) order by hr.value asc limit 1)),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE>(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll=\'Y\'
+                                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID) order by hr.value asc limit 1),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE<=(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.course_period_id=\''.$_REQUEST['w_course_period_id'].'\' and cpp.does_honor_roll=\'Y\'
+                                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID) order by hr.value desc limit 1))
+                                                                FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y" and srcg.`STUDENT_ID`=ssm.STUDENT_ID) )AS HONOR_ROLL';
+                                  else
+                                      $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE hr.VALUE=
+                                                                (SELECT if(
+                                                                            (ROUND(AVG(srcg.grade_percent))>=(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE>=
+                                                                             (SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y" and srcg.`STUDENT_ID`=ssm.STUDENT_ID) order by hr.value desc limit 1)
+                                                                and ROUND(AVG(srcg.grade_percent))<
+                                                                (SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE
+                                                                >(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y"
+                                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID) order by hr.value asc limit 1)),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE>(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll=\'Y\'
+                                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID) order by hr.value asc limit 1),(SELECT hr.VALUE FROM honor_roll hr WHERE hr.VALUE<=(SELECT ROUND(AVG(srcg.grade_percent)) FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll=\'Y\'
+                                                                and srcg.`STUDENT_ID`=ssm.STUDENT_ID) order by hr.value desc limit 1))
+                                                                FROM `student_report_card_grades` srcg,course_periods cpp WHERE srcg.MARKING_PERIOD_ID = '.UserMp().' and srcg.course_period_id=cpp.course_period_id  and cpp.does_honor_roll="Y" and srcg.`STUDENT_ID`=ssm.STUDENT_ID) )AS HONOR_ROLL';
+//                                     $extra['SELECT'] .= ',(SELECT hr.TITLE FROM honor_roll hr WHERE hr.VALUE=(SELECT ROUND(AVG(grade_percent)) FROM
+//                                                `student_report_card_grades` WHERE `MARKING_PERIOD_ID` IN ('.GetAllMP(GetMPTable(GetMP($mp_id,'TABLE')),$mp_id).')
+//                                                and `STUDENT_ID`=ssm.STUDENT_ID))AS HONOR_ROLL';
 //                                    $extra['SELECT'] .= ',(SELECT pc.TITLE FROM program_config pc WHERE pc.VALUE=(SELECT ROUND(AVG(grade_percent)) FROM
 //                                                `student_report_card_grades` WHERE `MARKING_PERIOD_ID`='.UserMP().'
 //                                                and `STUDENT_ID`=ssm.STUDENT_ID))AS HONOR_ROLL';
                                     $extra['columns_after'] =array('HONOR_ROLL'=>'Honor Roll');
                                }
                                         $option =DBGet(DBQuery('SELECT TITLE,VALUE  FROM honor_roll WHERE SCHOOL_ID=\''.UserSchool().'\' AND SYEAR=\''.UserSyear().'\'  ORDER BY VALUE'));
-//                                        $options['986']='All';
+                                        $options['986']='All';
                                         foreach($option as $option_value){
                                                       $options[$option_value['VALUE']]=$option_value['TITLE'];
                                                   }
@@ -288,4 +406,6 @@ function MyWidgets($item)
                                         break;
 	}
 }
+
+
 ?>
